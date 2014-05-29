@@ -25,14 +25,9 @@ typedef struct obj {
 	struct obj *next;
 	//other object data
 } obj;
-typedef struct ship {
-	struct ship *next;
-	//other ship data
-} ship;
 typedef struct sector {
 	struct sector *nextsector;
 	struct obj *firstobj;
-	struct ship *firstship;
 	struct entity *firstentity;
 	long long int x;
 	long long int y;
