@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -O2 -c -pthread -ffast-math $(DEBUG)
-LFLAGS=-lSDL2 -lm -lrt -lGLEW -lGL -lGLU -pthread
+LFLAGS=-lm
 SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c
 OBJECTS=$(SOURCES:.c=.o)
 
