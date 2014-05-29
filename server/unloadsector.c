@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "globals.h"
 int unloadsector(long long int x, long long int y){
+	writesectortofile(x, y);
 	printf("unloadsector called %lld, %lld\n", x, y);
 	sector *conductor;
 	sector *tmp;
@@ -19,4 +20,7 @@ int unloadsector(long long int x, long long int y){
 	//free all branching lists
 	free(tmp);
 	return(0);
+}
+int writesectortofile(long long int x, long long int y){
+	//writedatshit
 }

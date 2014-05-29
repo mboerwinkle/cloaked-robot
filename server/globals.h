@@ -3,6 +3,7 @@ extern void interpretsector(long long int x, long long int y);
 extern int main();
 extern void gensector(long long int x, long long int y);
 extern void loadsector(long long int x, long long int y); 
+extern int writesectortofile(long long int x, long long int y);
 
 typedef struct obj {
 	struct obj *next;
