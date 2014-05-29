@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O2 -c -pthread -ffast-math $(DEBUG)
+CFLAGS=-Wall -O2 -c -ffast-math $(DEBUG)
 LFLAGS=-lm
 SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c
 OBJECTS=$(SOURCES:.c=.o)
@@ -23,16 +23,16 @@ interpret.o: interpret.c globals.h
 unloadsector.o: unloadsector.c globals.h
 	$(CC) $(CFLAGS) unloadsector.c
 
-field.o: field.c entity.h field.h
+field.o: field.c globals.h
 	$(CC) $(CFLAGS) field.c
 
-entity.o: entity.c entity.h field.h ais.h
+entity.o: entity.c globals.h
 	$(CC) $(CFLAGS) entity.c
 
-module.o: module.c entity.h field.h
+module.o: module.c globals.h
 	$(CC) $(CFLAGS) module.c
 
-ais.o: ais.c entity.h ais.h field.h
+ais.o: ais.c globals.h
 	$(CC) $(CFLAGS) ais.c
 
 clean:

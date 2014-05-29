@@ -1,8 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "entity.h"
-#include "field.h"
+#include "globals.h"
 #include <math.h>
 
 double zoom;
@@ -10,19 +9,17 @@ sector mySector;
 
 void initField(){
 	zoom = 1.0/250;
-	mySector.numEntities = 5;
-	mySector.entities = calloc(sizeof(entity*), mySector.numEntities);
+	mySector.firstentity = NULL;
 }
 
 void stopField(){
-	int i = 0;
-	for(; i < mySector.numEntities; i++){
-		if(mySector.entities[i]){
-			freeEntity(mySector.entities[i]);
-		}
+	entity *current = mySector.firstentity;
+	entity *tmp;
+	while(current){
+		tmp = current->next;
+		freeEntity(current);
+		current = tmp;
 	}
-	free(mySector.entities);
-	mySector.numEntities = 0;
 }
 
 void addEntity(entity* omgWtfLolBbq){
