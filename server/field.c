@@ -28,7 +28,7 @@ void addEntity(entity* omgWtfLolBbq){
 }
 
 void run(sector *sec){
-	entity *current = sec.firstentity;
+	entity *current = sec->firstentity;
 	entity *tmp;
 	while(current){
 		tmp = current->next;
