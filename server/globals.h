@@ -63,7 +63,7 @@ extern sector mySector;
 extern void initField();
 extern void stopField();
 extern void addEntity(entity* who);
-extern void run();
+extern void run(sector *sec);
 extern void draw();
 
 extern module turnModule;

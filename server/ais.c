@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <math.h>
-#include "entity.h"
-#include "ais.h"
-#include "field.h"
+#include "globals.h"
 
 void aiHuman(entity* who){
 	struct aiHumanData* data = (struct aiHumanData*)who->aiFuncData;

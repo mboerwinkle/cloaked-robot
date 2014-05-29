@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <math.h>
-#include "entity.h"
-#include "field.h"
+#include "globals.h"
 
 module turnModule;
 module thrustModule;
@@ -49,13 +48,10 @@ static void missileAct(entity* who, int ix, double energy){
 	if(*charge < 10) return;
 	*charge -= 10;
 	entity* what = newEntity(1, who->x, who->y);
-	entity* target = NULL;
-	int i = 0;
-	for(; i < mySector.numEntities; i++){
-		if(mySector.entities[i] != who){
-			target = mySector.entities[i];
-			break;
-		}
+	entity* target = mySector.firstentity;
+	while(target){
+		if(target != who) break;
+		target = target->next;
 	}
 	what->vx = who->vx;
 	what->vy = who->vy;
