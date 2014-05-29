@@ -1,0 +1,112 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <math.h>
+#include "entity.h"
+#include "module.h"
+#include "field.h"
+#include "ais.h"
+
+entity* newEntity(int type, double x, double y){
+	entity* ret = malloc(sizeof(entity));
+	ret->x = x;
+	ret->y = y;
+	ret->vx = ret->vy = ret->theta = ret->omega = 0;
+	ret->sinTheta = 0;
+	ret->cosTheta = 1;
+	if(type == 0){
+		ret->aiFunc = aiHuman;
+		ret->aiFuncData = malloc(sizeof(struct aiHumanData));
+		((struct aiHumanData*)ret->aiFuncData)->player = -1;
+		ret->r = 20;
+		ret->numModules = 4;
+		ret->modules = calloc(4, sizeof(void *));
+		ret->moduleDatas = calloc(4, sizeof(void*));
+		(*thrustModule.initFunc)(ret, 0, 0.06);
+		(*turnModule.initFunc)(ret, 1, -0.04);
+		(*turnModule.initFunc)(ret, 2, 0.04);
+		(*missileModule.initFunc)(ret, 3, 1);
+	}else if(type == 1){
+		ret->aiFunc = aiMissile;
+		ret->aiFuncData = malloc(sizeof(int*));
+		ret->r = 5;
+		ret->numModules = 0;
+	}
+	return ret;
+}
+
+void tick(entity* who){
+	if(who->aiFunc) (*who->aiFunc)(who);
+	if(who->vx!=0 || who->vy!=0){
+		double vx = who->vx;
+		double vy = who->vy;
+		double v = sqrt(vx*vx + vy*vy);
+		vx /= v;
+		vy /= v;
+		entity *otherGuy, *collision = NULL;
+		double minDist = v;
+		int i = 0;
+		for(; i < mySector.numEntities; i++){
+			otherGuy = mySector.entities[i];
+			if(otherGuy == NULL || otherGuy == who) continue;
+			double dx = otherGuy->x - who->x;
+			double dy = otherGuy->y - who->y;
+			double offset = fabs(dx*vy - dy*vx);
+			double r = who->r + otherGuy->r;
+			if(offset >= r) continue;
+			double dist = dx*vx + dy*vy - sqrt(r*r-offset*offset);
+			if(dist<-0.00000001 || dist >= minDist) continue;
+			minDist = dist;
+			collision = otherGuy;
+		}
+		who->x += vx*minDist;
+		who->y += vy*minDist;
+		if(collision){
+			double dx = collision->x - who->x;
+			double dy = collision->y - who->y;
+			double d = sqrt(dx*dx+dy*dy);
+			dx/=d;
+			dy/=d;
+			double dvel = (who->vx-collision->vx)*dx+(who->vy-collision->vy)*dy;
+			if(dvel > 0){
+				double m1 = who->r;// * who->r;
+				double m2 = collision->r;// * collision->r;
+				dvel *= 2*m1/(m1+m2);
+				collision->vx += dvel*dx;
+				collision->vy += dvel*dy;
+				dvel *= -m2/m1;
+				who->vx += dvel*dx;
+				who->vy += dvel*dy;
+			}
+		}
+	}
+	who->theta += who->omega;
+	while(who->theta > M_PI) who->theta -= 2*M_PI;
+	while(who->theta < -M_PI) who->theta += 2*M_PI;
+	who->sinTheta = sin(who->theta);
+	who->cosTheta = cos(who->theta);
+}
+
+void drawEntity(entity* who, double cx, double cy, double zoom){
+//	setColorWhite();
+	double x = (who->x - cx)*zoom;
+	double y = (who->y - cy)*zoom;
+	double r = who->r*zoom;
+//	drawCircle(x, y, r);
+//	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x-r*who->sinTheta, y+r*who->cosTheta);
+//	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x+r*who->sinTheta, y-r*who->cosTheta);
+}
+
+void thrust(entity* who, double amt){
+	who->vx += amt*who->cosTheta;
+	who->vy += amt*who->sinTheta;
+}
+
+void freeEntity(entity* who){
+	if(who->aiFuncData) free(who->aiFuncData);
+	int i = 0;
+	for(; i < who->numModules; i++){
+		if(who->modules[i]) (*who->modules[i]->cleanupFunc)(who, i);
+	}
+	free(who);
+}
