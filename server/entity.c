@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
-#include "entity.h"
-#include "module.h"
-#include "field.h"
-#include "ais.h"
+#include "globals.h"
 
 entity* newEntity(int type, double x, double y){
 	entity* ret = malloc(sizeof(entity));
@@ -43,12 +40,14 @@ void tick(entity* who){
 		double v = sqrt(vx*vx + vy*vy);
 		vx /= v;
 		vy /= v;
-		entity *otherGuy, *collision = NULL;
+		entity *otherGuy = mySector.firstentity, *collision = NULL;
 		double minDist = v;
-		int i = 0;
-		for(; i < mySector.numEntities; i++){
-			otherGuy = mySector.entities[i];
-			if(otherGuy == NULL || otherGuy == who) continue;
+
+		while(otherGuy){
+			if(otherGuy == who){
+				otherGuy = otherGuy->next;
+				continue;
+			}
 			double dx = otherGuy->x - who->x;
 			double dy = otherGuy->y - who->y;
 			double offset = fabs(dx*vy - dy*vx);
@@ -58,6 +57,7 @@ void tick(entity* who){
 			if(dist<-0.00000001 || dist >= minDist) continue;
 			minDist = dist;
 			collision = otherGuy;
+			otherGuy = otherGuy->next;
 		}
 		who->x += vx*minDist;
 		who->y += vy*minDist;
