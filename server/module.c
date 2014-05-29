@@ -29,9 +29,9 @@ static void realCleanup(entity* who, int ix){
 	who->modules[ix] = NULL;
 }
 
-static void fauxCleanup(entity* who, int ix){
+/*static void fauxCleanup(entity* who, int ix){
 	who->modules[ix] = NULL;
-}
+}*/
 
 static void turnAct(entity* who, int ix, double energy){
 	who->theta += *((double*)who->moduleDatas[ix])*energy;
