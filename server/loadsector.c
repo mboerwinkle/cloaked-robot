@@ -43,7 +43,6 @@ void loadsector(long long int x, long long int y){
 
 	conductor->nextsector = NULL;
 	conductor->firstobj = NULL;
-	conductor->firstship = NULL;
 	conductor->firstentity = NULL;
 	conductor->x = x;
 	conductor->y = y;
