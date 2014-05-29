@@ -59,7 +59,7 @@ extern void initField();
 extern void stopField();
 extern void addEntity(entity* who);
 extern void run(sector *sec);
-extern void draw();
+//extern void draw();
 
 extern module turnModule;
 extern module thrustModule;

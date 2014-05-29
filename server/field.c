@@ -37,7 +37,7 @@ void run(sector *sec){
 	}
 }
 
-void draw(){
+/*void draw(){
 	entity *current = mySector.firstentity;
 	entity *tmp;
 	while(current){
@@ -45,4 +45,4 @@ void draw(){
 		drawEntity(current, 0, 0, zoom);
 		current = tmp;
 	}
-}
+}*/
