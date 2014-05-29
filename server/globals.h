@@ -48,7 +48,7 @@ typedef struct module{
 
 extern entity* newEntity(int type, double x, double y);
 extern void tick(entity* who);
-extern void drawEntity(entity* who, double x, double y, double zoom);
+//extern void drawEntity(entity* who, double x, double y, double zoom);
 extern void thrust(entity* who, double amt);
 extern void freeEntity(entity* who);
 
