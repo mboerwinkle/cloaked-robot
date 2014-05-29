@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include "globals.h"
+
 int main(){
 	listrootsector = malloc(sizeof(sector));
 	listrootsector->nextsector = NULL;
