@@ -23,4 +23,5 @@ int unloadsector(long long int x, long long int y){
 }
 int writesectortofile(long long int x, long long int y){
 	//writedatshit
+	return(0);
 }
