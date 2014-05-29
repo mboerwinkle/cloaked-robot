@@ -87,15 +87,15 @@ void tick(entity* who){
 	who->cosTheta = cos(who->theta);
 }
 
-void drawEntity(entity* who, double cx, double cy, double zoom){
-//	setColorWhite();
+/*void drawEntity(entity* who, double cx, double cy, double zoom){
+	setColorWhite();
 	double x = (who->x - cx)*zoom;
 	double y = (who->y - cy)*zoom;
 	double r = who->r*zoom;
-//	drawCircle(x, y, r);
-//	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x-r*who->sinTheta, y+r*who->cosTheta);
-//	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x+r*who->sinTheta, y-r*who->cosTheta);
-}
+	drawCircle(x, y, r);
+	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x-r*who->sinTheta, y+r*who->cosTheta);
+	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x+r*who->sinTheta, y-r*who->cosTheta);
+}*/
 
 void thrust(entity* who, double amt){
 	who->vx += amt*who->cosTheta;
