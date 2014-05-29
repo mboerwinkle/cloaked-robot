@@ -14,6 +14,8 @@ int main(){
 	unloadsector(1,-2);
 	unloadsector(5,4);
 	unloadsector(1,1);
-	
+	while(1){
+		run();
+	}
 	return(0);
 }
