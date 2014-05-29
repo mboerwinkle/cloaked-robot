@@ -23,28 +23,26 @@ void stopField(){
 }
 
 void addEntity(entity* omgWtfLolBbq){
-	int i = 0;
-	for(; i < mySector.numEntities; i++){
-		if(mySector.entities[i]) continue;
-		mySector.entities[i] = omgWtfLolBbq;
-		return;
-	}
-	mySector.entities = realloc(mySector.entities, sizeof(entity*)*(mySector.numEntities+=5));
-	mySector.entities[i] = omgWtfLolBbq;
-	for(i++; i<mySector.numEntities; i++) mySector.entities[i] = NULL;
-	return;
+	omgWtfLolBbq->next = mySector.firstentity;
+	mySector.firstentity = omgWtfLolBbq;
 }
 
-void run(){
-	int i = 0;
-	for(; i < mySector.numEntities; i++){
-		if(mySector.entities[i]) tick(mySector.entities[i]);
+void run(sector *sec){
+	entity *current = sec->firstentity;
+	entity *tmp;
+	while(current){
+		tmp = current->next;
+		tick(current);
+		current = tmp;
 	}
 }
 
 void draw(){
-	int i = 0;
-	for(; i < mySector.numEntities; i++){
-		if(mySector.entities[i]) drawEntity(mySector.entities[i], 0, 0, zoom);
+	entity *current = mySector.firstentity;
+	entity *tmp;
+	while(current){
+		tmp = current->next;
+		drawEntity(current, 0, 0, zoom);
+		current = tmp;
 	}
 }
