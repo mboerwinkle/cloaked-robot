@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -O2 -c -ffast-math $(DEBUG)
 LFLAGS=-lm
-SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c mkship.c
+SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c
 OBJECTS=$(SOURCES:.c=.o)
 
 .PHONY: all debug remake clean
@@ -19,6 +19,9 @@ mkship.o: mkship.c globals.h
 
 loadsector.o: loadsector.c globals.h
 	$(CC) $(CFLAGS) loadsector.c
+
+loadship.o: loadship.c globals.h
+	$(CC) $(CFLAGS) loadship.c
 
 interpret.o: interpret.c globals.h
 	$(CC) $(CFLAGS) interpret.c

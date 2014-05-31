@@ -6,7 +6,8 @@ extern int main();
 extern void gensector(long long int x, long long int y);
 extern void loadsector(long long int x, long long int y); 
 extern int writesectortofile(long long int x, long long int y);
-extern int mkship(char[MAXNAMELEN]);
+extern int mkship(char *name);
+extern int loadship(char *name);
 
 struct module;
 
