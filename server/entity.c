@@ -8,7 +8,7 @@ entity* newEntity(int type, double x, double y){
 	entity* ret = malloc(sizeof(entity));
 	ret->x = x;
 	ret->y = y;
-	ret->vx = ret->vy = ret->theta = ret->omega = 0;
+	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
 	if(type == 0){
@@ -80,11 +80,8 @@ void tick(entity* who){
 			}
 		}
 	}
-	who->theta += who->omega;
-	while(who->theta > M_PI) who->theta -= 2*M_PI;
-	while(who->theta < -M_PI) who->theta += 2*M_PI;
-	who->sinTheta = sin(who->theta);
-	who->cosTheta = cos(who->theta);
+	who->sinTheta = sin(who->theta * (2*PI/16));
+	who->cosTheta = cos(who->theta * (2*PI/16));
 }
 
 /*void drawEntity(entity* who, double cx, double cy, double zoom){
