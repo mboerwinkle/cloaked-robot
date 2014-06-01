@@ -47,7 +47,7 @@ extern void aiMissile(entity* who);
 
 typedef struct module{
 	void (*initFunc)(entity* who, int ix, double value);
-	void (*actFunc)(entity* who, int ix, double energy);
+	void (*actFunc)(entity* who, int ix, double energy, char action);
 	void (*cleanupFunc)(entity* who, int ix);
 }module;
 

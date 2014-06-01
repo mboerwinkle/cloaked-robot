@@ -48,19 +48,22 @@ void tick(entity* who){
 				otherGuy = otherGuy->next;
 				continue;
 			}
-			double dx = otherGuy->x - who->x;
-			double dy = otherGuy->y - who->y;
+			int dx = otherGuy->x - who->x;
+			int dy = otherGuy->y - who->y;
 			double offset = fabs(dx*vy - dy*vx);
 			double r = who->r + otherGuy->r;
 			if(offset >= r) continue;
 			double dist = dx*vx + dy*vy - sqrt(r*r-offset*offset);
-			if(dist<-0.00000001 || dist >= minDist) continue;
+			if(dist<0 || dist >= minDist){
+				otherGuy = otherGuy->next;
+				continue;
+			}
 			minDist = dist;
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
-		who->x += vx*minDist;
-		who->y += vy*minDist;
+		who->x += trunc(vx*minDist);
+		who->y += trunc(vy*minDist);
 		if(collision){
 			double dx = collision->x - who->x;
 			double dy = collision->y - who->y;
