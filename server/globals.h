@@ -13,10 +13,11 @@ struct module;
 
 typedef struct entity{
 	struct entity *next;
-	double x, y, vx, vy, r;
+	double vx, vy, r;
+	long int x, y;
 	double shield, maxShield;
 	double energy, maxEnergy;
-	double theta, omega;
+	char theta;
 	double sinTheta, cosTheta;
 	void (*aiFunc)(struct entity*);
 	void* aiFuncData;
