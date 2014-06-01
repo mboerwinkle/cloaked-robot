@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "globals.h"
 int mkship(char name[MAXNAMELEN]){
-	char path[MAXNAMELEN+6];
+	char path[MAXNAMELEN + 6];
 	FILE *fp;
 	sprintf(path, "ships/%s", name);
 	if((fp = fopen(path, "r")) != NULL){
