@@ -18,8 +18,7 @@ void gensector(long long int x, long long int y){//only called from loadsector
 	printf("done generating (%s)\n", name);
 }
 void loadsector(long long int x, long long int y){
-	sector *conductor;
-	conductor = listrootsector;
+	sector *new = malloc(sizeof(sector));
 	FILE *fp;
 	char name[35];
 	sprintf(name, "sectors/%llX_%llX", x, y);//makes hexadecimal file name
@@ -35,17 +34,13 @@ void loadsector(long long int x, long long int y){
 		fp = NULL;
 	}
 
-	while(conductor->nextsector != NULL){
-		conductor = conductor->nextsector;
-	}
-	conductor->nextsector = malloc(sizeof(sector));
-	conductor = conductor->nextsector;
+	new->nextsector = listrootsector;
+	listrootsector = new;
 
-	conductor->nextsector = NULL;
-	conductor->firstobj = NULL;
-	conductor->firstentity = NULL;
-	conductor->x = x;
-	conductor->y = y;
+	listrootsector->firstobj = NULL;
+	listrootsector->firstentity = NULL;
+	listrootsector->x = x;
+	listrootsector->y = y;
 
 	interpretsector(x, y);
 }

@@ -6,14 +6,13 @@
 
 int main(){
 	sector *conductor;
-	listrootsector = malloc(sizeof(sector));
-	listrootsector->nextsector = NULL;
+	listrootsector = NULL;
 	//start network listening thread
 	while(1){
 		conductor = listrootsector;
-		while(conductor->nextsector != NULL){
-			conductor = conductor->nextsector;
+		while(conductor != NULL){
 			run(conductor);
+			conductor = conductor->nextsector;
 		}
 	}
 	return(0);

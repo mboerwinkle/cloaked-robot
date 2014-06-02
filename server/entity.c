@@ -80,8 +80,8 @@ void tick(entity* who){
 			}
 		}
 	}
-	who->sinTheta = sin(who->theta * (2*PI/16));
-	who->cosTheta = cos(who->theta * (2*PI/16));
+	who->sinTheta = sin(who->theta * (2*M_PI/16));
+	who->cosTheta = cos(who->theta * (2*M_PI/16));
 }
 
 /*void drawEntity(entity* who, double cx, double cy, double zoom){

@@ -6,12 +6,20 @@ int loadship(char name[MAXNAMELEN]){
 	FILE *fp;
 	long long int secx, secy;
 	long int posx, posy;
-	sector
+	sector *conductor;
 	sprintf(path, "ships/%s", name);
 	if((fp = fopen(path, "r")) == NULL){
 		return(-1);
 	}
-	fscanf(fp, "%X_%X\n%ld %ld", secx, secy, posx, posy);
+	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
+	fclose(fp);
+	conductor = listrootsector;
+	while(conductor != NULL && (conductor->x != secx || conductor->y != secy)){
+		conductor = conductor->nextsector;
+	}
+	if(conductor->nextsector == NULL){
+		loadsector(secx, secy);
+	}
 	
 	return(0);
 }
