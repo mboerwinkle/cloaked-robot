@@ -8,8 +8,7 @@ module missileModule;
 
 static void turnInit(entity* who, int ix, double value){
 	who->modules[ix] = &turnModule;
-	who->moduleDatas[ix] = malloc(sizeof(double));
-	*(double*)who->moduleDatas[ix] = value;
+	who->moduleDatas[ix] = calloc(1, sizeof(double));
 }
 
 static void thrustInit(entity* who, int ix, double value){
@@ -32,21 +31,24 @@ static void realCleanup(entity* who, int ix){
 	who->modules[ix] = NULL;
 }*/
 
-static void turnAct(entity* who, int ix, double energy){
-	who->theta += *((double*)who->moduleDatas[ix])*energy;
-	while(who->theta > 2*M_PI) who->theta -= 2*M_PI;
-	while(who->theta < -2*M_PI) who->theta += 2*M_PI;
-}
-
-static void thrustAct(entity* who, int ix, double energy){
-	thrust(who, *((double*)who->moduleDatas[ix])*energy);
-}
-
-static void missileAct(entity* who, int ix, double energy){
+static void turnAct(entity* who, int ix, double energy, char action){
 	double* charge = (double*)who->moduleDatas[ix];
-	*charge += 1.0;
-	if(*charge < 10) return;
-	*charge -= 10;
+	*charge += energy;
+	if(*charge < 10 || !action) return;
+	who->theta += action;
+	while(who->theta >= 16) who->theta -= 16;
+	while(who->theta < 0) who->theta += 16;
+}
+
+static void thrustAct(entity* who, int ix, double energy, char action){
+	if(action) thrust(who, *((double*)who->moduleDatas[ix])*energy);
+}
+
+static void missileAct(entity* who, int ix, double energy, char action){
+	double* charge = (double*)who->moduleDatas[ix];
+	*charge += energy;
+	if(*charge < 10 || !action) return;
+	*charge = 0;
 	entity* what = newEntity(1, who->x, who->y);
 	entity* target = mySector.firstentity;
 	while(target){
