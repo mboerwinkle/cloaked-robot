@@ -27,7 +27,10 @@ entity* newEntity(int type, double x, double y){
 		ret->aiFunc = aiMissile;
 		ret->aiFuncData = malloc(sizeof(int*));
 		ret->r = 5;
-		ret->numModules = 0;
+		ret->numModules = 1;
+		ret->modules = calloc(1, sizeof(void *));
+		ret->moduleDatas = calloc(1, sizeof(void *));
+		(*turnModule.initFunc)(ret, 0, 0);
 	}
 	return ret;
 }
@@ -83,8 +86,8 @@ void tick(entity* who){
 			}
 		}
 	}
-	who->sinTheta = sin(who->theta * (2*PI/16));
-	who->cosTheta = cos(who->theta * (2*PI/16));
+	who->sinTheta = sin(who->theta * (2*M_PI/16));
+	who->cosTheta = cos(who->theta * (2*M_PI/16));
 }
 
 /*void drawEntity(entity* who, double cx, double cy, double zoom){

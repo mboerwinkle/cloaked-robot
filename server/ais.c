@@ -12,17 +12,13 @@ void aiHuman(entity* who){
 	if(myKeys[p][4]) (*who->modules[3]->actFunc)(who, 3, 1);*/
 }
 
-#define MISSILESPIN 0.01
 void aiMissile(entity* who){
 	entity* target = *((entity**)who->aiFuncData);
 	if(target == NULL) return;
 
 	thrust(who, .06);
-	double expectedFinalAngle;
-	if(who->omega > 0) expectedFinalAngle = who->theta + 0.5*who->omega*who->omega/MISSILESPIN*1.2;
-	else  expectedFinalAngle = who->theta - 0.5*who->omega*who->omega/MISSILESPIN*1.2;
-	double unx = -cos(expectedFinalAngle);
-	double uny = -sin(expectedFinalAngle);
+	double unx = -cos(who->theta*(2*M_PI/16));
+	double uny = -sin(who->theta*(2*M_PI/16));
 
 	double dy = target->y - who->y;
 	double dx = target->x - who->x;
@@ -36,10 +32,10 @@ void aiMissile(entity* who){
 	double vy = dvx*unx + dvy*uny;
 	double vx = dvy*unx - dvx*uny;
 
-	double spin = MISSILESPIN;
+	char spin = 1;
 	if(vx == 0){
-		if((x>0) ^ (vy>0)) who->omega -= spin;
-		else who->omega += spin;
+		if((x>0) ^ (vy>0)) (*who->modules[0]->actFunc)(who, 0, 1, -spin);
+		else (*who->modules[0]->actFunc)(who, 0, 1, spin);
 		return;
 	}
 	if(vx<0){
@@ -49,11 +45,11 @@ void aiMissile(entity* who){
 	}
 
 	if(x<0){
-		who->omega += spin;
+		(*who->modules[0]->actFunc)(who, 0, 1, spin);
 		return;
 	}
 	double t = x/vx;
-	if(vy*t-0.03*t*t < y) who->omega -= spin;
-	else who->omega += spin;
+	if(vy*t-0.03*t*t < y) (*who->modules[0]->actFunc)(who, 0, 1, -spin);
+	else (*who->modules[0]->actFunc)(who, 0, 1, spin);
 	return;
 }

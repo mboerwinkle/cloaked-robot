@@ -8,8 +8,7 @@ module missileModule;
 
 static void turnInit(entity* who, int ix, double value){
 	who->modules[ix] = &turnModule;
-	who->moduleDatas[ix] = malloc(sizeof(double));
-	*(double*)who->moduleDatas[ix] = value;
+	who->moduleDatas[ix] = calloc(1, sizeof(double));
 }
 
 static void thrustInit(entity* who, int ix, double value){
