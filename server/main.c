@@ -7,6 +7,7 @@
 int main(){
 	sector *conductor;
 	listrootsector = NULL;
+	initModules();
 	//start network listening thread
 	mkship("yo");
 	loadship("yo");

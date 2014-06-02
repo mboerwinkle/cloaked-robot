@@ -7,12 +7,12 @@ int loadship(char name[MAXNAMELEN]){
 	long long int secx, secy;
 	long int posx, posy;
 	sector *conductor;
-	entity *newship = malloc(sizeof(entity));
 	sprintf(path, "ships/%s", name);
 	if((fp = fopen(path, "r")) == NULL){
 		return(-1);
 	}
 	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
+	entity *newship = newEntity(0, posx, posy);
 	fclose(fp);
 	conductor = listrootsector;
 	while(conductor != NULL && (conductor->x != secx || conductor->y != secy)){

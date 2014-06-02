@@ -4,7 +4,7 @@
 #include <math.h>
 #include "globals.h"
 
-entity* newEntity(int type, double x, double y){
+entity* newEntity(int type, long int x, long int y){
 	entity* ret = malloc(sizeof(entity));
 	ret->x = x;
 	ret->y = y;
