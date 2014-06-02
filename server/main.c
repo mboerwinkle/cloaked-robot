@@ -8,6 +8,8 @@ int main(){
 	sector *conductor;
 	listrootsector = NULL;
 	//start network listening thread
+	mkship("yo");
+	loadship("yo");
 	while(1){
 		conductor = listrootsector;
 		while(conductor != NULL){
