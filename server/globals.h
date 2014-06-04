@@ -1,4 +1,5 @@
 #define MAXNAMELEN 10
+#define NUMKEYS 5
 
 extern int unloadsector(long long int x, long long int y);
 extern void interpretsector(long long int x, long long int y);
@@ -15,8 +16,12 @@ typedef struct entity{
 	struct entity *next;
 	double vx, vy, r;
 	long int x, y;
+
 	double shield, maxShield;
 	double energy, maxEnergy;
+	int turn, maxTurn;
+	double thrust;
+
 	char theta;
 	double sinTheta, cosTheta;
 	void (*aiFunc)(struct entity*);
