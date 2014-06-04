@@ -71,3 +71,5 @@ extern module thrustModule;
 extern module missileModule;
 
 extern void initModules();
+
+extern void* netListen(void* arg);

@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "globals.h"
 
 int main(){
@@ -9,6 +10,8 @@ int main(){
 	listrootsector = NULL;
 	initModules();
 	//start network listening thread
+	pthread_t id;
+	pthread_create(&id, NULL, netListen, NULL);
 	mkship("yo");
 	loadship("yo");
 	while(1){
