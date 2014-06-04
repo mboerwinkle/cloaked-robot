@@ -6,9 +6,9 @@
 #include "globals.h"
 //35 is the length of two long long ints in hex (with possible "-" signs) separated with an underscore
 void gensector(long long int x, long long int y){//only called from loadsector
+	printf("gensector called (%lld, %lld)\n", x, y);
 	char name[35];
 	sprintf(name, "sectors/%llX_%llX", x, y);
-	printf("gensector called (%s)\n", name);
 	FILE *fp;
 	fp = fopen(name, "w");
 	//fprintf(fp, "sector\n");
@@ -18,11 +18,11 @@ void gensector(long long int x, long long int y){//only called from loadsector
 	printf("done generating (%s)\n", name);
 }
 void loadsector(long long int x, long long int y){
+	printf("loadsector called (%lld, %lld)\n", x, y);
 	sector *new = malloc(sizeof(sector));
 	FILE *fp;
 	char name[35];
 	sprintf(name, "sectors/%llX_%llX", x, y);//makes hexadecimal file name
-	printf("loadsector called (%s)\n", name);
 
 	if((fp = fopen(name, "r")) == NULL){
 		printf("sector %s does not exist, generating\n", name);
