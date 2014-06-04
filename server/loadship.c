@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 int loadship(char name[MAXNAMELEN]){
+	printf("loadship called (%s)\n", name);
 	char path[MAXNAMELEN + 6];
 	FILE *fp;
 	long long int secx, secy;

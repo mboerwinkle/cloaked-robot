@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "globals.h"
 int mkship(char name[MAXNAMELEN]){
+	printf("mkship called (%s)\n", name);
 	char path[MAXNAMELEN + 6];
 	FILE *fp;
 	sprintf(path, "ships/%s", name);
@@ -13,7 +14,6 @@ int mkship(char name[MAXNAMELEN]){
 		return(-1);
 	}
 	fp = fopen(path, "w");
-	printf("%s\n", path);
 	fprintf(fp, "0_0\n7000 7000");
 	fclose(fp);
 	return(0);
