@@ -40,6 +40,7 @@ void* netListen(void* whoGivesADern){
 			}
 		}
 		if(current == NULL){//That is, he isn't joined yet
+			puts(msg);
 			if(*msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
 			printf("He requested ship %s\n", msg+1);
 			client* new = malloc(sizeof(client));
