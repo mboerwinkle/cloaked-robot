@@ -42,8 +42,8 @@ void myDrawScreen(){
 }
 
 static void spKeyAction(int bit, char pressed){
-	char tmp = '3';
-	sendto(sockfd, &tmp, 1, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+	char* tmp = "]yo";
+	sendto(sockfd, &tmp, 4, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 }
 
 int main(int argc, char** argv){

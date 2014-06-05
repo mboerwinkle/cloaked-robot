@@ -51,8 +51,8 @@ void tick(entity* who){
 				otherGuy = otherGuy->next;
 				continue;
 			}
-			int dx = otherGuy->x - who->x;
-			int dy = otherGuy->y - who->y;
+			long int dx = otherGuy->x - who->x;
+			long int dy = otherGuy->y - who->y;
 			double offset = fabs(dx*vy - dy*vx);
 			double r = who->r + otherGuy->r;
 			if(offset >= r) continue;

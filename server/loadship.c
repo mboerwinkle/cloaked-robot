@@ -1,7 +1,8 @@
 #include "globals.h"
 #include <stdlib.h>
 #include <stdio.h>
-int loadship(char name[MAXNAMELEN]){
+
+entity *loadship(char name[MAXNAMELEN]){
 	printf("loadship called (%s)\n", name);
 	char path[MAXNAMELEN + 6];
 	FILE *fp;
@@ -10,7 +11,7 @@ int loadship(char name[MAXNAMELEN]){
 	sector *conductor;
 	sprintf(path, "ships/%s", name);
 	if((fp = fopen(path, "r")) == NULL){
-		return(-1);
+		return NULL;
 	}
 	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
 	entity *newship = newEntity(0, posx, posy);
@@ -20,5 +21,5 @@ int loadship(char name[MAXNAMELEN]){
 	newship->next = conductor->firstentity;
 	conductor->firstentity = newship;
 	conductor->number++;
-	return(0);
+	return newship;
 }

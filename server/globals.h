@@ -1,13 +1,15 @@
 #define MAXNAMELEN 10
 #define NUMKEYS 5
 
+struct entity;
+
 extern void interpretsector(long long int x, long long int y);
 extern int main();
 extern void gensector(long long int x, long long int y);
 extern void loadsector(long long int x, long long int y); 
 extern int writesectortofile(long long int x, long long int y);
 extern int mkship(char *name);
-extern int loadship(char *name);
+extern struct entity* loadship(char *name);
 extern void move(long long int xorigin, long long int yorigin, long long int xfinal, long long int yfinal);
 extern void appear(long long int x, long long int y);
 extern void disappear(long long int x, long long int y);

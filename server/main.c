@@ -12,8 +12,8 @@ int main(){
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
-	mkship("yo");
-	loadship("yo");
+//	mkship("yo");
+//	loadship("yo");
 	while(1){
 		conductor = listrootsector;
 		while(conductor != NULL){
