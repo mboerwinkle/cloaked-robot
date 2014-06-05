@@ -4,7 +4,6 @@
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
-#include <sys/select.h>
 #include <netinet/in.h>
 
 typedef struct client{
@@ -13,7 +12,7 @@ typedef struct client{
 	struct sockaddr_in addr;
 }client;
 
-client* clientList = NULL;
+static client* clientList = NULL;
 
 void* netListen(void* whoGivesADern){
 	puts("So, yeah, threading.");
