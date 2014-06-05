@@ -15,22 +15,22 @@ entity* newEntity(int type, long int x, long int y){
 		ret->aiFunc = aiHuman;
 		ret->aiFuncData = malloc(sizeof(struct aiHumanData));
 		((struct aiHumanData*)ret->aiFuncData)->player = -1;
-		ret->r = 20;
+		ret->r = 2000;
 		ret->numModules = 4;
 		ret->modules = calloc(4, sizeof(void *));
 		ret->moduleDatas = calloc(4, sizeof(void*));
-		(*thrustModule.initFunc)(ret, 0, 0.06);
-		(*turnModule.initFunc)(ret, 1, -0.04);
-		(*turnModule.initFunc)(ret, 2, 0.04);
+		ret->thrust = 6;
+		ret->maxTurn = 9;
 		(*missileModule.initFunc)(ret, 3, 1);
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
 		ret->aiFuncData = malloc(sizeof(int*));
 		ret->r = 5;
-		ret->numModules = 1;
-		ret->modules = calloc(1, sizeof(void *));
-		ret->moduleDatas = calloc(1, sizeof(void *));
-		(*turnModule.initFunc)(ret, 0, 0);
+		ret->numModules = 0;
+		ret->modules = NULL;
+		ret->moduleDatas = NULL;
+		ret->thrust = 7;
+		ret->maxTurn = 12;
 	}
 	return ret;
 }
@@ -100,9 +100,21 @@ void tick(entity* who){
 	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x+r*who->sinTheta, y-r*who->cosTheta);
 }*/
 
-void thrust(entity* who, double amt){
-	who->vx += amt*who->cosTheta;
-	who->vy += amt*who->sinTheta;
+void thrust(entity* who){
+	who->vx += who->thrust*who->cosTheta;
+	who->vy += who->thrust*who->sinTheta;
+}
+
+void turn(entity* who, char dir){
+	who->turn += dir;
+	if(who->turn >= who->maxTurn){
+		who->turn += 1 - 2*who->maxTurn;
+		if(++who->theta >= 16) who->theta-=16;
+	}
+	else if(who->turn <= -who->maxTurn){
+		who->turn -= 1 - 2*who->maxTurn;
+		if(--who->theta < 0) who->theta+=16;
+	}
 }
 
 void freeEntity(entity* who){
