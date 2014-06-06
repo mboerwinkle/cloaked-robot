@@ -11,6 +11,7 @@ entity* newEntity(int type, long int x, long int y){
 	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
+	ret->turn = 0;
 	if(type == 0){
 		ret->aiFunc = aiHuman;
 		ret->aiFuncData = malloc(sizeof(struct aiHumanData));
