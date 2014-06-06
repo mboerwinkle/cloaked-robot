@@ -16,7 +16,7 @@ void aiMissile(entity* who){
 	entity* target = *((entity**)who->aiFuncData);
 	if(target == NULL) return;
 
-	thrust(who, who->thrust);
+	thrust(who);
 	double unx = -cos(who->theta*(2*M_PI/16));
 	double uny = -sin(who->theta*(2*M_PI/16));
 
