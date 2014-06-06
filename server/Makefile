@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -O2 -c -ffast-math $(DEBUG)
 LFLAGS=-lm -pthread
-SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c
+SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c move.c searchforsector.c
 OBJECTS=$(SOURCES:.c=.o)
 
 .PHONY: debug remake clean
@@ -41,6 +41,12 @@ ais.o: ais.c globals.h
 
 networking.o: networking.c globals.h
 	$(CC) $(CFLAGS) networking.c
+
+move.o: move.c globals.h
+	$(CC) $(CFLAGS) move.c
+
+searchforsector.o: searchforsector.c globals.h
+	$(CC) $(CFLAGS) searchforsector.c
 
 clean:
 	rm -f *.o run

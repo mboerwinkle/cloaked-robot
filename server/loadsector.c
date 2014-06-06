@@ -37,6 +37,7 @@ void loadsector(long long int x, long long int y){
 	new->nextsector = listrootsector;
 	listrootsector = new;
 
+	listrootsector->number = 1;
 	listrootsector->firstobj = NULL;
 	listrootsector->firstentity = NULL;
 	listrootsector->x = x;

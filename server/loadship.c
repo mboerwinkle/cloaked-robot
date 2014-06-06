@@ -15,16 +15,10 @@ int loadship(char name[MAXNAMELEN]){
 	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
 	entity *newship = newEntity(0, posx, posy);
 	fclose(fp);
-	conductor = listrootsector;
-	while(conductor != NULL && (conductor->x != secx || conductor->y != secy)){
-		conductor = conductor->nextsector;
-	}
-	if(conductor == NULL){
-		loadsector(secx, secy);
-		conductor = listrootsector;
-	}
+	appear(secx, secy);
+	conductor = searchforsector(secx, secy);
 	newship->next = conductor->firstentity;
 	conductor->firstentity = newship;
-	
+	conductor->number++;
 	return(0);
 }

@@ -17,7 +17,12 @@ int main(){
 	while(1){
 		conductor = listrootsector;
 		while(conductor != NULL){
-			run(conductor);
+			if(conductor->number > 0){
+				run(conductor);
+			}
+			else{
+				unloadsector(conductor);
+			}
 			conductor = conductor->nextsector;
 		}
 	}

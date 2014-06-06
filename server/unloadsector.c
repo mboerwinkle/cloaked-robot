@@ -3,27 +3,11 @@
 #include <math.h>
 #include <stdlib.h>
 #include "globals.h"
-int unloadsector(long long int x, long long int y){
-	writesectortofile(x, y);
-	printf("unloadsector called %lld, %lld\n", x, y);
-	sector *conductor;
-	if(listrootsector == NULL){
-		return(-1);
-	}
-	conductor = listrootsector;
-	if(listrootsector->x == x && listrootsector->y == y){
-		listrootsector = listrootsector->nextsector;
-		free(conductor);
-	}
-	else{
-		while(conductor != NULL && (conductor->nextsector->x != x || conductor->nextsector->y != y)){
-			conductor = conductor->nextsector;
-		}
-		if(conductor == NULL){
-			return(-1);
-		}
-		free(conductor->nextsector);
-	}
+int unloadsector(sector *target){
+	writesectortofile(target->x, target->y);
+	printf("unloadsector called %lld, %lld\n", target->x, target->y);
+	//free all entities
+	free(target);
 	return(0);
 }
 int writesectortofile(long long int x, long long int y){
