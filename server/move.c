@@ -26,9 +26,7 @@ void disappear(long long int x, long long int y){
 	for(counterone = -1; counterone <= 1; counterone++){
 		for(countertwo = -1; countertwo <= 1; countertwo++){
 			target = searchforsector((x+counterone), (y+countertwo));
-			if((--target->number) <= 0){
-				unloadsector(target);
-			}
+			target->number--;
 		}
 	}
 }
