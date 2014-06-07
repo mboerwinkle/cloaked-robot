@@ -27,22 +27,43 @@ void addEntity(entity* omgWtfLolBbq){
 	mySector.firstentity = omgWtfLolBbq;
 }
 
-void run(sector *sec){
-	entity *current = sec->firstentity;
-	entity *tmp;
-	while(current){
-		tmp = current->next;
-		tick(current);
-		current = tmp;
-	}
+struct moveRequest{
+	struct moveRequest *next;
+	entity *who;
+	sector *from, *to;
+};
+static struct moveRequest *firstRequest = NULL;
+
+void fileMoveRequest(entity *who, sector* from, sector* to){
+	struct moveRequest *new = malloc(sizeof(struct moveRequest));
+	new->who = who;
+	new->from = from;
+	new->to = to;
+	new->next = firstRequest;
+	firstRequest = new;
 }
 
-/*void draw(){
-	entity *current = mySector.firstentity;
-	entity *tmp;
-	while(current){
-		tmp = current->next;
-		drawEntity(current, 0, 0, zoom);
-		current = tmp;
+void run(sector *sec){
+	entity **current = &sec->firstentity;
+	while(*current){
+		if(tick(*current)){
+			entity *tmp = *current;
+			*current = (*current)->next;
+			freeEntity(tmp);
+			disappear(sec->x, sec->y); // TODO: Only do this if they were a player
+		}else current = &(*current)->next;
 	}
-}*/
+	struct moveRequest *tmp;
+	while(firstRequest){
+		move(firstRequest->from->x, firstRequest->from->y, firstRequest->to->x, firstRequest->to->y);
+		current = &firstRequest->from->firstentity;
+		while(*current != firstRequest->who) current = &(*current)->next;
+		*current = (*current)->next;
+		firstRequest->who->next = firstRequest->to->firstentity;
+		firstRequest->to->firstentity = firstRequest->who;
+
+		tmp = firstRequest->next;
+		free(firstRequest);
+		firstRequest = tmp;
+	}
+}

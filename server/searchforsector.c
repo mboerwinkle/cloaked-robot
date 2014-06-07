@@ -6,8 +6,5 @@ sector *searchforsector(long long int x, long long int y){
  	while(conductor != NULL && (conductor->x != x || conductor->y != y)){
 		conductor = conductor->nextsector;
 	}
-	if(conductor == NULL){
-		return(NULL);
-	}
 	return(conductor);
 }

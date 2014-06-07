@@ -2,6 +2,8 @@
 #define NUMKEYS 5
 
 struct entity;
+struct module;
+struct sector;
 
 extern void interpretsector(long long int x, long long int y);
 extern int main();
@@ -14,9 +16,8 @@ extern void move(long long int xorigin, long long int yorigin, long long int xfi
 extern void appear(long long int x, long long int y);
 extern void disappear(long long int x, long long int y);
 
-struct module;
-
 typedef struct entity{
+	struct sector *mySector;
 	struct entity *next;
 	double vx, vy, r;
 	long int x, y;
@@ -34,6 +35,9 @@ typedef struct entity{
 	void** moduleDatas;
 	int numModules;
 }entity;
+
+#define displacementX(a,b) ((((long long int)ULONG_MAX)+1)*(b->mySector->x - a->mySector->x) + b->x - a->x)
+#define displacementY(a,b) ((((long long int)ULONG_MAX)+1)*(b->mySector->y - a->mySector->y) + b->y - a->y)
 
 typedef struct obj {
 	struct obj *next;
@@ -66,7 +70,7 @@ typedef struct module{
 }module;
 
 extern entity* newEntity(int type, long int x, long int y);
-extern void tick(entity* who);
+extern char tick(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);
 extern void thrust(entity* who);
 extern void turn(entity* who, char dir);
@@ -78,8 +82,8 @@ extern sector mySector;
 extern void initField();
 extern void stopField();
 extern void addEntity(entity* who);
+extern void fileMoveRequest(entity* who, sector* from, sector* to);
 extern void run(sector *sec);
-//extern void draw();
 
 extern module missileModule;
 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <math.h>
+#include <limits.h>
 #include "globals.h"
 
 entity* newEntity(int type, long int x, long int y){
@@ -36,7 +37,7 @@ entity* newEntity(int type, long int x, long int y){
 	return ret;
 }
 
-void tick(entity* who){
+char tick(entity* who){
 	if(who->aiFunc) (*who->aiFunc)(who);
 	if(who->vx!=0 || who->vy!=0){
 		double vx = who->vx;
@@ -46,14 +47,15 @@ void tick(entity* who){
 		vy /= v;
 		entity *otherGuy = mySector.firstentity, *collision = NULL;
 		double minDist = v;
+		long long int dx, dy;
 
 		while(otherGuy){
 			if(otherGuy == who){
 				otherGuy = otherGuy->next;
 				continue;
 			}
-			long int dx = otherGuy->x - who->x;
-			long int dy = otherGuy->y - who->y;
+			dx = displacementX(who, otherGuy);
+			dy = displacementY(who, otherGuy);
 			double offset = fabs(dx*vy - dy*vx);
 			double r = who->r + otherGuy->r;
 			if(offset >= r) continue;
@@ -66,11 +68,30 @@ void tick(entity* who){
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
-		who->x += trunc(vx*minDist);
-		who->y += trunc(vy*minDist);
+		dx = who->x + trunc(vx*minDist);
+		dy = who->y + trunc(vy*minDist);
+		long long int secx = who->mySector->x;
+		long long int secy = who->mySector->y;
+		if(dx > LONG_MAX)
+			secx++;
+		else if(dx < LONG_MIN)
+			secx--;
+		if(dy > LONG_MAX)
+			secy++;
+		else if(dy < LONG_MIN)
+			secy--;
+		if(secx!=who->mySector->x || secy!=who->mySector->y){
+			sector *new = searchforsector(secx, secy);
+			if(new == NULL) return 1;
+			fileMoveRequest(who, who->mySector, new);
+			who->mySector = new;
+		}
+		who->x = dx;//Don't to this assignment earlier, as it truncates.
+		who->y = dy;
+		//TODO: Check to see if the sector we've moved to hasn't been processed yet, and make sure we skip next tick.
 		if(collision){
-			double dx = collision->x - who->x;
-			double dy = collision->y - who->y;
+			double dx = displacementX(who, collision);
+			double dy = displacementY(who, collision);
 			double d = sqrt(dx*dx+dy*dy);
 			dx/=d;
 			dy/=d;
@@ -89,6 +110,7 @@ void tick(entity* who){
 	}
 	who->sinTheta = sin(who->theta * (2*M_PI/16));
 	who->cosTheta = cos(who->theta * (2*M_PI/16));
+	return 0;
 }
 
 /*void drawEntity(entity* who, double cx, double cy, double zoom){
