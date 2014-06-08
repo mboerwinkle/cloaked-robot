@@ -68,10 +68,6 @@ void loadPics(){
 }
 
 void paint(){
-	static int x = width/2-6;
-	uint32_t picture[9] = {0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0xFF0000FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF, 0x00FF00FF};
-	SDL_Rect r = {x+=5, .y=height/2-1, .w=3, .h=3};
-	SDL_UpdateTexture(texture, &r, picture, 12);
 	SDL_RenderCopy(render, texture, NULL, NULL);
 	SDL_RenderPresent(render);
 	SDL_RenderClear(render);
@@ -81,11 +77,28 @@ void paint(){
 }
 
 void handleNetwork(){
-}
-
-void myDrawScreen(){
-//	SDL_GL_SwapWindow(window);
-//	glClear(GL_COLOR_BUFFER_BIT);
+	static int16_t data[3*100];
+	struct sockaddr_in addr;
+	socklen_t addrLen = sizeof(addr);
+	int len;
+	SDL_Rect rect;
+	while((len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
+		addrLen = sizeof(addr);
+		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
+		len/=2;
+		int i = 0;
+		while(i+2 < len){
+			char theta = 0x0F & data[i];
+//			char flame = 0x10 & data[i];
+//			char faction = (0x60 & data[i])/0x20;
+			int ship = (0xFF80 & data[i]) / 0x80;
+			int size = rect.w = rect.h = pictures[ship].size;
+			rect.x =  width/2-size/2+data[++i];
+			rect.y = height/2-size/2+data[++i];
+			SDL_UpdateTexture(texture, &rect, pictures[ship].data+size*size*theta, size*4);
+		}
+		paint();
+	}
 }
 
 static void spKeyAction(int bit, char pressed){

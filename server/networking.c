@@ -21,7 +21,8 @@ static int sockfd;
 
 void sendInfo(){
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334)};
-	int16_t data[3*100];
+	static int16_t data[3*100];
+	//TODO: Decide if the above should be static
 	int dataLen;
 	client* conductor = clientList;
 	while(conductor){
