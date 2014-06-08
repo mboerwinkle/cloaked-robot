@@ -31,7 +31,9 @@ int main(){
 			if(conductor->number == 0){
 				unloadsector(conductor);
 			}
+			conductor = conductor->nextsector;
 		}
+		sendInfo();
 		clock_gettime(CLOCK_MONOTONIC, &otherTime);
 		long int sleep = (long int)25000000 - (otherTime.tv_nsec-lastTime.tv_nsec) - 1000000000l*(otherTime.tv_sec-lastTime.tv_sec);
 		if(sleep > 0){

@@ -140,13 +140,15 @@ int main(int argc, char** argv){
 
 	while(running){
 		SDL_Event evnt;
-		SDL_WaitEvent(&evnt);
-		if(evnt.type == SDL_QUIT)		running = 0;
-		else if(evnt.type == SDL_KEYDOWN){
-			paint();
-			spKeyAction(evnt.key.keysym.sym, 1);
+		while(SDL_PollEvent(&evnt)){
+			if(evnt.type == SDL_QUIT)		running = 0;
+			else if(evnt.type == SDL_KEYDOWN){
+				paint();
+				spKeyAction(evnt.key.keysym.sym, 1);
+			}
+			else if (evnt.type == SDL_KEYUP)	spKeyAction(evnt.key.keysym.sym, 0);
 		}
-		else if (evnt.type == SDL_KEYUP)	spKeyAction(evnt.key.keysym.sym, 0);
+		handleNetwork();
 	}
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(render);

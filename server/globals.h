@@ -89,4 +89,5 @@ extern module missileModule;
 
 extern void initModules();
 
+extern void sendInfo();
 extern void* netListen(void* arg);
