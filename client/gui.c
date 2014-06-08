@@ -82,7 +82,7 @@ void handleNetwork(){
 	socklen_t addrLen = sizeof(addr);
 	int len;
 	SDL_Rect rect;
-	while((len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
+	while(0<(len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
@@ -96,6 +96,7 @@ void handleNetwork(){
 			rect.x =  width/2-size/2+data[++i];
 			rect.y = height/2-size/2+data[++i];
 			SDL_UpdateTexture(texture, &rect, pictures[ship].data+size*size*theta, size*4);
+			i++;
 		}
 		paint();
 	}
@@ -143,7 +144,6 @@ int main(int argc, char** argv){
 		while(SDL_PollEvent(&evnt)){
 			if(evnt.type == SDL_QUIT)		running = 0;
 			else if(evnt.type == SDL_KEYDOWN){
-				paint();
 				spKeyAction(evnt.key.keysym.sym, 1);
 			}
 			else if (evnt.type == SDL_KEYUP)	spKeyAction(evnt.key.keysym.sym, 0);

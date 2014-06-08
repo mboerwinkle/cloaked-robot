@@ -20,6 +20,7 @@ entity *loadship(char name[MAXNAMELEN]){
 	conductor = searchforsector(secx, secy);
 	newship->next = conductor->firstentity;
 	conductor->firstentity = newship;
+	newship->mySector = conductor;
 	conductor->number++;
 	return newship;
 }
