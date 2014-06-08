@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <fcntl.h>
 #include <SDL2/SDL.h>
 
 #include <arpa/inet.h>
@@ -58,10 +59,10 @@ void loadPics(){
 	pictures = malloc(sizeof(spriteSheet));
 	pictures[0].size = 3;
 	pictures[0].data = malloc(sizeof(uint32_t)*3*3*16);
-	uint32_t *myData = {G, G, G, G, B, R, G, G, G,
-			    G, G, G, G, B, R, G, G, R,
-			    G, G, G, G, B, G, G, G, R,
-			    G, G, G, G, B, G, G, R, R};
+	uint32_t myData[36] =  {G, G, G, G, B, R, G, G, G,
+				G, G, G, G, B, R, G, G, R,
+				G, G, G, G, B, G, G, G, R,
+				G, G, G, G, B, G, G, R, R};
 	memcpy(pictures[0].data, myData, 4*9*4);
 	rotate(pictures+0);
 }
@@ -77,6 +78,9 @@ void paint(){
 	SDL_DestroyTexture(texture);
 	texture = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, width, height);
 	//TODO: There's got to be a better way to do the above. All I want to do is clear the texture.
+}
+
+void handleNetwork(){
 }
 
 void myDrawScreen(){
@@ -117,6 +121,7 @@ int main(int argc, char** argv){
 		puts("When in danger,\nOr in doubt,\nRun in circles!\nScream and shout!!!");
 		return 2;
 	}
+	fcntl(sockfd, F_SETFL, O_NONBLOCK);
 	serverAddr.sin_port=htons(3333);
 	inet_aton(argv[1], &serverAddr.sin_addr);
 
