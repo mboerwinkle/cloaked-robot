@@ -3,6 +3,7 @@
 #include <math.h>
 #include <string.h>
 #include <fcntl.h>
+#include <time.h>
 #include <SDL2/SDL.h>
 
 #include <arpa/inet.h>
@@ -114,7 +115,7 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Bounce Brawl", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
@@ -139,6 +140,7 @@ int main(int argc, char** argv){
 	serverAddr.sin_port=htons(3333);
 	inet_aton(argv[1], &serverAddr.sin_addr);
 
+	struct timespec t = {.tv_sec = 0, .tv_nsec = 10000000};
 	while(running){
 		SDL_Event evnt;
 		while(SDL_PollEvent(&evnt)){
@@ -149,6 +151,7 @@ int main(int argc, char** argv){
 			else if (evnt.type == SDL_KEYUP)	spKeyAction(evnt.key.keysym.sym, 0);
 		}
 		handleNetwork();
+		nanosleep(&t, NULL);
 	}
 	SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(render);
