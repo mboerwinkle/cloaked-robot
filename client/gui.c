@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <string.h>
 #include <SDL2/SDL.h>
 
 #include <arpa/inet.h>
@@ -22,6 +23,48 @@ static int running = 1;
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
+
+typedef struct{
+	uint32_t* data;
+	int size;
+}spriteSheet;
+spriteSheet* pictures;
+
+#define R 0xFF0000FF
+#define G 0x00FF00FF
+#define B 0x0000FFFF
+
+void rotate(spriteSheet* what){
+	int size = what->size;
+	int area = size*size*4;
+	int dim = size-1;
+	int k = 0, i, j;
+	uint32_t point;
+	uint32_t *data;
+	for(; k<4; k++){
+		data = what->data+k*size*size;
+		for(i=0; i<size; i++){
+			for(j=0; j<size; j++){
+				point = data[i+size*j];
+				data[1*area+(dim-j)+size*   i   ] = point;
+				data[2*area+(dim-i)+size*(dim-j)] = point;
+				data[3*area+   j   +size*(dim-i)] = point;
+			}
+		}
+	}
+}
+
+void loadPics(){
+	pictures = malloc(sizeof(spriteSheet));
+	pictures[0].size = 3;
+	pictures[0].data = malloc(sizeof(uint32_t)*3*3*16);
+	uint32_t *myData = {G, G, G, G, B, R, G, G, G,
+			    G, G, G, G, B, R, G, G, R,
+			    G, G, G, G, B, G, G, G, R,
+			    G, G, G, G, B, G, G, R, R};
+	memcpy(pictures[0].data, myData, 4*9*4);
+	rotate(pictures+0);
+}
 
 void paint(){
 	static int x = width/2-6;
@@ -47,6 +90,7 @@ static void spKeyAction(int bit, char pressed){
 }
 
 int main(int argc, char** argv){
+	loadPics();
 	if(argc < 2){
 		puts("Please specify an ip.");
 		return 5;
