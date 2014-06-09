@@ -3,13 +3,10 @@
 #include "globals.h"
 
 void aiHuman(entity* who){
-	struct aiHumanData* data = (struct aiHumanData*)who->aiFuncData;
-	int p = data->player;
-	if(p==255) return;
-/*	if(myKeys[p][0]) (*who->modules[0]->actFunc)(who, 0, 1);
-	if(myKeys[p][1]) (*who->modules[1]->actFunc)(who, 1, 1);
-	if(myKeys[p][2]) (*who->modules[2]->actFunc)(who, 2, 1);
-	if(myKeys[p][4]) (*who->modules[3]->actFunc)(who, 3, 1);*/
+	char data = *(char*)who->aiFuncData;
+	if(data & 0x01) turn(who, -1);
+	if(data & 0x02) turn(who, 1);
+	if(data & 0x04) thrust(who);
 }
 
 void aiMissile(entity* who){

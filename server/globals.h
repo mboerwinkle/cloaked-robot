@@ -57,9 +57,6 @@ extern int unloadsector(sector *target);
 
 sector *listrootsector;
 
-struct aiHumanData{
-	int player;
-};
 extern void aiHuman(entity* who);
 extern void aiMissile(entity* who);
 

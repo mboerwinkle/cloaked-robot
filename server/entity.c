@@ -15,8 +15,8 @@ entity* newEntity(int type, long int x, long int y){
 	ret->turn = 0;
 	if(type == 0){
 		ret->aiFunc = aiHuman;
-		ret->aiFuncData = malloc(sizeof(struct aiHumanData));
-		((struct aiHumanData*)ret->aiFuncData)->player = -1;
+		ret->aiFuncData = malloc(1);
+		*(char*)ret->aiFuncData = 0;
 		ret->r = 2000;
 		ret->numModules = 4;
 		ret->modules = calloc(4, sizeof(void *));

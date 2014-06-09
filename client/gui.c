@@ -21,6 +21,9 @@ static SDL_Window* window;
 static SDL_Renderer* render;
 
 static int running = 1;
+static unsigned char keys = 0;
+static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
+static int keyBindings[3] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -67,7 +70,7 @@ void loadPics(){
 	rotate(data, 3);
 	int i = 0;
 	for(; i<16; i++){
-		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data+i*sizeof(uint32_t)*9, 3, 3, 32, 12, 0xFF000000, 0x00FF0000, 0x0000FF00, 0xFF);
+		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data+i*9, 3, 3, 32, 12, 0xFF000000, 0x00FF0000, 0x0000FF00, 0xFF);
 		pictures[0].data[i] = SDL_CreateTextureFromSurface(render, surface);
 		SDL_FreeSurface(surface);
 	}
@@ -106,8 +109,14 @@ void handleNetwork(){
 }
 
 static void spKeyAction(int bit, char pressed){
-	char* tmp = "]yo";
-	sendto(sockfd, tmp, 4, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+	int i = 0;
+	for(; i < 3 && bit!=keyBindings[i]; i++);
+	if(i==3) return;
+	unsigned char old = keys;
+	if(pressed) keys |= twoPow[i];
+	else keys &= 0xFF-twoPow[i];
+	if(keys == old) return;
+	sendto(sockfd, &keys, 1, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 }
 
 int main(int argc, char** argv){
@@ -142,6 +151,8 @@ int main(int argc, char** argv){
 	serverAddr.sin_port=htons(3333);
 	inet_aton(argv[1], &serverAddr.sin_addr);
 
+	char* tmp = "]yo";
+	sendto(sockfd, tmp, 4, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 	struct timespec t = {.tv_sec = 0, .tv_nsec = 10000000};
 	while(running){
 		SDL_Event evnt;

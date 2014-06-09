@@ -62,7 +62,7 @@ void* netListen(void* whoGivesADern){
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
-				puts("Message from existing client.");
+				*(char*)current->myShip->aiFuncData = *msg;
 				break;
 			}
 		}
@@ -76,7 +76,7 @@ void* netListen(void* whoGivesADern){
 			new->myShip = loadship(msg+1);
 			clientList = new;
 		}
-		printf("Message from %s\n", inet_ntoa(bindAddr.sin_addr));
+//		printf("Message from %s\n", inet_ntoa(bindAddr.sin_addr));
 	}
 	return NULL;
 }
