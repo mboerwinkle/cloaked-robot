@@ -17,6 +17,7 @@ int main(){
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
+	loadship("test");
 //	mkship("yo");
 //	loadship("yo");
 //	move(0, 0, 1, 0);
