@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-Wall -O2 -c -pthread $(DEBUG)
-LFLAGS=-lSDL2 -pthread
+LFLAGS=-lSDL2 -pthread -lm
 SOURCES=gui.c
 OBJECTS=$(SOURCES:.c=.o)
 
