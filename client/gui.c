@@ -42,8 +42,8 @@ void rotationarray(uint32_t oldpic[21][21],uint32_t newpic[21][21], short degree
 	short newx, newy, x, y;
 	for(x=-10; x<=10; x++){
 		for(y=-10; y<=10; y++){
-			newx = x*cos(degrees)-y*sin(degrees);
-			newy = x*sin(degrees)+y*cos(degrees);
+			newx = x*cos(degrees)-y*sin(degrees)+.5;
+			newy = x*sin(degrees)+y*cos(degrees)+.5;
 			newpic[10+newx][10+newy] = oldpic[10+x][10+y];
 		}
 	}
