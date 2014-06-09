@@ -17,6 +17,7 @@ extern void appear(long long int x, long long int y);
 extern void disappear(long long int x, long long int y);
 
 typedef struct entity{
+	int type;
 	struct sector *mySector;
 	struct entity *next;
 	double vx, vy, r;

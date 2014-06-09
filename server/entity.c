@@ -7,6 +7,7 @@
 
 entity* newEntity(int type, long int x, long int y){
 	entity* ret = malloc(sizeof(entity));
+	ret->type = type;
 	ret->x = x;
 	ret->y = y;
 	ret->vx = ret->vy = ret->theta = 0;
@@ -17,12 +18,12 @@ entity* newEntity(int type, long int x, long int y){
 		ret->aiFunc = aiHuman;
 		ret->aiFuncData = malloc(1);
 		*(char*)ret->aiFuncData = 0;
-		ret->r = 2000;
+		ret->r = 100;
 		ret->numModules = 4;
 		ret->modules = calloc(4, sizeof(void *));
 		ret->moduleDatas = calloc(4, sizeof(void*));
-		ret->thrust = 6;
-		ret->maxTurn = 9;
+		ret->thrust = 3;
+		ret->maxTurn = 6;
 		(*missileModule.initFunc)(ret, 3, 1);
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
@@ -31,8 +32,8 @@ entity* newEntity(int type, long int x, long int y){
 		ret->numModules = 0;
 		ret->modules = NULL;
 		ret->moduleDatas = NULL;
-		ret->thrust = 7;
-		ret->maxTurn = 12;
+		ret->thrust = 5;
+		ret->maxTurn = 7;
 	}
 	return ret;
 }
@@ -45,10 +46,12 @@ char tick(entity* who){
 		double v = sqrt(vx*vx + vy*vy);
 		vx /= v;
 		vy /= v;
-		entity *otherGuy = mySector.firstentity, *collision = NULL;
+		entity *otherGuy = who->mySector->firstentity, *collision = NULL;
 		double minDist = v;
 		long long int dx, dy;
 
+		putchar('.');
+		fflush(stdout);
 		while(otherGuy){
 			if(otherGuy == who){
 				otherGuy = otherGuy->next;
@@ -58,7 +61,10 @@ char tick(entity* who){
 			dy = displacementY(who, otherGuy);
 			double offset = fabs(dx*vy - dy*vx);
 			double r = who->r + otherGuy->r;
-			if(offset >= r) continue;
+			if(offset >= r){
+				otherGuy = otherGuy->next;
+				continue;
+			}
 			double dist = dx*vx + dy*vy - sqrt(r*r-offset*offset);
 			if(dist<0 || dist >= minDist){
 				otherGuy = otherGuy->next;
@@ -68,6 +74,8 @@ char tick(entity* who){
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
+		putchar('\b');
+		fflush(stdout);
 		dx = who->x + trunc(vx*minDist);
 		dy = who->y + trunc(vy*minDist);
 		long long int secx = who->mySector->x;

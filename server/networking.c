@@ -30,7 +30,7 @@ void sendInfo(){
 		entity *runner = sec->firstentity;
 		dataLen = 0;
 		while(runner){
-			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*0/*ship type*/;
+			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
 			data[dataLen+1] = (displacementX(conductor->myShip, runner)+32)/64;
 			data[dataLen+2] = (displacementY(conductor->myShip, runner)+32)/64;
 			dataLen+=3;
