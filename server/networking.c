@@ -56,19 +56,20 @@ void* netListen(void* whoGivesADern){
 	}
 	char msg[20];
 	socklen_t len;
+	int msgSize;
 	while(1){
 		len = sizeof(bindAddr);
-		recvfrom(sockfd, msg, 20, 0, (struct sockaddr*)&bindAddr, &len);
+		msgSize = recvfrom(sockfd, msg, 20, 0, (struct sockaddr*)&bindAddr, &len);
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
-				*(char*)current->myShip->aiFuncData = *msg;
+				if(msgSize == 1)
+					*(char*)current->myShip->aiFuncData = *msg;
 				break;
 			}
 		}
 		if(current == NULL){//That is, he isn't joined yet
-			puts(msg);
-			if(*msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
+			if(msgSize <= 1 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
 			printf("He requested ship %s\n", msg+1);
 			client* new = malloc(sizeof(client));
 			new->next = clientList;

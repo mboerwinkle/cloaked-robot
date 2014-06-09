@@ -36,7 +36,7 @@ spriteSheet* pictures;
 
 #define R 0xFF0000FF
 #define G 0x00FF00FF
-#define B 0x0000FFFF
+#define B 0x0000FF00
 
 void rotate(uint32_t* oldData, int size){
 	int area = size*size*4;
@@ -71,7 +71,9 @@ void loadPics(){
 	int i = 0;
 	for(; i<16; i++){
 		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data+i*9, 3, 3, 32, 12, 0xFF000000, 0x00FF0000, 0x0000FF00, 0xFF);
-		pictures[0].data[i] = SDL_CreateTextureFromSurface(render, surface);
+		SDL_SetTextureBlendMode(
+			pictures[0].data[i] = SDL_CreateTextureFromSurface(render, surface),
+			SDL_BLENDMODE_ADD);
 		SDL_FreeSurface(surface);
 	}
 	free(data);
