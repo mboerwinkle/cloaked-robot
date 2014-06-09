@@ -38,6 +38,17 @@ spriteSheet* pictures;
 #define G 0x00FF00FF
 #define B 0x0000FFFF
 
+void rotationarray(uint32_t oldpic[21][21],uint32_t newpic[21][21], short degrees){
+	short newx, newy, x, y;
+	for(x=-10; x<=10; x++){
+		for(y=-10; y<=10; y++){
+			newx = x*cos(degrees)-y*sin(degrees);
+			newy = x*sin(degrees)+y*cos(degrees);
+			newpic[10+newx][10+newy] = oldpic[10+x][10+y];
+		}
+	}
+}
+
 void rotate(uint32_t* oldData, int size){
 	int area = size*size*4;
 	int dim = size-1;
