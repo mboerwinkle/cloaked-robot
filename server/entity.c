@@ -5,7 +5,8 @@
 #include <limits.h>
 #include "globals.h"
 
-entity* newEntity(int type, long int x, long int y){
+entity* newEntity(int type, sector *where, long int x, long int y){
+	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
 	ret->x = x;
@@ -14,11 +15,14 @@ entity* newEntity(int type, long int x, long int y){
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
 	ret->turn = 0;
+	ret->next = where->firstentity;
+	where->firstentity = ret;
+	ret->mySector = where;
 	if(type == 0){
 		ret->aiFunc = aiHuman;
 		ret->aiFuncData = malloc(1);
 		*(char*)ret->aiFuncData = 0;
-		ret->r = 100;
+		ret->r = 640;
 		ret->numModules = 4;
 		ret->modules = calloc(4, sizeof(void *));
 		ret->moduleDatas = calloc(4, sizeof(void*));
@@ -40,14 +44,19 @@ entity* newEntity(int type, long int x, long int y){
 
 char tick(entity* who){
 	if(who->aiFunc) (*who->aiFunc)(who);
-	if(who->vx!=0 || who->vy!=0){
-		double vx = who->vx;
-		double vy = who->vy;
-		double v = sqrt(vx*vx + vy*vy);
+	double vx = who->vx;
+	double vy = who->vy;
+	double v = sqrt(vx*vx + vy*vy);
+	if(v <= 0.5){
+		who->vx = 0;
+		who->vy = 0;
+	}else{
 		vx /= v;
 		vy /= v;
+		double minDist = v-0.5;
+		who->vx -= vx*0.5;
+		who->vy -= vy*0.5;
 		entity *otherGuy = who->mySector->firstentity, *collision = NULL;
-		double minDist = v;
 		long long int dx, dy;
 
 		putchar('.');

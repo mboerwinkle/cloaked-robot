@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -O2 -c -pthread $(DEBUG)
-LFLAGS=-lSDL2 -pthread -lm
-SOURCES=gui.c
+LFLAGS=-lSDL2 -pthread -lm -lImlib2
+SOURCES=gui.c images.c
 OBJECTS=$(SOURCES:.c=.o)
 
 .PHONY: debug remake clean
@@ -9,8 +9,11 @@ OBJECTS=$(SOURCES:.c=.o)
 run: $(OBJECTS)
 	$(CC) $(OBJECTS) $(DEBUG) -o run $(LFLAGS)
 
-gui.o: gui.c gui.h
+gui.o: gui.c gui.h images.h
 	$(CC) $(CFLAGS) gui.c
+
+images.o: images.c gui.h images.h
+	$(CC) $(CFLAGS) images.c
 
 clean:
 	rm -f *.o run

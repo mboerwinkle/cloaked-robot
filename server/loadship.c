@@ -14,13 +14,9 @@ entity *loadship(char name[MAXNAMELEN]){
 		return NULL;
 	}
 	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
-	entity *newship = newEntity(0, posx, posy);
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	newship->next = conductor->firstentity;
-	conductor->firstentity = newship;
-	newship->mySector = conductor;
 	conductor->number++;
-	return newship;
+	return newEntity(0, conductor, posx, posy);
 }

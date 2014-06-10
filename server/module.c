@@ -19,7 +19,7 @@ static void missileAct(entity* who, int ix, double energy, char action){
 	*charge += energy;
 	if(*charge < 10 || !action) return;
 	*charge = 0;
-	entity* what = newEntity(1, who->x, who->y);
+	entity* what = newEntity(1, who->mySector, who->x, who->y);
 	entity* target = mySector.firstentity;
 	while(target){
 		if(target != who) break;

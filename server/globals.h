@@ -67,7 +67,7 @@ typedef struct module{
 	void (*cleanupFunc)(entity* who, int ix);
 }module;
 
-extern entity* newEntity(int type, long int x, long int y);
+extern entity* newEntity(int type, sector *where, long int x, long int y);
 extern char tick(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);
 extern void thrust(entity* who);

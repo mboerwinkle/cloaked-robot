@@ -1,12 +1,7 @@
-#define NUMKEYS 5
-#define TEXTSIZE 2
+extern SDL_Renderer *render;
 
-extern char myKeys[2][NUMKEYS];
-
-extern void myDrawScreen();
-
-extern char mode;
-
-extern int width, height;
-
-extern FILE* logFile;
+typedef struct{
+	SDL_Texture** data;
+	int size;
+}spriteSheet;
+extern spriteSheet* pictures;

@@ -17,7 +17,9 @@ int main(){
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
+	mkship("test");
 	loadship("test");
+	newEntity(0, searchforsector(0, 0), -1000, -1000);
 //	mkship("yo");
 //	loadship("yo");
 //	move(0, 0, 1, 0);
