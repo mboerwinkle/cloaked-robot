@@ -9,8 +9,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
-	ret->x = x;// - 10000 + INT32_MAX;
-	ret->y = y;// - 10000 + INT32_MAX;
+	ret->x = x + 1000 + INT32_MIN;
+	ret->y = y + 1000 + INT32_MIN;
 	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
