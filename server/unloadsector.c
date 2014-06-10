@@ -6,7 +6,13 @@
 int unloadsector(sector *target){
 	writesectortofile(target->x, target->y);
 	printf("unloadsector called %ld, %ld\n", target->x, target->y);
-	//free all entities
+	entity* conductor  = target->firstentity;
+	entity *tmp;
+	while(conductor){
+		tmp = conductor->next;
+		freeEntity(conductor);
+		conductor = tmp;
+	}
 	free(target);
 	return(0);
 }
