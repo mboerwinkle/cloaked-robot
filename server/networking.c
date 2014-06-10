@@ -43,7 +43,6 @@ void sendInfo(){
 }
 
 void* netListen(void* whoGivesADern){
-	puts("So, yeah, threading.");
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd < 0){
 		puts("When in danger,\nOr in doubt,\nRun in circles!\nScream and shout!");
@@ -67,6 +66,7 @@ void* netListen(void* whoGivesADern){
 					*(char*)current->myShip->aiFuncData = *msg;
 				break;
 			}
+			current = current->next;
 		}
 		if(current == NULL){//That is, he isn't joined yet
 			if(msgSize <= 1 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character

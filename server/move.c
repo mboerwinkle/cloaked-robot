@@ -1,11 +1,11 @@
 #include "globals.h"
 #include <stdio.h>
 #include <stdlib.h>
-void move(long long int xorigin, long long int yorigin, long long int xfinal, long long int yfinal){
+void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t yfinal){
 	appear(xfinal, yfinal);
 	disappear(xorigin, yorigin);
 }
-void appear(long long int x, long long int y){
+void appear(uint64_t x, uint64_t y){
 	sector *target;
 	short counterone, countertwo;
 	for(counterone = -1; counterone <= 1; counterone++){
@@ -20,7 +20,7 @@ void appear(long long int x, long long int y){
 		}
 	}
 }
-void disappear(long long int x, long long int y){
+void disappear(uint64_t x, uint64_t y){
 	sector *target;
 	short counterone, countertwo;
 	for(counterone = -1; counterone <= 1; counterone++){

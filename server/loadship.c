@@ -6,14 +6,14 @@ entity *loadship(char name[MAXNAMELEN]){
 	printf("loadship called (%s)\n", name);
 	char path[MAXNAMELEN + 6];
 	FILE *fp;
-	long long int secx, secy;
-	long int posx, posy;
+uint64_t secx, secy;
+	int32_t posx, posy;
 	sector *conductor;
 	sprintf(path, "ships/%s", name);
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}
-	fscanf(fp, "%llX_%llX\n%ld %ld", &secx, &secy, &posx, &posy);
+	fscanf(fp, "%lX_%lX\n%d %d", &secx, &secy, &posx, &posy);
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);

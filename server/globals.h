@@ -1,27 +1,27 @@
+#include <stdint.h>
 #define MAXNAMELEN 10
-#define NUMKEYS 5
 
 struct entity;
 struct module;
 struct sector;
 
-extern void interpretsector(long long int x, long long int y);
+extern void interpretsector(uint64_t x, uint64_t y);
 extern int main();
-extern void gensector(long long int x, long long int y);
-extern void loadsector(long long int x, long long int y); 
-extern int writesectortofile(long long int x, long long int y);
+extern void gensector(uint64_t x, uint64_t y);
+extern void loadsector(uint64_t x, uint64_t y); 
+extern int writesectortofile(uint64_t x,uint64_t y);
 extern int mkship(char *name);
 extern struct entity* loadship(char *name);
-extern void move(long long int xorigin, long long int yorigin, long long int xfinal, long long int yfinal);
-extern void appear(long long int x, long long int y);
-extern void disappear(long long int x, long long int y);
+extern void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t yfinal);
+extern void appear(uint64_t x, uint64_t y);
+extern void disappear(uint64_t x,uint64_t y);
 
 typedef struct entity{
 	int type;
 	struct sector *mySector;
 	struct entity *next;
 	double vx, vy, r;
-	long int x, y;
+	int32_t x, y;
 
 	double shield, maxShield;
 	double energy, maxEnergy;
@@ -37,8 +37,8 @@ typedef struct entity{
 	int numModules;
 }entity;
 
-#define displacementX(a,b) ((((long long int)ULONG_MAX)+1)*(b->mySector->x - a->mySector->x) + b->x - a->x)
-#define displacementY(a,b) ((((long long int)ULONG_MAX)+1)*(b->mySector->y - a->mySector->y) + b->y - a->y)
+#define displacementX(a,b) ((((int64_t)UINT32_MAX)+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
+#define displacementY(a,b) ((((int64_t)UINT32_MAX)+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
 
 typedef struct obj {
 	struct obj *next;
@@ -49,11 +49,11 @@ typedef struct sector {
 	struct sector *nextsector;
 	struct obj *firstobj;
 	struct entity *firstentity;
-	long long int x;
-	long long int y;
+	uint64_t x;
+	uint64_t y;
 } sector;
 
-extern sector *searchforsector(long long int x, long long int y);
+extern sector *searchforsector(uint64_t x, uint64_t y);
 extern int unloadsector(sector *target);
 
 sector *listrootsector;
@@ -67,7 +67,7 @@ typedef struct module{
 	void (*cleanupFunc)(entity* who, int ix);
 }module;
 
-extern entity* newEntity(int type, sector *where, long int x, long int y);
+extern entity* newEntity(int type, sector *where, int32_t x, int32_t y);
 extern char tick(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);
 extern void thrust(entity* who);

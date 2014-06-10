@@ -5,12 +5,12 @@
 #include <limits.h>
 #include "globals.h"
 
-entity* newEntity(int type, sector *where, long int x, long int y){
+entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
-	ret->x = x;
-	ret->y = y;
+	ret->x = x;// - 10000 + INT32_MAX;
+	ret->y = y;// - 10000 + INT32_MAX;
 	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
@@ -57,10 +57,8 @@ char tick(entity* who){
 		who->vx -= vx*0.5;
 		who->vy -= vy*0.5;
 		entity *otherGuy = who->mySector->firstentity, *collision = NULL;
-		long long int dx, dy;
+		int64_t dx, dy;
 
-		putchar('.');
-		fflush(stdout);
 		while(otherGuy){
 			if(otherGuy == who){
 				otherGuy = otherGuy->next;
@@ -70,7 +68,7 @@ char tick(entity* who){
 			dy = displacementY(who, otherGuy);
 			double offset = fabs(dx*vy - dy*vx);
 			double r = who->r + otherGuy->r;
-			if(offset >= r){
+			if(offset >= r || isnan(offset)){
 				otherGuy = otherGuy->next;
 				continue;
 			}
@@ -83,19 +81,17 @@ char tick(entity* who){
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
-		putchar('\b');
-		fflush(stdout);
-		dx = who->x + trunc(vx*minDist);
-		dy = who->y + trunc(vy*minDist);
-		long long int secx = who->mySector->x;
-		long long int secy = who->mySector->y;
-		if(dx > LONG_MAX)
+		dx = who->x + (int64_t)trunc(vx*minDist);
+		dy = who->y + (int64_t)trunc(vy*minDist);
+		uint64_t secx = who->mySector->x;
+		uint64_t secy = who->mySector->y;
+		if(dx > INT32_MAX)
 			secx++;
-		else if(dx < LONG_MIN)
+		else if(dx < INT32_MIN)
 			secx--;
-		if(dy > LONG_MAX)
+		if(dy > INT32_MAX)
 			secy++;
-		else if(dy < LONG_MIN)
+		else if(dy < INT32_MIN)
 			secy--;
 		if(secx!=who->mySector->x || secy!=who->mySector->y){
 			sector *new = searchforsector(secx, secy);
