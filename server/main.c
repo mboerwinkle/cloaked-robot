@@ -11,7 +11,7 @@ int main(){
 	struct timespec lastTime = {.tv_sec = 0, .tv_nsec = 0};
 	struct timespec otherTime = {.tv_sec = 0, .tv_nsec = 0};
 
-	sector *conductor, *tmp;
+	sector *conductor, *tmp, **runner;
 	listrootsector = NULL;
 	initModules();
 	//start network listening thread
@@ -29,13 +29,13 @@ int main(){
 			run(conductor);
 			conductor = conductor->nextsector;
 		}
-		conductor = listrootsector;
-		while(conductor != NULL){
-			tmp = conductor->nextsector;
-			if(conductor->number == 0){
-				unloadsector(conductor);
-			}
-			conductor = tmp;
+		runner = &listrootsector;
+		while(*runner != NULL){
+			if((*runner)->number == 0){
+				tmp = *runner;
+				*runner = (*runner)->nextsector;
+				unloadsector(tmp);
+			}else runner = &(*runner)->nextsector;
 		}
 		sendInfo();
 		clock_gettime(CLOCK_MONOTONIC, &otherTime);
