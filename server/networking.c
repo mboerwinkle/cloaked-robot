@@ -24,6 +24,7 @@ void sendInfo(){
 	static int16_t data[3*100];
 	//TODO: Decide if the above should be static
 	int dataLen;
+	int64_t d;
 	client* conductor = clientList;
 	while(conductor){
 		sector *sec = conductor->myShip->mySector;
@@ -31,8 +32,18 @@ void sendInfo(){
 		dataLen = 0;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
-			data[dataLen+1] = (displacementX(conductor->myShip, runner)+32)/64;
-			data[dataLen+2] = (displacementY(conductor->myShip, runner)+32)/64;
+			d = (displacementX(conductor->myShip, runner)+32)/64;
+			if(d < INT16_MIN || d > INT16_MAX){
+				runner = runner->next;
+				continue;
+			}
+			data[dataLen+1] = d;
+			d = (displacementY(conductor->myShip, runner)+32)/64;
+			if(d < INT16_MIN || d > INT16_MAX){
+				runner = runner->next;
+				continue;
+			}
+			data[dataLen+2] = d;
 			dataLen+=3;
 			runner = runner->next;
 		}
