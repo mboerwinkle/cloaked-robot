@@ -7,6 +7,7 @@ void aiHuman(entity* who){
 	if(data & 0x01) turn(who, -1);
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);
+	(*who->modules[0]->actFunc)(who, 0, data&0x08);
 }
 
 void aiMissile(entity* who){
@@ -14,11 +15,11 @@ void aiMissile(entity* who){
 	if(target == NULL) return;
 
 	thrust(who);
-	double unx = -cos(who->theta*(2*M_PI/16));
-	double uny = -sin(who->theta*(2*M_PI/16));
+	double unx = -who->cosTheta;
+	double uny = -who->sinTheta;
 
-	double dy = target->y - who->y;
-	double dx = target->x - who->x;
+	int32_t dx = displacementX(who, target);
+	int32_t dy = displacementY(who, target);
 
 	double y = dx*unx + dy*uny;
 	double x = dy*unx - dx*uny;
@@ -31,8 +32,8 @@ void aiMissile(entity* who){
 
 	char spin = 1;
 	if(vx == 0){
-		if((x>0) ^ (vy>0)) (*who->modules[0]->actFunc)(who, 0, 1, -spin);
-		else (*who->modules[0]->actFunc)(who, 0, 1, spin);
+		if((x>0) ^ (vy>0)) turn(who, -spin);
+		else turn(who, spin);
 		return;
 	}
 	if(vx<0){
@@ -42,11 +43,11 @@ void aiMissile(entity* who){
 	}
 
 	if(x<0){
-		(*who->modules[0]->actFunc)(who, 0, 1, spin);
+		turn(who, spin);
 		return;
 	}
 	double t = x/vx;
-	if(vy*t-0.03*t*t < y) (*who->modules[0]->actFunc)(who, 0, 1, -spin);
-	else (*who->modules[0]->actFunc)(who, 0, 1, spin);
+	if(vy*t-0.03*t*t < y) turn(who, -spin);
+	else turn(who, spin);
 	return;
 }

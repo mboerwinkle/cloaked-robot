@@ -6,7 +6,7 @@ module missileModule;
 
 static void missileInit(entity* who, int ix, double value){
 	who->modules[ix] = &missileModule;
-	who->moduleDatas[ix] = calloc(1, sizeof(double));
+	who->moduleDatas[ix] = calloc(1, 1);
 }
 
 static void realCleanup(entity* who, int ix){
@@ -14,11 +14,15 @@ static void realCleanup(entity* who, int ix){
 	who->modules[ix] = NULL;
 }
 
-static void missileAct(entity* who, int ix, double energy, char action){
-	double* charge = (double*)who->moduleDatas[ix];
-	*charge += energy;
-	if(*charge < 10 || !action) return;
-	*charge = 0;
+static void missileAct(entity* who, int ix, char action){
+	char* charge = (char*)who->moduleDatas[ix];
+	if(*charge < 10){
+		(*charge)++;
+		return;
+	}
+	if(!action || who->energy < 10) return;
+	*charge = 1;
+	who->energy -= 10;
 	entity* what = newEntity(1, who->mySector, who->x, who->y);
 	entity* target = mySector.firstentity;
 	while(target){

@@ -28,6 +28,9 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->moduleDatas = calloc(4, sizeof(void*));
 		ret->thrust = 3;
 		ret->maxTurn = 6;
+		ret->shield = ret->maxShield = 100;
+		ret->energy = ret->maxEnergy = 100;
+		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 3, 1);
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
@@ -43,6 +46,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 }
 
 char tick(entity* who){
+	who->energy += who->energyRegen;
+	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	if(who->aiFunc) (*who->aiFunc)(who);
 	double vx = who->vx;
 	double vy = who->vy;
