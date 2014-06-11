@@ -57,7 +57,7 @@ static void loadPic(char *addr){
 		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data+i*mySize*mySize, mySize, mySize, 32, mySize*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
 		SDL_SetTextureBlendMode(
 			pictures[numPics].data[i] = SDL_CreateTextureFromSurface(render, surface),
-			SDL_BLENDMODE_ADD);
+			SDL_BLENDMODE_BLEND);
 		SDL_FreeSurface(surface);
 	}
 	free(data);

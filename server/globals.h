@@ -77,12 +77,6 @@ extern void thrust(entity* who);
 extern void turn(entity* who, char dir);
 extern void freeEntity(entity* who);
 
-extern double zoom;
-extern sector mySector;
-
-extern void initField();
-extern void stopField();
-extern void addEntity(entity* who);
 extern void fileMoveRequest(entity* who, sector* from, sector* to);
 extern void run(sector *sec);
 

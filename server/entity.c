@@ -9,8 +9,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
-	ret->x = x + 5000 + POS_MIN;
-	ret->y = y + 5000 + POS_MIN;
+	ret->x = x;// + 5000 + POS_MIN;
+	ret->y = y;// + 5000 + POS_MIN;
 	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
@@ -31,7 +31,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
-		(*missileModule.initFunc)(ret, 3, 1);
+		(*missileModule.initFunc)(ret, 0, 1);
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
 		ret->aiFuncData = malloc(sizeof(int*));
@@ -39,8 +39,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->numModules = 0;
 		ret->modules = NULL;
 		ret->moduleDatas = NULL;
-		ret->thrust = 5;
-		ret->maxTurn = 7;
+		ret->thrust = 4;
+		ret->maxTurn = 2;
 	}
 	return ret;
 }

@@ -47,7 +47,7 @@ void aiMissile(entity* who){
 		return;
 	}
 	double t = x/vx;
-	if(vy*t-0.03*t*t < y) turn(who, -spin);
+	if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
 	else turn(who, spin);
 	return;
 }

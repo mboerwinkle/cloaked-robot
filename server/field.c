@@ -4,29 +4,6 @@
 #include "globals.h"
 #include <math.h>
 
-double zoom;
-sector mySector;
-
-void initField(){
-	zoom = 1.0/250;
-	mySector.firstentity = NULL;
-}
-
-void stopField(){
-	entity *current = mySector.firstentity;
-	entity *tmp;
-	while(current){
-		tmp = current->next;
-		freeEntity(current);
-		current = tmp;
-	}
-}
-
-void addEntity(entity* omgWtfLolBbq){
-	omgWtfLolBbq->next = mySector.firstentity;
-	mySector.firstentity = omgWtfLolBbq;
-}
-
 struct moveRequest{
 	struct moveRequest *next;
 	entity *who;

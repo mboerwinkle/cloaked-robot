@@ -17,6 +17,5 @@ uint64_t secx, secy;
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	conductor->number++;
 	return newEntity(0, conductor, posx, posy);
 }
