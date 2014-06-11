@@ -81,27 +81,30 @@ char tick(entity* who){
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
-		dx = who->x + (int64_t)trunc(vx*minDist);
-		dy = who->y + (int64_t)trunc(vy*minDist);
+		who->x += trunc(vx*minDist);
+		who->y += trunc(vy*minDist);
 		uint64_t secx = who->mySector->x;
 		uint64_t secy = who->mySector->y;
-		if(dx > INT32_MAX)
+		if(who->x > POS_MAX){
 			secx++;
-		else if(dx < INT32_MIN)
+			who->x -= (POS_MAX-POS_MIN+1);
+		}else if(who->x < POS_MIN){
 			secx--;
-		if(dy > INT32_MAX)
+			who->x += (POS_MAX-POS_MIN+1);
+		}
+		if(who->y > POS_MAX){
 			secy++;
-		else if(dy < INT32_MIN)
+			who->y -= (POS_MAX-POS_MIN+1);
+		}else if(who->y < POS_MIN){
 			secy--;
+			who->y += (POS_MAX-POS_MIN+1);
+		}
 		if(secx!=who->mySector->x || secy!=who->mySector->y){
 			sector *new = searchforsector(secx, secy);
 			if(new == NULL) return 1;
 			fileMoveRequest(who, who->mySector, new);
 			who->mySector = new;
 		}
-		who->x = dx;//Don't to this assignment earlier, as it truncates.
-		who->y = dy;
-		//TODO: Check to see if the sector we've moved to hasn't been processed yet, and make sure we skip next tick.
 		if(collision){
 			double dx = displacementX(who, collision);
 			double dy = displacementY(who, collision);

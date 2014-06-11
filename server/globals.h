@@ -1,5 +1,7 @@
 #include <stdint.h>
 #define MAXNAMELEN 10
+#define POS_MAX 2097151
+#define POS_MIN (-2097152)
 
 struct entity;
 struct module;
@@ -37,8 +39,8 @@ typedef struct entity{
 	int numModules;
 }entity;
 
-#define displacementX(a,b) ((((int64_t)UINT32_MAX)+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
-#define displacementY(a,b) ((((int64_t)UINT32_MAX)+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
+#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
+#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
 
 typedef struct obj {
 	struct obj *next;
