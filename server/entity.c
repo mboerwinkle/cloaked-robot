@@ -9,8 +9,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
-	ret->x = x;// + 5000 + POS_MIN;
-	ret->y = y;// + 5000 + POS_MIN;
+	ret->x = x;
+	ret->y = y;
 	ret->vx = ret->vy = ret->theta = 0;
 	ret->sinTheta = 0;
 	ret->cosTheta = 1;
@@ -19,6 +19,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	where->firstentity = ret;
 	ret->mySector = where;
 	if(type == 0){
+		ret->x += 5000 + POS_MIN;
+		ret->y += 5000 + POS_MIN;
 		ret->aiFunc = aiHuman;
 		ret->aiFuncData = malloc(1);
 		*(char*)ret->aiFuncData = 0;

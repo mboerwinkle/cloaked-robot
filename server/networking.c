@@ -27,6 +27,7 @@ void sendInfo(){
 	int64_t d;
 	client* conductor = clientList;
 	while(conductor){
+		linkNear(conductor->myShip, 64*300);
 		sector *sec = conductor->myShip->mySector;
 		entity *runner = sec->firstentity;
 		dataLen = 0;
@@ -47,6 +48,7 @@ void sendInfo(){
 			dataLen+=3;
 			runner = runner->next;
 		}
+		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
 		sendto(sockfd, (char*)data, dataLen*2, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 		conductor = conductor->next;

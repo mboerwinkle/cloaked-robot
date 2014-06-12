@@ -86,3 +86,6 @@ extern void initModules();
 
 extern void sendInfo();
 extern void* netListen(void* arg);
+
+extern void linkNear(entity* who, int32_t radius);
+extern void unlinkNear();
