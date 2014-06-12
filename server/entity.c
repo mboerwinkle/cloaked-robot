@@ -37,7 +37,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
 		ret->aiFuncData = malloc(sizeof(int*));
-		ret->r = 5;
+		ret->r = 64;
 		ret->numModules = 0;
 		ret->modules = NULL;
 		ret->moduleDatas = NULL;
@@ -63,6 +63,7 @@ char tick(entity* who){
 		double minDist = v-0.5;
 		who->vx -= vx*0.5;
 		who->vy -= vy*0.5;
+		linkNear(who, v+6400);
 		entity *otherGuy = who->mySector->firstentity, *collision = NULL;
 		int64_t dx, dy;
 
@@ -88,6 +89,7 @@ char tick(entity* who){
 			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
+		unlinkNear();
 		who->x += trunc(vx*minDist);
 		who->y += trunc(vy*minDist);
 		uint64_t secx = who->mySector->x;
