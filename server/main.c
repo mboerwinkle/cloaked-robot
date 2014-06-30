@@ -14,6 +14,7 @@ int main(){
 	sector *conductor, *tmp, **runner;
 	listrootsector = NULL;
 	initModules();
+	initAis();
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);

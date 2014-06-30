@@ -17,6 +17,15 @@ extern void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t y
 extern void appear(uint64_t x, uint64_t y);
 extern void disappear(uint64_t x,uint64_t y);
 
+typedef struct ai{
+	void (*act)(struct entity*);
+	void (*handleCollision)(struct entity*, struct entity*);
+}ai;
+
+extern ai aiHuman;
+extern ai aiMissile;
+extern void initAis();
+
 typedef struct entity{
 	char destroyFlag;
 	int type;
@@ -34,7 +43,7 @@ typedef struct entity{
 
 	char theta;
 	double sinTheta, cosTheta;
-	void (*aiFunc)(struct entity*);
+	ai* myAi;
 	void* aiFuncData;
 	struct module** modules;
 	void** moduleDatas;
@@ -57,9 +66,6 @@ extern int unloadsector(sector *target);
 extern int writesectortofile(sector *target);
 
 sector *listrootsector;
-
-extern void aiHuman(entity* who);
-extern void aiMissile(entity* who);
 
 typedef struct module{
 	void (*initFunc)(entity* who, int ix, double value);

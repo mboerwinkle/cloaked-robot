@@ -23,7 +23,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(type == 0){
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
-		ret->aiFunc = aiHuman;
+		ret->myAi = &aiHuman;
 		ret->aiFuncData = malloc(1);
 		*(char*)ret->aiFuncData = 0;
 		ret->r = 640;
@@ -37,7 +37,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 	}else if(type == 1){
-		ret->aiFunc = aiMissile;
+		ret->myAi = &aiMissile;
 		ret->aiFuncData = NULL;
 		ret->r = 64;
 		ret->numModules = 0;
@@ -53,7 +53,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 char tick(entity* who){
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
-	if(who->aiFunc) (*who->aiFunc)(who);
+	(*who->myAi->act)(who);
 	double vx = who->vx;
 	double vy = who->vy;
 	double v = sqrt(vx*vx + vy*vy);
@@ -78,7 +78,7 @@ char tick(entity* who){
 			dx = displacementX(who, otherGuy);
 			dy = displacementY(who, otherGuy);
 			d = sqrt(dx*dx+dy*dy);
-			if(d > who->r + otherGuy->r){
+			if(d > who->r + otherGuy->r || d==0){
 				otherGuy = otherGuy->next;
 				continue;
 			}
@@ -86,6 +86,8 @@ char tick(entity* who){
 			dy/=d;
 			double dvel = (who->vx-otherGuy->vx)*dx+(who->vy-otherGuy->vy)*dy;
 			if(dvel > 0){
+				(*who->myAi->handleCollision)(who, otherGuy);
+				(*otherGuy->myAi->handleCollision)(otherGuy, who);
 				double m1 = who->r;
 				double m2 = otherGuy->r;
 				dvel *= 2*m1/(m1+m2);

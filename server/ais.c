@@ -2,7 +2,10 @@
 #include <math.h>
 #include "globals.h"
 
-void aiHuman(entity* who){
+ai aiMissile;
+ai aiHuman;
+
+static void aiHumanAct(entity* who){
 	char data = *(char*)who->aiFuncData;
 	if(data & 0x10){
 		linkNear(who, 64*300);
@@ -45,18 +48,16 @@ void aiHuman(entity* who){
 	(*who->modules[0]->actFunc)(who, 0, data&0x08);
 }
 
-void aiMissile(entity* who){
+static void noCareCollision(entity* me, entity* him){}
+
+static void aiMissileAct(entity* who){
 	entity* target = who->targetLock;
 	if(target == NULL) return;
+	thrust(who);
+
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
-	if(sqrt(dx*dx + dy*dy) < target->r+who->r){
-		target->shield -= 10;
-		who->shield = 0;
-		return;
-	}
 
-	thrust(who);
 	double unx = -who->cosTheta;
 	double uny = -who->sinTheta;
 
@@ -89,4 +90,17 @@ void aiMissile(entity* who){
 	if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
 	else turn(who, spin);
 	return;
+}
+
+static void aiMissileCollision(entity* me, entity* him){
+	if(him != me->targetLock) return;
+	me->shield = 0;
+	him->shield-=10;
+}
+
+void initAis(){
+	aiHuman.act = aiHumanAct;
+	aiHuman.handleCollision = noCareCollision;
+	aiMissile.act = aiMissileAct;
+	aiMissile.handleCollision = aiMissileCollision;
 }
