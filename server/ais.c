@@ -50,7 +50,7 @@ void aiMissile(entity* who){
 	if(target == NULL) return;
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
-	if(sqrt(dx*dx + dy*dy) < target->r+who->r+64){
+	if(sqrt(dx*dx + dy*dy) < target->r+who->r){
 		target->shield -= 10;
 		who->shield = 0;
 		return;

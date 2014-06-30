@@ -54,7 +54,6 @@ char tick(entity* who){
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	if(who->aiFunc) (*who->aiFunc)(who);
-	if(who->shield <= 0) return 1;
 	double vx = who->vx;
 	double vy = who->vy;
 	double v = sqrt(vx*vx + vy*vy);
@@ -64,12 +63,12 @@ char tick(entity* who){
 	}else{
 		vx /= v;
 		vy /= v;
-		double minDist = v-0.5;
 		who->vx -= vx*0.5;
 		who->vy -= vy*0.5;
-		linkNear(who, v+6400);
-		entity *otherGuy = who->mySector->firstentity, *collision = NULL;
-		int64_t dx, dy;
+
+		linkNear(who, 6400);
+		entity *otherGuy = who->mySector->firstentity;
+		double dx, dy, d;
 
 		while(otherGuy){
 			if(otherGuy == who){
@@ -78,24 +77,29 @@ char tick(entity* who){
 			}
 			dx = displacementX(who, otherGuy);
 			dy = displacementY(who, otherGuy);
-			double offset = fabs(dx*vy - dy*vx);
-			double r = who->r + otherGuy->r;
-			if(offset >= r || isnan(offset)){
+			d = sqrt(dx*dx+dy*dy);
+			if(d > who->r + otherGuy->r){
 				otherGuy = otherGuy->next;
 				continue;
 			}
-			double dist = dx*vx + dy*vy - sqrt(r*r-offset*offset);
-			if(dist<0 || dist >= minDist){
-				otherGuy = otherGuy->next;
-				continue;
+			dx/=d;
+			dy/=d;
+			double dvel = (who->vx-otherGuy->vx)*dx+(who->vy-otherGuy->vy)*dy;
+			if(dvel > 0){
+				double m1 = who->r;
+				double m2 = otherGuy->r;
+				dvel *= 2*m1/(m1+m2);
+				otherGuy->vx += dvel*dx;
+				otherGuy->vy += dvel*dy;
+				dvel *= -m2/m1;
+				who->vx += dvel*dx;
+				who->vy += dvel*dy;
 			}
-			minDist = dist;
-			collision = otherGuy;
 			otherGuy = otherGuy->next;
 		}
 		unlinkNear();
-		who->x += trunc(vx*minDist);
-		who->y += trunc(vy*minDist);
+		who->x += who->vx;
+		who->y += who->vy;
 		uint64_t secx = who->mySector->x;
 		uint64_t secy = who->mySector->y;
 		if(who->x > POS_MAX){
@@ -118,25 +122,8 @@ char tick(entity* who){
 			fileMoveRequest(who, who->mySector, new);
 			who->mySector = new;
 		}
-		if(collision){
-			double dx = displacementX(who, collision);
-			double dy = displacementY(who, collision);
-			double d = sqrt(dx*dx+dy*dy);
-			dx/=d;
-			dy/=d;
-			double dvel = (who->vx-collision->vx)*dx+(who->vy-collision->vy)*dy;
-			if(dvel > 0){
-				double m1 = who->r;
-				double m2 = collision->r;
-				dvel *= 2*m1/(m1+m2);
-				collision->vx += dvel*dx;
-				collision->vy += dvel*dy;
-				dvel *= -m2/m1;
-				who->vx += dvel*dx;
-				who->vy += dvel*dy;
-			}
-		}
 	}
+	if(who->shield <= 0) return 1;
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag) who->targetLock=NULL;
 		else{
