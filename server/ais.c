@@ -48,13 +48,17 @@ void aiHuman(entity* who){
 void aiMissile(entity* who){
 	entity* target = who->targetLock;
 	if(target == NULL) return;
+	int64_t dx = displacementX(who, target);
+	int64_t dy = displacementY(who, target);
+	if(sqrt(dx*dx + dy*dy) < target->r+who->r+64){
+		target->shield -= 10;
+		who->shield = 0;
+		return;
+	}
 
 	thrust(who);
 	double unx = -who->cosTheta;
 	double uny = -who->sinTheta;
-
-	int32_t dx = displacementX(who, target);
-	int32_t dy = displacementY(who, target);
 
 	double y = dx*unx + dy*uny;
 	double x = dy*unx - dx*uny;

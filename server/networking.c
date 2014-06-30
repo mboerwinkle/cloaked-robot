@@ -34,13 +34,13 @@ void sendInfo(){
 		dataLen = 1;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
-			d = (displacementX(conductor->myShip, runner)+32)/64;
+			d = displacementX(conductor->myShip, runner)/64;
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;
 			}
 			data[dataLen+1] = d;
-			d = (displacementY(conductor->myShip, runner)+32)/64;
+			d = displacementY(conductor->myShip, runner)/64;
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;

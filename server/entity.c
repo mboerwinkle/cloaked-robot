@@ -45,6 +45,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->moduleDatas = NULL;
 		ret->thrust = 4;
 		ret->maxTurn = 2;
+		ret->shield = ret->maxShield = 5;
 	}
 	return ret;
 }
@@ -53,6 +54,7 @@ char tick(entity* who){
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	if(who->aiFunc) (*who->aiFunc)(who);
+	if(who->shield <= 0) return 1;
 	double vx = who->vx;
 	double vy = who->vy;
 	double v = sqrt(vx*vx + vy*vy);
