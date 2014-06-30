@@ -10,6 +10,7 @@ struct moveRequest{
 	sector *from, *to;
 };
 static struct moveRequest *firstRequest = NULL;
+static entity* thoseCondemnedToDeath = NULL;
 
 void fileMoveRequest(entity *who, sector* from, sector* to){
 	struct moveRequest *new = malloc(sizeof(struct moveRequest));
@@ -26,7 +27,9 @@ void run(sector *sec){
 		if(tick(*current)){
 			entity *tmp = *current;
 			*current = (*current)->next;
-			freeEntity(tmp);
+			tmp->destroyFlag = 2;
+			tmp->next = thoseCondemnedToDeath;
+			thoseCondemnedToDeath = tmp;
 			disappear(sec->x, sec->y); // TODO: Only do this if they were a player
 		}else current = &(*current)->next;
 	}
@@ -42,5 +45,13 @@ void run(sector *sec){
 		tmp = firstRequest->next;
 		free(firstRequest);
 		firstRequest = tmp;
+	}
+	current = &thoseCondemnedToDeath;
+	while(*current){
+		if(--((*current)->destroyFlag) == 0){
+			entity *tmp = *current;
+			*current = (*current)->next;
+			freeEntity(tmp);
+		}else current = &(*current)->next;
 	}
 }

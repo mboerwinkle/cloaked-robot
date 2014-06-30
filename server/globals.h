@@ -19,6 +19,7 @@ extern void appear(uint64_t x, uint64_t y);
 extern void disappear(uint64_t x,uint64_t y);
 
 typedef struct entity{
+	char destroyFlag;
 	int type;
 	struct sector *mySector;
 	struct entity *next;
@@ -30,6 +31,7 @@ typedef struct entity{
 	double energyRegen;
 	int turn, maxTurn;
 	double thrust;
+	struct entity* targetLock;
 
 	char theta;
 	double sinTheta, cosTheta;

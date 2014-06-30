@@ -9,6 +9,8 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->type = type;
+	ret->destroyFlag = 0;
+	ret->targetLock = NULL;
 	ret->x = x;
 	ret->y = y;
 	ret->vx = ret->vy = ret->theta = 0;
@@ -36,7 +38,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		(*missileModule.initFunc)(ret, 0, 1);
 	}else if(type == 1){
 		ret->aiFunc = aiMissile;
-		ret->aiFuncData = malloc(sizeof(int*));
+		ret->aiFuncData = NULL;
 		ret->r = 64;
 		ret->numModules = 0;
 		ret->modules = NULL;
@@ -122,8 +124,8 @@ char tick(entity* who){
 			dy/=d;
 			double dvel = (who->vx-collision->vx)*dx+(who->vy-collision->vy)*dy;
 			if(dvel > 0){
-				double m1 = who->r;// * who->r;
-				double m2 = collision->r;// * collision->r;
+				double m1 = who->r;
+				double m2 = collision->r;
 				dvel *= 2*m1/(m1+m2);
 				collision->vx += dvel*dx;
 				collision->vy += dvel*dy;
@@ -133,20 +135,18 @@ char tick(entity* who){
 			}
 		}
 	}
+	if(who->targetLock){
+		if(who->targetLock->destroyFlag) who->targetLock=NULL;
+		else{
+			int32_t x = displacementX(who, who->targetLock);
+			int32_t y = displacementY(who, who->targetLock);
+			if(x*x + y*y > 64*64*300*300) who->targetLock = NULL;
+		}
+	}
 	who->sinTheta = sin(who->theta * (2*M_PI/16));
 	who->cosTheta = cos(who->theta * (2*M_PI/16));
 	return 0;
 }
-
-/*void drawEntity(entity* who, double cx, double cy, double zoom){
-	setColorWhite();
-	double x = (who->x - cx)*zoom;
-	double y = (who->y - cy)*zoom;
-	double r = who->r*zoom;
-	drawCircle(x, y, r);
-	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x-r*who->sinTheta, y+r*who->cosTheta);
-	drawLine(x+r*who->cosTheta, y+r*who->sinTheta, x+r*who->sinTheta, y-r*who->cosTheta);
-}*/
 
 void thrust(entity* who){
 	who->vx += who->thrust*who->cosTheta;

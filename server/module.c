@@ -32,7 +32,7 @@ static void missileAct(entity* who, int ix, char action){
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;
-	*(entity**)what->aiFuncData = target;
+	what->targetLock = target;
 	appear(who->mySector->x, who->mySector->y);//TODO: Tidy this up.
 }
 

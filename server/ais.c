@@ -4,6 +4,32 @@
 
 void aiHuman(entity* who){
 	char data = *(char*)who->aiFuncData;
+	if(data & 0x08){
+		linkNear(who, 64*300);
+		int bestScore = 64*300*2;
+		who->targetLock = NULL;
+		entity* runner = who->mySector->firstentity;
+		int64_t dx, dy;
+		int64_t d;
+		while(runner){
+			if(runner == who) continue;
+			runner = runner->next;
+			dx = displacementX(who, runner);
+			dy = displacementY(who, runner);
+			d = dx*dx+dy*dy;
+			if(d > 64*64*300*300) continue;
+			double angle = atan2(dy, dx);
+			if(angle < 0) angle += 2*M_PI;
+			angle = fabs(angle - (M_PI_4/2)*who->theta);
+			if(angle>M_PI) angle = 2*M_PI - angle;
+			double score = sqrt(d)*(1+angle/M_PI);
+			if(score < bestScore){
+				bestScore = score;
+				who->targetLock = runner;
+			}
+		}
+		unlinkNear();
+	}
 	if(data & 0x01) turn(who, -1);
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);
@@ -11,7 +37,7 @@ void aiHuman(entity* who){
 }
 
 void aiMissile(entity* who){
-	entity* target = *((entity**)who->aiFuncData);
+	entity* target = who->targetLock;
 	if(target == NULL) return;
 
 	thrust(who);
