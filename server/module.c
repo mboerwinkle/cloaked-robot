@@ -23,16 +23,11 @@ static void missileAct(entity* who, int ix, char action){
 	if(!action || who->energy < 10) return;
 	*charge = 1;
 	who->energy -= 10;
-	entity* target = who->mySector->firstentity;
-	while(target){
-		if(target != who) break;
-		target = target->next;
-	}
 	entity* what = newEntity(1, who->mySector, who->x, who->y);
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;
-	what->targetLock = target;
+	what->targetLock = who->targetLock;
 	appear(who->mySector->x, who->mySector->y);//TODO: Tidy this up.
 }
 

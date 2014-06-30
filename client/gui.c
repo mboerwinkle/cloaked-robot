@@ -26,7 +26,7 @@ SDL_Renderer* render;
 static int running = 1;
 static unsigned char keys = 0;
 static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-static int keyBindings[4] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_SPACE};
+static int keyBindings[6] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_SPACE, SDLK_x, SDLK_z};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -66,8 +66,8 @@ static void handleNetwork(){
 
 static void spKeyAction(int bit, char pressed){
 	int i = 0;
-	for(; i < 4 && bit!=keyBindings[i]; i++);
-	if(i==4) return;
+	for(; i < 6 && bit!=keyBindings[i]; i++);
+	if(i==6) return;
 	unsigned char old = keys;
 	if(pressed) keys |= twoPow[i];
 	else keys &= 0xFF-twoPow[i];
