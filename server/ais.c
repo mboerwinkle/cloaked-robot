@@ -30,6 +30,7 @@ void aiHuman(entity* who){
 		}
 		unlinkNear();
 	}
+	if(data & 0x10) who->targetLock = NULL;
 	if(data & 0x01) turn(who, -1);
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);
