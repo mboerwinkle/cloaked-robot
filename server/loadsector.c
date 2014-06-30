@@ -38,7 +38,6 @@ void loadsector(uint64_t x, uint64_t y){
 	listrootsector = new;
 
 	listrootsector->number = 1;
-	listrootsector->firstobj = NULL;
 	listrootsector->firstentity = NULL;
 	listrootsector->x = x;
 	listrootsector->y = y;

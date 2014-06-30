@@ -11,7 +11,6 @@ extern void interpretsector(uint64_t x, uint64_t y);
 extern int main();
 extern void gensector(uint64_t x, uint64_t y);
 extern void loadsector(uint64_t x, uint64_t y); 
-extern int writesectortofile(uint64_t x,uint64_t y);
 extern int mkship(char *name);
 extern struct entity* loadship(char *name);
 extern void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t yfinal);
@@ -45,14 +44,9 @@ typedef struct entity{
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
 #define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
 
-typedef struct obj {
-	struct obj *next;
-	//other object data
-} obj;
 typedef struct sector {
 	short number; //number of clients who need it open
 	struct sector *nextsector;
-	struct obj *firstobj;
 	struct entity *firstentity;
 	uint64_t x;
 	uint64_t y;
@@ -60,6 +54,7 @@ typedef struct sector {
 
 extern sector *searchforsector(uint64_t x, uint64_t y);
 extern int unloadsector(sector *target);
+extern int writesectortofile(sector *target);
 
 sector *listrootsector;
 
