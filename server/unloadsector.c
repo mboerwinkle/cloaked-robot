@@ -11,7 +11,7 @@ void wint(int target){
 	fprintf(fp, "%d\n", target);
 }
 void wlint(int32_t target){
-	fprintf(fp, "%ld\n", target);
+	fprintf(fp, "%d\n", target);
 }
 void wdouble(double target){
 	fprintf(fp, "%f\n", target);

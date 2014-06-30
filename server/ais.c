@@ -4,20 +4,25 @@
 
 void aiHuman(entity* who){
 	char data = *(char*)who->aiFuncData;
-	if(data & 0x08){
+	if(data & 0x10){
 		linkNear(who, 64*300);
-		int bestScore = 64*300*2;
+		double bestScore = 64*300*2;
 		who->targetLock = NULL;
 		entity* runner = who->mySector->firstentity;
 		int64_t dx, dy;
 		int64_t d;
 		while(runner){
-			if(runner == who) continue;
-			runner = runner->next;
+			if(runner == who){
+				runner = runner->next;
+				continue;
+			}
 			dx = displacementX(who, runner);
 			dy = displacementY(who, runner);
 			d = dx*dx+dy*dy;
-			if(d > 64*64*300*300) continue;
+			if(d > 64*64*300*300){
+				runner = runner->next;
+				continue;
+			}
 			double angle = atan2(dy, dx);
 			if(angle < 0) angle += 2*M_PI;
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
@@ -27,10 +32,13 @@ void aiHuman(entity* who){
 				bestScore = score;
 				who->targetLock = runner;
 			}
+			runner = runner->next;
 		}
 		unlinkNear();
 	}
-	if(data & 0x10) who->targetLock = NULL;
+	if(data & 0x20){
+		who->targetLock = NULL;
+	}
 	if(data & 0x01) turn(who, -1);
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);

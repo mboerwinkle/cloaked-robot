@@ -35,6 +35,7 @@ spriteSheet* pictures;
 
 static void paint(){
 	SDL_RenderPresent(render);
+	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 	SDL_RenderClear(render);
 }
 
@@ -45,10 +46,12 @@ static void handleNetwork(){
 	int len;
 	SDL_Rect rect;
 	while(0<(len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
+		SDL_SetRenderDrawColor(render, 255, 0, 0, 255); // For target locks
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
-		int i = 0;
+//		printf("\nlock: %d\n", *data);
+		int i = 1;
 		while(i+2 < len){
 			unsigned char theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
@@ -58,6 +61,8 @@ static void handleNetwork(){
 			rect.x =  width/2-size/2+data[++i];
 			rect.y = height/2-size/2+data[++i];
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
+//			printf("%d ", i);
+			if(*data == i) SDL_RenderDrawRect(render, &rect);
 			i++;
 		}
 		paint();
