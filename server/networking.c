@@ -19,6 +19,17 @@ static client* clientList = NULL;
 
 static int sockfd;
 
+static int32_t simonDivide(int64_t a, int32_t b){
+	if(a<0) a-=(b-1);
+	return a/b;
+}
+
+static int32_t simonMod(int64_t a, int32_t b){
+	int32_t result = a%b;
+	if(result<0) return result+b;
+	return result;
+}
+
 void sendInfo(){
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334)};
 	static int16_t data[3*100];
@@ -31,16 +42,18 @@ void sendInfo(){
 		sector *sec = conductor->myShip->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = 0;
-		dataLen = 1;
+		data[1] = simonMod((sec->x%3000)*(-464)-simonDivide(conductor->myShip->x,64), 3000)/2;
+		data[2] = simonMod((sec->y%3000)*(-464)-simonDivide(conductor->myShip->y,64), 3000)/2;
+		dataLen = 3;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
-			d = displacementX(conductor->myShip, runner)/64;
+			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;
 			}
 			data[dataLen+1] = d;
-			d = displacementY(conductor->myShip, runner)/64;
+			d = simonDivide(displacementY(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;

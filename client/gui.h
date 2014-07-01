@@ -5,3 +5,4 @@ typedef struct{
 	int size;
 }spriteSheet;
 extern spriteSheet* pictures;
+extern SDL_Texture* background1;
