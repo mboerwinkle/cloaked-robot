@@ -42,8 +42,8 @@ void sendInfo(){
 		sector *sec = conductor->myShip->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = 0;
-		data[1] = simonMod((sec->x%3000)*(-464)-simonDivide(conductor->myShip->x,64), 3000)/2;
-		data[2] = simonMod((sec->y%3000)*(-464)-simonDivide(conductor->myShip->y,64), 3000)/2;
+		data[1] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
+		data[2] = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
 		dataLen = 3;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
