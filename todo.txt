@@ -1,0 +1,14 @@
+(M) Teams
+  -Draw colors
+  -Lock on intelligently
+(M) Draw ship thrusting stage
+(S) Para, para, paralax (oooh oh oooooh ooooh)
+(S) HUD
+  -Health bars
+(MS) Save files
+  -Sector
+  -Ship
+(S) lazors
+(M) tethers
+(M) ship spawning
+scaling
