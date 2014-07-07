@@ -129,9 +129,9 @@ char tick(entity* who){
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag) who->targetLock=NULL;
 		else{
-			int32_t x = displacementX(who, who->targetLock);
-			int32_t y = displacementY(who, who->targetLock);
-			if(x*x + y*y > 64*64*300*300) who->targetLock = NULL;
+			double x = displacementX(who, who->targetLock);
+			double y = displacementY(who, who->targetLock);
+			if(sqrt(x*x + y*y) > LOCK_RANGE) who->targetLock = NULL;
 		}
 	}
 	who->sinTheta = sin(who->theta * (2*M_PI/16));

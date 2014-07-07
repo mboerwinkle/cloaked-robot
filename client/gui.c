@@ -56,10 +56,10 @@ static void handleNetwork(){
 		rect.x = data[0]-1500;
 		rect.y = data[1]-1500;
 		SDL_RenderCopy(render, background1, NULL, &rect);
-		if(data[1]<500){
+		if(data[0]<500){
 			rect.x = data[0];
 			SDL_RenderCopy(render, background1, NULL, &rect);
-			if(data[2]<500){
+			if(data[1]<500){
 				rect.y = data[1];
 				SDL_RenderCopy(render, background1, NULL, &rect);
 				rect.x = data[0]-1500;
@@ -80,7 +80,17 @@ static void handleNetwork(){
 			rect.y = height/2-size/2+data[++i];
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 //			printf("%d ", i);
-			if(data[++i] & 1) SDL_RenderDrawRect(render, &rect);
+			if(data[++i] & 1){
+				int index = abs(data[i-2])>abs(data[i-1]) ? i-2 : i-1;
+				if(fabs(data[index]) > width/2){
+					double frac = (double)(width/2) / abs(data[index]);
+					size *= frac;
+					rect.x =  width/2-size/2+data[i-2]*frac;
+					rect.y = height/2-size/2+data[i-1]*frac;
+					rect.w = rect.h = size;
+				}
+				SDL_RenderDrawRect(render, &rect);
+			}
 			i++;
 		}
 		paint();

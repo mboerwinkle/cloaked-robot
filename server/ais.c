@@ -22,7 +22,7 @@ static void aiHumanAct(entity* who){
 			dx = displacementX(who, runner);
 			dy = displacementY(who, runner);
 			d = dx*dx+dy*dy;
-			if(d > 64*64*300*300){
+			if(d > LOCK_RANGE){
 				runner = runner->next;
 				continue;
 			}

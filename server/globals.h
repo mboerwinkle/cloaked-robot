@@ -2,6 +2,7 @@
 #define MAXNAMELEN 10
 #define POS_MAX 2097151
 #define POS_MIN (-2097152)
+#define LOCK_RANGE (64*1000)
 
 struct entity;
 struct module;
