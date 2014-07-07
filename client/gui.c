@@ -32,11 +32,12 @@ static int sockfd;
 static struct sockaddr_in serverAddr;
 
 spriteSheet* pictures;
+SDL_Texture* background1;
 
 static void paint(){
 	SDL_RenderPresent(render);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
-	SDL_RenderClear(render);
+//	SDL_RenderClear(render);
 }
 
 static void handleNetwork(){
@@ -51,7 +52,24 @@ static void handleNetwork(){
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
 //		printf("\nlock: %d\n", *data);
-		int i = 0;
+		rect.w = rect.h = 1500;
+		rect.x = data[0]-1500;
+		rect.y = data[1]-1500;
+		SDL_RenderCopy(render, background1, NULL, &rect);
+		if(data[1]<500){
+			rect.x = data[0];
+			SDL_RenderCopy(render, background1, NULL, &rect);
+			if(data[2]<500){
+				rect.y = data[1];
+				SDL_RenderCopy(render, background1, NULL, &rect);
+				rect.x = data[0]-1500;
+				SDL_RenderCopy(render, background1, NULL, &rect);
+			}
+		}else if(data[1]<500){
+			rect.y = data[1];
+			SDL_RenderCopy(render, background1, NULL, &rect);
+		}
+		int i = 2;
 		while(i+3 < len){
 			unsigned char theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
