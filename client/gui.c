@@ -51,8 +51,8 @@ static void handleNetwork(){
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
 //		printf("\nlock: %d\n", *data);
-		int i = 1;
-		while(i+2 < len){
+		int i = 0;
+		while(i+3 < len){
 			unsigned char theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
 //			char faction = (0x60 & data[i])/0x20;
@@ -62,7 +62,7 @@ static void handleNetwork(){
 			rect.y = height/2-size/2+data[++i];
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 //			printf("%d ", i);
-			if(*data == i) SDL_RenderDrawRect(render, &rect);
+			if(data[++i] & 1) SDL_RenderDrawRect(render, &rect);
 			i++;
 		}
 		paint();

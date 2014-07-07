@@ -30,8 +30,7 @@ void sendInfo(){
 		linkNear(conductor->myShip, 64*300);
 		sector *sec = conductor->myShip->mySector;
 		entity *runner = sec->firstentity;
-		data[0] = 0;
-		dataLen = 1;
+		dataLen = 0;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
 			d = displacementX(conductor->myShip, runner)/64;
@@ -46,11 +45,11 @@ void sendInfo(){
 				continue;
 			}
 			data[dataLen+2] = d;
-			dataLen+=3;
+			data[dataLen+3] = 0;
 			if(runner == conductor->myShip->targetLock){
-				 data[0] = dataLen-1;
-				 //printf("lock: %d\n", data[0]);
+				 data[dataLen+3] |= 1;
 			}
+			dataLen+=4;
 			runner = runner->next;
 		}
 		unlinkNear();
