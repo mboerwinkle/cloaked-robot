@@ -8,11 +8,11 @@ ai aiHuman;
 static void aiHumanAct(entity* who){
 	char data = *(char*)who->aiFuncData;
 	if(data & 0x10){
-		linkNear(who, 64*300);
-		double bestScore = 64*300*2;
+		linkNear(who, LOCK_RANGE);
+		double bestScore = LOCK_RANGE*2;
 		who->targetLock = NULL;
 		entity* runner = who->mySector->firstentity;
-		int64_t dx, dy;
+		double dx, dy;
 		int64_t d;
 		while(runner){
 			if(runner == who){
@@ -21,7 +21,7 @@ static void aiHumanAct(entity* who){
 			}
 			dx = displacementX(who, runner);
 			dy = displacementY(who, runner);
-			d = dx*dx+dy*dy;
+			d = sqrt(dx*dx+dy*dy);
 			if(d > LOCK_RANGE){
 				runner = runner->next;
 				continue;
@@ -30,7 +30,7 @@ static void aiHumanAct(entity* who){
 			if(angle < 0) angle += 2*M_PI;
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
 			if(angle>M_PI) angle = 2*M_PI - angle;
-			double score = sqrt(d)*(1+angle/M_PI);
+			double score = d*(1+angle/M_PI);
 			if(score < bestScore){
 				bestScore = score;
 				who->targetLock = runner;

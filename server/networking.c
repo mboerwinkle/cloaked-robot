@@ -38,7 +38,7 @@ void sendInfo(){
 	int64_t d;
 	client* conductor = clientList;
 	while(conductor){
-		linkNear(conductor->myShip, 64*300);
+		linkNear(conductor->myShip, LOCK_RANGE);
 		sector *sec = conductor->myShip->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
