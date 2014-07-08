@@ -37,7 +37,7 @@ SDL_Texture* background1;
 static void paint(){
 	SDL_RenderPresent(render);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
-//	SDL_RenderClear(render);
+	SDL_RenderClear(render);
 }
 
 static void handleNetwork(){
