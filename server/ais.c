@@ -109,7 +109,6 @@ static void aiMissileAct(entity* who){
 	if(y >= dv || y < 0) return;
 	who->x += dx+target->vx-who->vx - var/2*unx;
 	who->y += dy+target->vy-who->vy - var/2*uny;
-	puts("Warpify!");
 	return;
 }
 
