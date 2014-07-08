@@ -3,7 +3,7 @@
   -Lock on intelligently
 (M) Draw ship thrusting stage
 (S) HUD
-  -Health bars
+  -Energy, weapon charge status
 (MS) Save files
   -Sector
   -Ship
