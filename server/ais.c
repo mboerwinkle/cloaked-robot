@@ -4,40 +4,45 @@
 
 ai aiMissile;
 ai aiHuman;
+ai aiDrone;
+
+static void lock(entity* who){
+	linkNear(who, LOCK_RANGE);
+	double bestScore = LOCK_RANGE*2;
+	who->targetLock = NULL;
+	entity* runner = who->mySector->firstentity;
+	double dx, dy;
+	int64_t d;
+	while(runner){
+		if(runner == who){
+			runner = runner->next;
+			continue;
+		}
+		dx = displacementX(who, runner);
+		dy = displacementY(who, runner);
+		d = sqrt(dx*dx+dy*dy);
+		if(d > LOCK_RANGE){
+			runner = runner->next;
+			continue;
+		}
+		double angle = atan2(dy, dx);
+		if(angle < 0) angle += 2*M_PI;
+		angle = fabs(angle - (M_PI_4/2)*who->theta);
+		if(angle>M_PI) angle = 2*M_PI - angle;
+		double score = d*(1+angle/M_PI);
+		if(score < bestScore){
+			bestScore = score;
+			who->targetLock = runner;
+		}
+		runner = runner->next;
+	}
+	unlinkNear();
+}
 
 static void aiHumanAct(entity* who){
 	char data = *(char*)who->aiFuncData;
 	if(data & 0x10){
-		linkNear(who, LOCK_RANGE);
-		double bestScore = LOCK_RANGE*2;
-		who->targetLock = NULL;
-		entity* runner = who->mySector->firstentity;
-		double dx, dy;
-		int64_t d;
-		while(runner){
-			if(runner == who){
-				runner = runner->next;
-				continue;
-			}
-			dx = displacementX(who, runner);
-			dy = displacementY(who, runner);
-			d = sqrt(dx*dx+dy*dy);
-			if(d > LOCK_RANGE){
-				runner = runner->next;
-				continue;
-			}
-			double angle = atan2(dy, dx);
-			if(angle < 0) angle += 2*M_PI;
-			angle = fabs(angle - (M_PI_4/2)*who->theta);
-			if(angle>M_PI) angle = 2*M_PI - angle;
-			double score = d*(1+angle/M_PI);
-			if(score < bestScore){
-				bestScore = score;
-				who->targetLock = runner;
-			}
-			runner = runner->next;
-		}
-		unlinkNear();
+		lock(who);
 	}
 	if(data & 0x20){
 		who->targetLock = NULL;
@@ -46,6 +51,60 @@ static void aiHumanAct(entity* who){
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);
 	(*who->modules[0]->actFunc)(who, 0, data&0x08);
+}
+
+static void aiDroneAct(entity* who){
+	double vx = who->vx;
+	double vy = who->vy;
+	droneAiData *data = who->aiFuncData;
+	if(data->timer == 200){
+		data->timer = 0;
+	}
+	data->timer++;
+	if(vx*vx+vy*vy < 22500){
+		thrust(who);
+	}
+	if(data->timer == 1 && who->targetLock == NULL){
+		lock(who);
+	}
+	entity* target = who->targetLock;
+	if(target == NULL){
+		
+		return;
+	}
+	int64_t dx = displacementX(who, target);
+	int64_t dy = displacementY(who, target);
+	double unx = -who->cosTheta;
+	double uny = -who->sinTheta;
+	double x = dy*unx - dx*uny;
+	double y = dx*unx + dy*uny;
+
+	if(data->timer == 1){
+		if(dx*dx+dy*dy < (LOCK_RANGE/3)*(LOCK_RANGE/3)){
+			data->Attack = 1;
+		}
+		if(dx*dx+dy*dy > (int64_t)LOCK_RANGE*LOCK_RANGE){
+			data->Attack = 0;
+		}
+	}
+
+	if(data->Attack == 0){
+		if(x > 0){
+			turn(who, 1);
+		} 
+		if(x < 0){
+			turn(who, -1);
+		}
+	}
+	else{
+		if(x+(8000/y) > 0){
+			turn(who, 1);
+		}
+		if(x+(8000/y) > 0){
+			turn(who, -1);
+		}
+	}
+	
 }
 
 static void noCareCollision(entity* me, entity* him){}
@@ -125,4 +184,6 @@ void initAis(){
 	aiHuman.handleCollision = noCareCollision;
 	aiMissile.act = aiMissileAct;
 	aiMissile.handleCollision = aiMissileCollision;
+	aiDrone.act = aiDroneAct;
+	aiDrone.handleCollision = noCareCollision;
 }
