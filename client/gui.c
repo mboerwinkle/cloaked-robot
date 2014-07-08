@@ -67,14 +67,32 @@ static void handleNetwork(){
 			rect.y = data[1];
 			SDL_RenderCopy(render, background1, NULL, &rect);
 		}
+		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
+		rect.y = height+10;
+		rect.h = 10;
+		rect.x = width/2-width/2*((data[3]&0xFF00)/0x100)/255;
+		rect.w = width*((data[3]&0xFF00)/0x100)/255;
+		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-		int i = 2;
+		rect.x = width/2-width/2*(data[3]&0xFF)/255;
+		rect.w = width*(data[3]&0xFF)/255;
+		rect.y = height;
+		SDL_RenderFillRect(render, &rect);
+		unsigned char theta = 0x0F & data[2];
+//		char flame = 0x10 & data[i];
+//		char faction = (0x60 & data[i])/0x20;
+		int ship = (0xFF80 & data[2]) / 0x80;
+		int size = rect.w = rect.h = pictures[ship].size;
+		rect.x =  width/2-size/2;
+		rect.y = height/2-size/2;
+		SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
+		int i = 4;
 		while(i+3 < len){
-			unsigned char theta = 0x0F & data[i];
+			theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
 //			char faction = (0x60 & data[i])/0x20;
-			int ship = (0xFF80 & data[i]) / 0x80;
-			int size = rect.w = rect.h = pictures[ship].size;
+			ship = (0xFF80 & data[i]) / 0x80;
+			size = rect.w = rect.h = pictures[ship].size;
 			int x = data[++i];
 			int y = data[++i];
 			rect.x =  width/2-size/2+x;
@@ -121,7 +139,7 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, 0);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height+20, 0);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
