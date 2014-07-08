@@ -36,10 +36,23 @@ void sendInfo(){
 	//TODO: Decide if the above should be static
 	int dataLen;
 	int64_t d;
+	client* prev = NULL;
 	client* conductor = clientList;
 	while(conductor){
-		linkNear(conductor->myShip, LOCK_RANGE);
 		entity* me = conductor->myShip;
+		if(me->destroyFlag){
+			if(prev){
+				prev->next = conductor->next;
+				free(conductor);
+				conductor = prev->next;
+				continue;
+			}
+			clientList = conductor->next;
+			free(conductor);
+			conductor = clientList;
+			continue;
+		}
+		linkNear(me, LOCK_RANGE);
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
@@ -75,6 +88,7 @@ void sendInfo(){
 		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
 		sendto(sockfd, (char*)data, dataLen*2, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+		prev = conductor;
 		conductor = conductor->next;
 	}
 }
