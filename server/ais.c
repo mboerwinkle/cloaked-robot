@@ -57,6 +57,10 @@ static void aiMissileAct(entity* who){
 
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
+	if(target->actedFlag == globalActedFlag){
+		dx -= target->vx;
+		dy -= target->vy;
+	}
 
 	double unx = -who->cosTheta;
 	double uny = -who->sinTheta;
@@ -89,6 +93,23 @@ static void aiMissileAct(entity* who){
 	double t = x/vx;
 	if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
 	else turn(who, spin);
+	
+	dvx = who->vx - target->vx;
+	dvy = who->vy - target->vy;
+	if(dvx == 0 && dvy == 0) return;
+	double dv = sqrt(dvx*dvx + dvy*dvy);
+	unx = dvx/dv;
+	uny = dvy/dv;
+	y = dx*unx + dy*uny;
+	x = dy*unx - dx*uny;
+	int64_t r = who->r + target->r;
+	if(r <= fabs(x)) return;
+	double var = sqrt(r*r - x*x);
+	y -= var;
+	if(y >= dv || y < 0) return;
+	who->x += dx+target->vx-who->vx - var/2*unx;
+	who->y += dy+target->vy-who->vy - var/2*uny;
+	puts("Warpify!");
 	return;
 }
 
