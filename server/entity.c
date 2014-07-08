@@ -127,8 +127,9 @@ char tick(entity* who){
 	}
 	if(who->shield <= 0) return 1;
 	if(who->targetLock){
-		if(who->targetLock->destroyFlag) who->targetLock=NULL;
-		else{
+		if(who->targetLock->destroyFlag){
+			who->targetLock=NULL;
+		}else{
 			double x = displacementX(who, who->targetLock);
 			double y = displacementY(who, who->targetLock);
 			if(sqrt(x*x + y*y) > LOCK_RANGE) who->targetLock = NULL;

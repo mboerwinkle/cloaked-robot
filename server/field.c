@@ -33,6 +33,10 @@ void run(sector *sec){
 			disappear(sec->x, sec->y); // TODO: Only do this if they were a player
 		}else current = &(*current)->next;
 	}
+}
+
+void cleanup(){
+	entity** current;
 	struct moveRequest *tmp;
 	while(firstRequest){
 		move(firstRequest->from->x, firstRequest->from->y, firstRequest->to->x, firstRequest->to->y);

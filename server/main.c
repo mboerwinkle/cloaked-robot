@@ -29,6 +29,7 @@ int main(){
 			run(conductor);
 			conductor = conductor->nextsector;
 		}
+		cleanup();
 		runner = &listrootsector;
 		while(*runner != NULL){
 			if((*runner)->number == 0){

@@ -47,11 +47,9 @@ static void handleNetwork(){
 	int len;
 	SDL_Rect rect;
 	while(0<(len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
-		SDL_SetRenderDrawColor(render, 255, 0, 0, 255); // For target locks
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
-//		printf("\nlock: %d\n", *data);
 		rect.w = rect.h = 1500;
 		rect.x = data[0]-1500;
 		rect.y = data[1]-1500;
@@ -69,6 +67,7 @@ static void handleNetwork(){
 			rect.y = data[1];
 			SDL_RenderCopy(render, background1, NULL, &rect);
 		}
+		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 		int i = 2;
 		while(i+3 < len){
 			unsigned char theta = 0x0F & data[i];
@@ -76,21 +75,34 @@ static void handleNetwork(){
 //			char faction = (0x60 & data[i])/0x20;
 			int ship = (0xFF80 & data[i]) / 0x80;
 			int size = rect.w = rect.h = pictures[ship].size;
-			rect.x =  width/2-size/2+data[++i];
-			rect.y = height/2-size/2+data[++i];
+			int x = data[++i];
+			int y = data[++i];
+			rect.x =  width/2-size/2+x;
+			rect.y = height/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
-//			printf("%d ", i);
-			if(data[++i] & 1){
-				int index = abs(data[i-2])>abs(data[i-1]) ? i-2 : i-1;
+			if(data[++i] & 0x20){
+				int index = abs(x)>abs(y) ? i-2 : i-1;
 				if(fabs(data[index]) > width/2){
 					double frac = (double)(width/2) / abs(data[index]);
 					size *= frac;
-					rect.x =  width/2-size/2+data[i-2]*frac;
-					rect.y = height/2-size/2+data[i-1]*frac;
+					rect.x =  width/2-size/2+x*frac;
+					rect.y = height/2-size/2+y*frac;
 					rect.w = rect.h = size;
 				}
 				SDL_RenderDrawRect(render, &rect);
+				rect.x = width/2-size/2+x;
+				rect.w = pictures[ship].size;
 			}
+			rect.y = height/2+size/2+y+1;
+			rect.h = 5;
+			SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
+			SDL_RenderDrawRect(render, &rect);
+			rect.y++;
+			rect.x++;
+			rect.h = 3;
+			rect.w = (rect.w-2)*(data[i]&0x1F)/31;
+			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+			SDL_RenderFillRect(render, &rect);
 			i++;
 		}
 		paint();

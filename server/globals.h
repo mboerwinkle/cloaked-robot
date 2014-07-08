@@ -83,6 +83,7 @@ extern void freeEntity(entity* who);
 
 extern void fileMoveRequest(entity* who, sector* from, sector* to);
 extern void run(sector *sec);
+extern void cleanup();
 
 extern module missileModule;
 

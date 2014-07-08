@@ -58,9 +58,9 @@ void sendInfo(){
 				continue;
 			}
 			data[dataLen+2] = d;
-			data[dataLen+3] = 0;
+			data[dataLen+3] = runner->shield*31/runner->maxShield;
 			if(runner == conductor->myShip->targetLock){
-				 data[dataLen+3] |= 1;
+				 data[dataLen+3] |= 0x20;
 			}
 			dataLen+=4;
 			runner = runner->next;
