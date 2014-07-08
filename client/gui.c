@@ -90,15 +90,10 @@ static void handleNetwork(){
 					rect.w = rect.h = size;
 				}
 				SDL_RenderDrawRect(render, &rect);
-				rect.x = width/2-size/2+x;
+				rect.x = width/2-size/2+x+1;
 				rect.w = pictures[ship].size;
 			}
-			rect.y = height/2+size/2+y+1;
-			rect.h = 5;
-			SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
-			SDL_RenderDrawRect(render, &rect);
-			rect.y++;
-			rect.x++;
+			rect.y = height/2+size/2+y+2;
 			rect.h = 3;
 			rect.w = (rect.w-2)*(data[i]&0x1F)/31;
 			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
