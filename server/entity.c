@@ -85,28 +85,6 @@ char tick(entity* who){
 		who->vy -= vy*0.5;
 		who->x += who->vx;
 		who->y += who->vy;
-		uint64_t secx = who->mySector->x;
-		uint64_t secy = who->mySector->y;
-		if(who->x > POS_MAX){
-			secx++;
-			who->x -= (POS_MAX-POS_MIN+1);
-		}else if(who->x < POS_MIN){
-			secx--;
-			who->x += (POS_MAX-POS_MIN+1);
-		}
-		if(who->y > POS_MAX){
-			secy++;
-			who->y -= (POS_MAX-POS_MIN+1);
-		}else if(who->y < POS_MIN){
-			secy--;
-			who->y += (POS_MAX-POS_MIN+1);
-		}
-		if(secx!=who->mySector->x || secy!=who->mySector->y){
-			sector *new = searchforsector(secx, secy);
-			if(new == NULL) return 1;
-			fileMoveRequest(who, who->mySector, new);
-			who->mySector = new;
-		}
 	}
 	who->actedFlag = globalActedFlag;
 
@@ -144,6 +122,28 @@ char tick(entity* who){
 		otherGuy = otherGuy->next;
 	}
 	unlinkNear();
+	uint64_t secx = who->mySector->x;
+	uint64_t secy = who->mySector->y;
+	if(who->x > POS_MAX){
+		secx++;
+		who->x -= (POS_MAX-POS_MIN+1);
+	}else if(who->x < POS_MIN){
+		secx--;
+		who->x += (POS_MAX-POS_MIN+1);
+	}
+	if(who->y > POS_MAX){
+		secy++;
+		who->y -= (POS_MAX-POS_MIN+1);
+	}else if(who->y < POS_MIN){
+		secy--;
+		who->y += (POS_MAX-POS_MIN+1);
+	}
+	if(secx!=who->mySector->x || secy!=who->mySector->y){
+		sector *new = searchforsector(secx, secy);
+		if(new == NULL) return 1;
+		fileMoveRequest(who, who->mySector, new);
+		who->mySector = new;
+	}
 	if(who->shield <= 0) return 1;
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag){
