@@ -51,6 +51,8 @@ static void aiHumanAct(entity* who){
 static void noCareCollision(entity* me, entity* him){}
 
 static void aiMissileAct(entity* who){
+	uint16_t* ttl = who->aiFuncData;
+	if(++(*ttl) == 40*6) who->shield = 0;
 	entity* target = who->targetLock;
 	if(target == NULL) return;
 	thrust(who);

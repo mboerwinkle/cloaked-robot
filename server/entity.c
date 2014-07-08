@@ -39,7 +39,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		(*missileModule.initFunc)(ret, 0, 1);
 	}else if(type == 1){
 		ret->myAi = &aiMissile;
-		ret->aiFuncData = NULL;
+		ret->aiFuncData = calloc(2, 1);
 		ret->r = 64;
 		ret->numModules = 0;
 		ret->modules = NULL;
