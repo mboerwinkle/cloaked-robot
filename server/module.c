@@ -23,7 +23,7 @@ static void missileAct(entity* who, int ix, char action){
 	if(!action || who->energy < 10) return;
 	*charge = 1;
 	who->energy -= 10;
-	entity* what = newEntity(1, who->mySector, who->x, who->y);
+	entity* what = newEntity(1, who->mySector, who->x+who->vx, who->y+who->vy);
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;

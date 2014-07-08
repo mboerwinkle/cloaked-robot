@@ -27,9 +27,9 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->aiFuncData = malloc(1);
 		*(char*)ret->aiFuncData = 0;
 		ret->r = 640;
-		ret->numModules = 4;
-		ret->modules = calloc(4, sizeof(void *));
-		ret->moduleDatas = calloc(4, sizeof(void*));
+		ret->numModules = 1;
+		ret->modules = calloc(1, sizeof(void *));
+		ret->moduleDatas = calloc(1, sizeof(void*));
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
@@ -65,65 +65,65 @@ char tick(entity* who){
 		vy /= v;
 		who->vx -= vx*0.5;
 		who->vy -= vy*0.5;
+	}
 
-		linkNear(who, 6400);
-		entity *otherGuy = who->mySector->firstentity;
-		double dx, dy, d;
+	linkNear(who, 6400);
+	entity *otherGuy = who->mySector->firstentity;
+	double dx, dy, d;
 
-		while(otherGuy){
-			if(otherGuy == who){
-				otherGuy = otherGuy->next;
-				continue;
-			}
-			dx = displacementX(who, otherGuy);
-			dy = displacementY(who, otherGuy);
-			d = sqrt(dx*dx+dy*dy);
-			if(d > who->r + otherGuy->r || d==0){
-				otherGuy = otherGuy->next;
-				continue;
-			}
-			dx/=d;
-			dy/=d;
-			double dvel = (who->vx-otherGuy->vx)*dx+(who->vy-otherGuy->vy)*dy;
-			if(dvel > 0){
-				(*who->myAi->handleCollision)(who, otherGuy);
-				(*otherGuy->myAi->handleCollision)(otherGuy, who);
-				double m1 = who->r;
-				double m2 = otherGuy->r;
-				dvel *= 2*m1/(m1+m2);
-				otherGuy->vx += dvel*dx;
-				otherGuy->vy += dvel*dy;
-				dvel *= -m2/m1;
-				who->vx += dvel*dx;
-				who->vy += dvel*dy;
-			}
+	while(otherGuy){
+		if(otherGuy == who){
 			otherGuy = otherGuy->next;
+			continue;
 		}
-		unlinkNear();
-		who->x += who->vx;
-		who->y += who->vy;
-		uint64_t secx = who->mySector->x;
-		uint64_t secy = who->mySector->y;
-		if(who->x > POS_MAX){
-			secx++;
-			who->x -= (POS_MAX-POS_MIN+1);
-		}else if(who->x < POS_MIN){
-			secx--;
-			who->x += (POS_MAX-POS_MIN+1);
+		dx = displacementX(who, otherGuy);
+		dy = displacementY(who, otherGuy);
+		d = sqrt(dx*dx+dy*dy);
+		if(d > who->r + otherGuy->r || d==0){
+			otherGuy = otherGuy->next;
+			continue;
 		}
-		if(who->y > POS_MAX){
-			secy++;
-			who->y -= (POS_MAX-POS_MIN+1);
-		}else if(who->y < POS_MIN){
-			secy--;
-			who->y += (POS_MAX-POS_MIN+1);
+		dx/=d;
+		dy/=d;
+		double dvel = (who->vx-otherGuy->vx)*dx+(who->vy-otherGuy->vy)*dy;
+		if(dvel > 0){
+			(*who->myAi->handleCollision)(who, otherGuy);
+			(*otherGuy->myAi->handleCollision)(otherGuy, who);
+			double m1 = who->r;
+			double m2 = otherGuy->r;
+			dvel *= 2*m1/(m1+m2);
+			otherGuy->vx += dvel*dx;
+			otherGuy->vy += dvel*dy;
+			dvel *= -m2/m1;
+			who->vx += dvel*dx;
+			who->vy += dvel*dy;
 		}
-		if(secx!=who->mySector->x || secy!=who->mySector->y){
-			sector *new = searchforsector(secx, secy);
-			if(new == NULL) return 1;
-			fileMoveRequest(who, who->mySector, new);
-			who->mySector = new;
-		}
+		otherGuy = otherGuy->next;
+	}
+	unlinkNear();
+	who->x += who->vx;
+	who->y += who->vy;
+	uint64_t secx = who->mySector->x;
+	uint64_t secy = who->mySector->y;
+	if(who->x > POS_MAX){
+		secx++;
+		who->x -= (POS_MAX-POS_MIN+1);
+	}else if(who->x < POS_MIN){
+		secx--;
+		who->x += (POS_MAX-POS_MIN+1);
+	}
+	if(who->y > POS_MAX){
+		secy++;
+		who->y -= (POS_MAX-POS_MIN+1);
+	}else if(who->y < POS_MIN){
+		secy--;
+		who->y += (POS_MAX-POS_MIN+1);
+	}
+	if(secx!=who->mySector->x || secy!=who->mySector->y){
+		sector *new = searchforsector(secx, secy);
+		if(new == NULL) return 1;
+		fileMoveRequest(who, who->mySector, new);
+		who->mySector = new;
 	}
 	if(who->shield <= 0) return 1;
 	if(who->targetLock){
