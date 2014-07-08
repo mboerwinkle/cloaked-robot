@@ -67,17 +67,6 @@ static void handleNetwork(){
 			rect.y = data[1];
 			SDL_RenderCopy(render, background1, NULL, &rect);
 		}
-		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
-		rect.y = height+10;
-		rect.h = 10;
-		rect.x = width/2-width/2*((data[3]&0xFF00)/0x100)/255;
-		rect.w = width*((data[3]&0xFF00)/0x100)/255;
-		SDL_RenderFillRect(render, &rect);
-		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-		rect.x = width/2-width/2*(data[3]&0xFF)/255;
-		rect.w = width*(data[3]&0xFF)/255;
-		rect.y = height;
-		SDL_RenderFillRect(render, &rect);
 		unsigned char theta = 0x0F & data[2];
 //		char flame = 0x10 & data[i];
 //		char faction = (0x60 & data[i])/0x20;
@@ -87,6 +76,7 @@ static void handleNetwork(){
 		rect.y = height/2-size/2;
 		SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 		int i = 4;
+		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 		while(i+3 < len){
 			theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
@@ -114,10 +104,25 @@ static void handleNetwork(){
 			rect.y = height/2+size/2+y+2;
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
-			SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 			SDL_RenderFillRect(render, &rect);
 			i++;
 		}
+		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+		rect.y = height;
+		rect.h = 20;
+		rect.x = 0;
+		rect.w = width;
+		SDL_RenderFillRect(render, &rect);
+		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+		rect.x = width/2-width/2*(data[3]&0xFF)/255;
+		rect.w = width*(data[3]&0xFF)/255;
+		rect.h = 10;
+		SDL_RenderFillRect(render, &rect);
+		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
+		rect.y += 10;
+		rect.x = width/2-width/2*((data[3]&0xFF00)/0x100)/255;
+		rect.w = width*((data[3]&0xFF00)/0x100)/255;
+		SDL_RenderFillRect(render, &rect);
 		paint();
 	}
 }
