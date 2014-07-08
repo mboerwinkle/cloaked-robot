@@ -14,7 +14,7 @@ static void lock(entity* who){
 	double dx, dy;
 	int64_t d;
 	while(runner){
-		if(runner == who){
+		if(runner->r < 64*5 || runner == who){
 			runner = runner->next;
 			continue;
 		}
