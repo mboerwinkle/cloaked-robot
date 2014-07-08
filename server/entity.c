@@ -8,6 +8,7 @@
 entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
+	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
 	ret->targetLock = NULL;
@@ -65,14 +66,39 @@ char tick(entity* who){
 		vy /= v;
 		who->vx -= vx*0.5;
 		who->vy -= vy*0.5;
+		who->x += who->vx;
+		who->y += who->vy;
+		uint64_t secx = who->mySector->x;
+		uint64_t secy = who->mySector->y;
+		if(who->x > POS_MAX){
+			secx++;
+			who->x -= (POS_MAX-POS_MIN+1);
+		}else if(who->x < POS_MIN){
+			secx--;
+			who->x += (POS_MAX-POS_MIN+1);
+		}
+		if(who->y > POS_MAX){
+			secy++;
+			who->y -= (POS_MAX-POS_MIN+1);
+		}else if(who->y < POS_MIN){
+			secy--;
+			who->y += (POS_MAX-POS_MIN+1);
+		}
+		if(secx!=who->mySector->x || secy!=who->mySector->y){
+			sector *new = searchforsector(secx, secy);
+			if(new == NULL) return 1;
+			fileMoveRequest(who, who->mySector, new);
+			who->mySector = new;
+		}
 	}
+	who->actedFlag = globalActedFlag;
 
 	linkNear(who, 6400);
 	entity *otherGuy = who->mySector->firstentity;
 	double dx, dy, d;
 
 	while(otherGuy){
-		if(otherGuy == who){
+		if(otherGuy->actedFlag != globalActedFlag || otherGuy == who){
 			otherGuy = otherGuy->next;
 			continue;
 		}
@@ -101,30 +127,6 @@ char tick(entity* who){
 		otherGuy = otherGuy->next;
 	}
 	unlinkNear();
-	who->x += who->vx;
-	who->y += who->vy;
-	uint64_t secx = who->mySector->x;
-	uint64_t secy = who->mySector->y;
-	if(who->x > POS_MAX){
-		secx++;
-		who->x -= (POS_MAX-POS_MIN+1);
-	}else if(who->x < POS_MIN){
-		secx--;
-		who->x += (POS_MAX-POS_MIN+1);
-	}
-	if(who->y > POS_MAX){
-		secy++;
-		who->y -= (POS_MAX-POS_MIN+1);
-	}else if(who->y < POS_MIN){
-		secy--;
-		who->y += (POS_MAX-POS_MIN+1);
-	}
-	if(secx!=who->mySector->x || secy!=who->mySector->y){
-		sector *new = searchforsector(secx, secy);
-		if(new == NULL) return 1;
-		fileMoveRequest(who, who->mySector, new);
-		who->mySector = new;
-	}
 	if(who->shield <= 0) return 1;
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag){

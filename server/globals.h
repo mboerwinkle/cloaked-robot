@@ -28,6 +28,7 @@ extern ai aiMissile;
 extern void initAis();
 
 typedef struct entity{
+	char actedFlag;
 	char destroyFlag;
 	int type;
 	struct sector *mySector;
@@ -84,6 +85,7 @@ extern void freeEntity(entity* who);
 extern void fileMoveRequest(entity* who, sector* from, sector* to);
 extern void run(sector *sec);
 extern void cleanup();
+extern char globalActedFlag;
 
 extern module missileModule;
 
