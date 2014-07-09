@@ -68,10 +68,24 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	return ret;
 }
 
-char tick(entity* who){
+void tick(entity* who){
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	(*who->myAi->act)(who);
+	if(who->targetLock){
+		if(who->targetLock->destroyFlag){
+			who->targetLock=NULL;
+		}else{
+			double x = displacementX(who, who->targetLock);
+			double y = displacementY(who, who->targetLock);
+			if(sqrt(x*x + y*y) > LOCK_RANGE) who->targetLock = NULL;
+		}
+	}
+	who->sinTheta = sin(who->theta * (2*M_PI/16));
+	who->cosTheta = cos(who->theta * (2*M_PI/16));
+}
+
+char tick2(entity* who){
 	double vx = who->vx;
 	double vy = who->vy;
 	double v = sqrt(vx*vx + vy*vy);
@@ -87,7 +101,6 @@ char tick(entity* who){
 		who->y += who->vy;
 	}
 	who->actedFlag = globalActedFlag;
-
 	linkNear(who, 6400);
 	entity *otherGuy = who->mySector->firstentity;
 	double dx, dy, d;
@@ -145,17 +158,6 @@ char tick(entity* who){
 		who->mySector = new;
 	}
 	if(who->shield <= 0) return 1;
-	if(who->targetLock){
-		if(who->targetLock->destroyFlag){
-			who->targetLock=NULL;
-		}else{
-			double x = displacementX(who, who->targetLock);
-			double y = displacementY(who, who->targetLock);
-			if(sqrt(x*x + y*y) > LOCK_RANGE) who->targetLock = NULL;
-		}
-	}
-	who->sinTheta = sin(who->theta * (2*M_PI/16));
-	who->cosTheta = cos(who->theta * (2*M_PI/16));
 	return 0;
 }
 
