@@ -65,9 +65,10 @@ static void loadPic(char *addr){
 }
 
 void loadPics(){
-	pictures = malloc(sizeof(spriteSheet)*2);
+	pictures = malloc(sizeof(spriteSheet)*3);
 	loadPic("mdls/ship1.png");
 	loadPic("mdls/missile1.png");
+	loadPic("mdls/GAMMABat.png");
 	Imlib_Image img = imlib_load_image("mdls/background1.png");
 	imlib_context_set_image(img);
 	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data(), 1500, 1500, 32, 6000, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);

@@ -68,23 +68,26 @@ static void aiDroneAct(entity* who){
 		lock(who);
 	}
 	entity* target = who->targetLock;
-	if(target == NULL){
-		
+	if(target == NULL){		
+		(*who->modules[0]->actFunc)(who, 0, 0);
 		return;
 	}
+	(*who->modules[0]->actFunc)(who, 0, 1);
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
-	double unx = -who->cosTheta;
-	double uny = -who->sinTheta;
+	double unx = who->cosTheta;
+	double uny = who->sinTheta;
 	double x = dy*unx - dx*uny;
 	double y = dx*unx + dy*uny;
 
 	if(data->timer == 1){
-		if(dx*dx+dy*dy < (LOCK_RANGE/3)*(LOCK_RANGE/3)){
+		if(dx*dx+dy*dy < ((int64_t)LOCK_RANGE/3)*(LOCK_RANGE/3)){
 			data->Attack = 1;
+			puts("Attack!");
 		}
 		if(dx*dx+dy*dy > (int64_t)LOCK_RANGE*LOCK_RANGE){
 			data->Attack = 0;
+			puts("Defend Teh Base!");
 		}
 	}
 
@@ -97,10 +100,11 @@ static void aiDroneAct(entity* who){
 		}
 	}
 	else{
+		if(y == 0) y++;
 		if(x+(8000/y) > 0){
 			turn(who, 1);
 		}
-		if(x+(8000/y) > 0){
+		if(x+(8000/y) < 0){
 			turn(who, -1);
 		}
 	}
