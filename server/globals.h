@@ -23,8 +23,14 @@ typedef struct ai{
 	void (*handleCollision)(struct entity*, struct entity*);
 }ai;
 
+typedef struct droneAiData{
+	short timer;
+	char Attack;
+}droneAiData;
+
 extern ai aiHuman;
 extern ai aiMissile;
+extern ai aiDrone;
 extern void initAis();
 
 typedef struct entity{

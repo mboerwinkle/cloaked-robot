@@ -46,6 +46,23 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->thrust = 4;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
+	}else if(type == 2){		
+		ret->x += 5000 + POS_MIN;
+		ret->y += 5000 + POS_MIN;
+		ret->myAi = &aiDrone;
+		ret->aiFuncData = malloc(sizeof(droneAiData));
+		((droneAiData*)ret->aiFuncData)->Attack = 0;
+		((droneAiData*)ret->aiFuncData)->timer = 100;
+		ret->r = 640;
+		ret->numModules = 1;
+		ret->modules = calloc(1, sizeof(void *));
+		ret->moduleDatas = calloc(1, sizeof(void*));
+		ret->thrust = 2;
+		ret->maxTurn = 6;
+		ret->shield = ret->maxShield = 100;
+		ret->energy = ret->maxEnergy = 100;
+		ret->energyRegen = 1;
+		(*missileModule.initFunc)(ret, 0, 1);
 	}
 	return ret;
 }
