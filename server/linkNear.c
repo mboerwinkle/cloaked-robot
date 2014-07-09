@@ -37,8 +37,10 @@ void linkNear(entity* who, int32_t radius){
 	}
 	if(u) addLinkedSector(searchforsector(x, y-1));
 	else if(d) addLinkedSector(searchforsector(x, y+1));
+	fputc('.', stderr);
 }
 
 void unlinkNear(){
 	for(numLinked--; numLinked>=0; numLinked--) linkedIn[numLinked]->next = NULL;
+	fputc('\b', stderr);
 }
