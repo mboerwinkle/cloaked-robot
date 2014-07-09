@@ -122,10 +122,6 @@ static void aiMissileAct(entity* who){
 
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
-	if(target->actedFlag == globalActedFlag){
-		dx -= target->vx;
-		dy -= target->vy;
-	}
 
 	double unx = -who->cosTheta;
 	double uny = -who->sinTheta;
