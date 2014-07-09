@@ -41,7 +41,7 @@ static void paint(){
 }
 
 static void handleNetwork(){
-	static int16_t data[3*100];
+	static int8_t data[6*100];
 	struct sockaddr_in addr;
 	socklen_t addrLen = sizeof(addr);
 	int len;
@@ -51,44 +51,46 @@ static void handleNetwork(){
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		len/=2;
 		rect.w = rect.h = 1500;
-		rect.x = data[0]-1500;
-		rect.y = data[1]-1500;
+		int16_t bgx = ((int16_t*)data)[0];
+		int16_t bgy = ((int16_t*)data)[1];
+		rect.x = bgx-1500;
+		rect.y = bgy-1500;
 		SDL_RenderCopy(render, background1, NULL, &rect);
-		if(data[0]<500){
-			rect.x = data[0];
+		if(bgx<500){
+			rect.x = bgx;
 			SDL_RenderCopy(render, background1, NULL, &rect);
-			if(data[1]<500){
-				rect.y = data[1];
+			if(bgy<500){
+				rect.y = bgy;
 				SDL_RenderCopy(render, background1, NULL, &rect);
-				rect.x = data[0]-1500;
+				rect.x = bgx-1500;
 				SDL_RenderCopy(render, background1, NULL, &rect);
 			}
-		}else if(data[1]<500){
-			rect.y = data[1];
+		}else if(bgy<500){
+			rect.y = bgy;
 			SDL_RenderCopy(render, background1, NULL, &rect);
 		}
-		unsigned char theta = 0x0F & data[2];
-//		char flame = 0x10 & data[i];
-//		char faction = (0x60 & data[i])/0x20;
-		int ship = (0xFF80 & data[2]) / 0x80;
+		unsigned char theta = 0x0F & data[4];
+//		char flame = 0x10 & data[4];
+//		char faction = (0xE0 & data[4])/0x20;
+		int ship = (uint8_t)data[5];
 		int size = rect.w = rect.h = pictures[ship].size;
 		rect.x =  width/2-size/2;
 		rect.y = height/2-size/2;
 		SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
-		int i = 4;
+		int i = 8;
 		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-		while(i+3 < len){
+		while(i+6 < len){
 			theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
-//			char faction = (0x60 & data[i])/0x20;
-			ship = (0xFF80 & data[i]) / 0x80;
+//			char faction = (0xE0 & data[i])/0x20;
+			ship = (uint8_t)data[++i];
 			size = rect.w = rect.h = pictures[ship].size;
-			int x = data[++i];
-			int y = data[++i];
+			int x = *(int16_t*)(data+(++i));
+			int y = *(int16_t*)(data+(i+=2));
 			rect.x =  width/2-size/2+x;
 			rect.y = height/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
-			if(data[++i] & 0x20){
+			if(data[i+=2] & 0x20){
 				int index = abs(x)>abs(y) ? i-2 : i-1;
 				if(fabs(data[index]) > width/2){
 					double frac = (double)(width/2) / abs(data[index]);
@@ -114,14 +116,14 @@ static void handleNetwork(){
 		rect.w = width;
 		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
-		rect.x = width/2-width/2*(data[3]&0xFF)/255;
-		rect.w = width*(data[3]&0xFF)/255;
+		rect.x = width/2-width/2*(uint8_t)data[6]/255;
+		rect.w = width*(uint8_t)data[6]/255;
 		rect.h = 10;
 		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
 		rect.y += 10;
-		rect.x = width/2-width/2*((data[3]&0xFF00)/0x100)/255;
-		rect.w = width*((data[3]&0xFF00)/0x100)/255;
+		rect.x = width/2-width/2*(uint8_t)data[7]/255;
+		rect.w = width*(uint8_t)data[7]/255;
 		SDL_RenderFillRect(render, &rect);
 		paint();
 	}

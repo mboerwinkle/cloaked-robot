@@ -32,7 +32,7 @@ static int32_t simonMod(int64_t a, int32_t b){
 
 void sendInfo(){
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334)};
-	static int16_t data[3*100];
+	static int8_t data[6*100];
 	//TODO: Decide if the above should be static
 	int dataLen;
 	int64_t d;
@@ -55,34 +55,37 @@ void sendInfo(){
 		linkNear(me, LOCK_RANGE);
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
-		data[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
-		data[1] = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
-		data[2] = 0x01*me->theta+0x10*0+0x20*0+0x80*me->type;
-		data[3] = (uint8_t)(me->shield*255/me->maxShield)+(uint8_t)(me->energy*255/me->maxEnergy)*0x100;
-		dataLen = 4;
+		((int16_t*)data)[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
+		*(int16_t*)(data+2) = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
+		data[4] = 0x01*me->theta+0x10*0+0x20*0;
+		data[5] = me->type;
+		data[6] = me->shield*255/me->maxShield;
+		data[7] = me->energy*255/me->maxEnergy;
+		dataLen = 8;
 		while(runner){
 			if(runner == me){
 				runner = runner->next;
 				continue;
 			}
-			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
+			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/;
+			data[dataLen+1] = runner->type;
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;
 			}
-			data[dataLen+1] = d;
+			*(int16_t*)(data+dataLen+2) = d;
 			d = simonDivide(displacementY(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
 				continue;
 			}
-			data[dataLen+2] = d;
-			data[dataLen+3] = runner->shield*31/runner->maxShield;
+			*(int16_t*)(data+dataLen+4) = d;
+			data[dataLen+6] = runner->shield*31/runner->maxShield;
 			if(runner == conductor->myShip->targetLock){
-				 data[dataLen+3] |= 0x20;
+				 data[dataLen+6] |= 0x20;
 			}
-			dataLen+=4;
+			dataLen+=7;
 			runner = runner->next;
 		}
 		unlinkNear();
