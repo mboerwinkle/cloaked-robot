@@ -5,7 +5,7 @@
 #include <limits.h>
 #include "globals.h"
 
-entity* newEntity(int type, sector *where, int32_t x, int32_t y){
+entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->actedFlag = globalActedFlag;
@@ -24,9 +24,6 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	if(type == 0){
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
-		ret->myAi = &aiHuman;
-		ret->aiFuncData = malloc(1);
-		*(char*)ret->aiFuncData = 0;
 		ret->r = 640;
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
@@ -38,8 +35,6 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 	}else if(type == 1){
-		ret->myAi = &aiMissile;
-		ret->aiFuncData = calloc(2, 1);
 		ret->r = 64;
 		ret->numModules = 0;
 		ret->modules = NULL;
@@ -50,10 +45,6 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 	}else if(type == 2){		
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
-		ret->myAi = &aiDrone;
-		ret->aiFuncData = malloc(sizeof(droneAiData));
-		((droneAiData*)ret->aiFuncData)->Attack = 0;
-		((droneAiData*)ret->aiFuncData)->timer = 100;
 		ret->r = 640;
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
@@ -64,6 +55,19 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
+	}
+	if(aiType == 0){
+		ret->myAi = &aiHuman;
+		ret->aiFuncData = malloc(1);
+		*(char*)ret->aiFuncData = 0;
+	}else if(aiType == 1){
+		ret->myAi = &aiMissile;
+		ret->aiFuncData = calloc(2, 1);
+	}else if(aiType == 2){
+		ret->myAi = &aiDrone;
+		ret->aiFuncData = malloc(sizeof(droneAiData));
+		((droneAiData*)ret->aiFuncData)->Attack = 0;
+		((droneAiData*)ret->aiFuncData)->timer = 100;
 	}
 	return ret;
 }
