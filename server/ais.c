@@ -85,7 +85,7 @@ static void aiDroneAct(entity* who){
 			data->Attack = 1;
 			puts("Attack!");
 		}
-		if(dx*dx+dy*dy > (int64_t)LOCK_RANGE*LOCK_RANGE){
+		if(dx*dx+dy*dy > (int64_t)LOCK_RANGE/2*LOCK_RANGE/2){
 			data->Attack = 0;
 			puts("Defend Teh Base!");
 		}
