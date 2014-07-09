@@ -7,7 +7,7 @@ static int numLinked;
 static entity* what;
 
 static void addLinkedSector(sector* whom){
-	if(whom->firstentity){
+	if(whom && whom->firstentity){
 		while(what->next) what = what->next;
 		linkedIn[numLinked++] = what;
 		what->next = whom->firstentity;

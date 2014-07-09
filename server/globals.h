@@ -82,7 +82,8 @@ typedef struct module{
 }module;
 
 extern entity* newEntity(int type, sector *where, int32_t x, int32_t y);
-extern char tick(entity* who);
+extern void tick(entity* who);
+extern char tick2(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);
 extern void thrust(entity* who);
 extern void turn(entity* who, char dir);
@@ -90,6 +91,7 @@ extern void freeEntity(entity* who);
 
 extern void fileMoveRequest(entity* who, sector* from, sector* to);
 extern void run(sector *sec);
+extern void run2(sector *sec);
 extern void cleanup();
 extern char globalActedFlag;
 

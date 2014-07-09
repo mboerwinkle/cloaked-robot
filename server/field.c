@@ -24,10 +24,18 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 }
 
 void run(sector *sec){
+	entity *current = sec->firstentity;
+	while(current){
+		tick(current);
+		current = current->next;
+	}
+}
+
+void run2(sector *sec){
 	entity *prev = NULL;
 	entity *current = sec->firstentity;
 	while(current){
-		if(tick(current)){
+		if(tick2(current)){
 			entity *tmp = current;
 			current = current->next;
 			if(prev) prev->next = current;
