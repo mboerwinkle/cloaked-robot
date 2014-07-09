@@ -7,7 +7,7 @@ static int numLinked;
 static entity* what;
 
 static void addLinkedSector(sector* whom){
-	if(whom->firstentity){
+	if(whom && whom->firstentity){
 		while(what->next) what = what->next;
 		linkedIn[numLinked++] = what;
 		what->next = whom->firstentity;
@@ -37,8 +37,10 @@ void linkNear(entity* who, int32_t radius){
 	}
 	if(u) addLinkedSector(searchforsector(x, y-1));
 	else if(d) addLinkedSector(searchforsector(x, y+1));
+	fputc('.', stderr);
 }
 
 void unlinkNear(){
 	for(numLinked--; numLinked>=0; numLinked--) linkedIn[numLinked]->next = NULL;
+	fputc('\b', stderr);
 }
