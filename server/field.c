@@ -4,6 +4,8 @@
 #include "globals.h"
 #include <math.h>
 
+char globalActedFlag = 0;
+
 struct moveRequest{
 	struct moveRequest *next;
 	entity *who;
@@ -22,16 +24,22 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 }
 
 void run(sector *sec){
-	entity **current = &sec->firstentity;
-	while(*current){
-		if(tick(*current)){
-			entity *tmp = *current;
-			*current = (*current)->next;
-			tmp->destroyFlag = 2;
+	entity *prev = NULL;
+	entity *current = sec->firstentity;
+	while(current){
+		if(tick(current)){
+			entity *tmp = current;
+			current = current->next;
+			if(prev) prev->next = current;
+			else sec->firstentity = current;
+			tmp->destroyFlag = 3;
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
 			disappear(sec->x, sec->y); // TODO: Only do this if they were a player
-		}else current = &(*current)->next;
+		}else{
+			prev = current;
+			current = current->next;
+		}
 	}
 }
 

@@ -39,6 +39,7 @@ int main(){
 			}else runner = &(*runner)->nextsector;
 		}
 		sendInfo();
+		globalActedFlag = 1-globalActedFlag;
 		clock_gettime(CLOCK_MONOTONIC, &otherTime);
 		int32_t sleep = (int32_t)25000000 - (otherTime.tv_nsec-lastTime.tv_nsec) - 1000000000l*(otherTime.tv_sec-lastTime.tv_sec);
 		if(sleep > 0){

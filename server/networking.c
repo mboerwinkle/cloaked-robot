@@ -39,12 +39,19 @@ void sendInfo(){
 	client* conductor = clientList;
 	while(conductor){
 		linkNear(conductor->myShip, LOCK_RANGE);
-		sector *sec = conductor->myShip->mySector;
+		entity* me = conductor->myShip;
+		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
 		data[1] = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
-		dataLen = 2;
+		data[2] = 0x01*me->theta+0x10*0+0x20*0+0x80*me->type;
+		data[3] = (uint8_t)(me->shield*255/me->maxShield)+(uint8_t)(me->energy*255/me->maxEnergy)*0x100;
+		dataLen = 4;
 		while(runner){
+			if(runner == me){
+				runner = runner->next;
+				continue;
+			}
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*0/*faction*/+0x80*runner->type;
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
