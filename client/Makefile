@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O2 -c -pthread $(DEBUG)
+CFLAGS=-Wall -Wno-strict-aliasing -O2 -c -pthread $(DEBUG)
 LFLAGS=-lSDL2 -pthread -lm -lImlib2
 SOURCES=gui.c images.c
 OBJECTS=$(SOURCES:.c=.o)

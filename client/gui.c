@@ -91,9 +91,9 @@ static void handleNetwork(){
 			rect.y = height/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 			if(data[i+=2] & 0x20){
-				int index = abs(x)>abs(y) ? i-2 : i-1;
-				if(fabs(data[index]) > width/2){
-					double frac = (double)(width/2) / abs(data[index]);
+				int index = abs(x)>abs(y) ? i-4 : i-2;
+				if(abs(*(int16_t*)(data+index)) > width/2){
+					double frac = (double)(width/2) / abs(*(int16_t*)(data+index));
 					size *= frac;
 					rect.x =  width/2-size/2+x*frac;
 					rect.y = height/2-size/2+y*frac;
