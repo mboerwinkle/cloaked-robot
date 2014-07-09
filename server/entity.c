@@ -135,6 +135,7 @@ char tick2(entity* who){
 		otherGuy = otherGuy->next;
 	}
 	unlinkNear();
+	if(who->shield <= 0) return 1;
 	uint64_t secx = who->mySector->x;
 	uint64_t secy = who->mySector->y;
 	if(who->x > POS_MAX){
@@ -157,7 +158,6 @@ char tick2(entity* who){
 		fileMoveRequest(who, who->mySector, new);
 		who->mySector = new;
 	}
-	if(who->shield <= 0) return 1;
 	return 0;
 }
 
