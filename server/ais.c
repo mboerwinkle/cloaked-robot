@@ -58,6 +58,7 @@ static void aiDroneAct(entity* who){
 	double vy = who->vy;
 	droneAiData *data = who->aiFuncData;
 	if(data->timer == 200){
+		puts("still alive!");
 		data->timer = 0;
 	}
 	data->timer++;
@@ -69,10 +70,10 @@ static void aiDroneAct(entity* who){
 	}
 	entity* target = who->targetLock;
 	if(target == NULL){		
-		(*who->modules[0]->actFunc)(who, 0, 0);
+//		(*who->modules[0]->actFunc)(who, 0, 0);
 		return;
 	}
-	(*who->modules[0]->actFunc)(who, 0, 1);
+//	(*who->modules[0]->actFunc)(who, 0, 1);
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
 	double unx = who->cosTheta;
