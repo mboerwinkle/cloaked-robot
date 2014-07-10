@@ -145,22 +145,21 @@ static void aiMissileAct(entity* who){
 	if(vx == 0){
 		if((x>0) ^ (vy>0)) turn(who, -spin);
 		else turn(who, spin);
-		return;
-	}
-	if(vx<0){
-		vx *= -1;
-		spin *= -1;
-		x *= -1;
-	}
+	}else{
+		if(vx<0){
+			vx *= -1;
+			spin *= -1;
+			x *= -1;
+		}
 
-	if(x<0){
-		turn(who, spin);
-		return;
+		if(x<0){
+			turn(who, spin);
+		}else{
+			double t = x/vx;
+			if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
+			else turn(who, spin);
+		}
 	}
-	double t = x/vx;
-	if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
-	else turn(who, spin);
-	
 	if(dvx == 0 && dvy == 0) return;
 	double dv = sqrt(dvx*dvx + dvy*dvy);
 	unx = dvx/dv;
