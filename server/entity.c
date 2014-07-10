@@ -59,7 +59,7 @@ entity* newEntity(int type, sector *where, int32_t x, int32_t y){
 		ret->modules = calloc(1, sizeof(void *));
 		ret->moduleDatas = calloc(1, sizeof(void*));
 		ret->thrust = 2;
-		ret->maxTurn = 6;
+		ret->maxTurn = 1;
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
