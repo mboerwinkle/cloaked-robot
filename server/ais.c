@@ -107,10 +107,10 @@ static void aiDroneAct(entity* who){
 		}
 	}
 	else{	
-		if(x+(target->r+1000) > 0){
+		if(x+(target->r+1+who->r) > 0){
 			turn(who, 1);
 		}
-		if(x+(target->r+1000) < 0){
+		if(x+(target->r+1+who->r) < 0){
 			turn(who, -1);
 		}
 	}
