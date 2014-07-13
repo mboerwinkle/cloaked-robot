@@ -6,7 +6,7 @@ ai aiMissile;
 ai aiHuman;
 ai aiDrone;
 
-static void lock(entity* who){
+static void lock(entity* who, char lockSettings){
 	linkNear(who, LOCK_RANGE);
 	double bestScore = LOCK_RANGE*2;
 	who->targetLock = NULL;
@@ -14,7 +14,7 @@ static void lock(entity* who){
 	double dx, dy;
 	int64_t d;
 	while(runner){
-		if(runner->r < 64*5 || runner == who){
+		if(runner->r < 64*5 || runner == who || !(lockSettings & (1<<runner->faction))){
 			runner = runner->next;
 			continue;
 		}
@@ -40,9 +40,9 @@ static void lock(entity* who){
 }
 
 static void aiHumanAct(entity* who){
-	char data = *(char*)who->aiFuncData;
+	short data = *(short*)who->aiFuncData;
 	if(data & 0x10){
-		lock(who);
+		lock(who, /*data/256*/2);
 	}
 	if(data & 0x20){
 		who->targetLock = NULL;
@@ -63,7 +63,7 @@ static void aiDroneAct(entity* who){
 	}
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
-		lock(who);
+		lock(who, 12);//lock on to
 	}
 	entity* target = who->targetLock;
 	if(target == NULL){		
@@ -107,10 +107,10 @@ static void aiDroneAct(entity* who){
 		}
 	}
 	else{	
-		if(x+(target->r+1+who->r) > 0){
+		if(x+(target->r+who->r+5000) > 0){
 			turn(who, 1);
 		}
-		if(x+(target->r+1+who->r) < 0){
+		if(x+(target->r+who->r+5000) < 0){
 			turn(who, -1);
 		}
 	}

@@ -15,6 +15,7 @@ int mkship(char name[MAXNAMELEN]){
 	}
 	fp = fopen(path, "w");
 	fprintf(fp, "0_0\n7000 7000");
+	fprintf(fp, "2");
 	fclose(fp);
 	return(0);
 }

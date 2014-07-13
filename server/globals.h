@@ -34,6 +34,7 @@ extern ai aiDrone;
 extern void initAis();
 
 typedef struct entity{
+	char faction;
 	char actedFlag;
 	char destroyFlag;
 	int type;
@@ -81,7 +82,7 @@ typedef struct module{
 	void (*cleanupFunc)(entity* who, int ix);
 }module;
 
-extern entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y);
+extern entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y);
 extern void tick(entity* who);
 extern char tick2(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);

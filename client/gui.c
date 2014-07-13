@@ -71,18 +71,17 @@ static void handleNetwork(){
 		}
 		unsigned char theta = 0x0F & data[4];
 //		char flame = 0x10 & data[4];
-//		char faction = (0xE0 & data[4])/0x20;
+		char faction = (0xE0 & data[4])/0x20;
 		int ship = (uint8_t)data[5];
 		int size = rect.w = rect.h = pictures[ship].size;
 		rect.x =  width/2-size/2;
 		rect.y = height/2-size/2;
 		SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 		int i = 8;
-		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 		while(i+6 < len){
 			theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
-//			char faction = (0xE0 & data[i])/0x20;
+			char faction = (0xE0 & data[i])/0x20;
 			ship = (uint8_t)data[++i];
 			size = rect.w = rect.h = pictures[ship].size;
 			int x = *(int16_t*)(data+(++i));
@@ -91,6 +90,7 @@ static void handleNetwork(){
 			rect.y = height/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
 			if(data[i+=2] & 0x20){
+				SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 				int index = abs(x)>abs(y) ? i-4 : i-2;
 				if(abs(*(int16_t*)(data+index)) > width/2){
 					double frac = (double)(width/2) / abs(*(int16_t*)(data+index));
@@ -103,6 +103,10 @@ static void handleNetwork(){
 				rect.x = width/2-size/2+x;
 				rect.w = pictures[ship].size;
 			}
+			if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
+			if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
+			if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
+			if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
 			rect.y = height/2+size/2+y+2;
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
@@ -114,8 +118,11 @@ static void handleNetwork(){
 		rect.h = 20;
 		rect.x = 0;
 		rect.w = width;
-		SDL_RenderFillRect(render, &rect);
-		SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+		SDL_RenderFillRect(render, &rect);	
+		if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
+		if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
+		if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
+		if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
 		rect.x = width/2-width/2*(uint8_t)data[6]/255;
 		rect.w = width*(uint8_t)data[6]/255;
 		rect.h = 10;

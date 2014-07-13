@@ -5,9 +5,10 @@
 #include <limits.h>
 #include "globals.h"
 
-entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
+entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
+	ret->faction = faction;
 	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
@@ -58,8 +59,8 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
-		ret->aiFuncData = malloc(1);
-		*(char*)ret->aiFuncData = 0;
+		ret->aiFuncData = malloc(2);
+		*(short*)ret->aiFuncData = 0;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(2, 1);
