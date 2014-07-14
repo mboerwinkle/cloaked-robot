@@ -117,7 +117,7 @@ void* netListen(void* whoGivesADern){
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
 				if(msgSize == 1)
-					*(char*)current->myShip->aiFuncData = *msg;
+					((humanAiData*)current->myShip->aiFuncData)->keys = *msg;
 				break;
 			}
 			current = current->next;
