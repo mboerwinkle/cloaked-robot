@@ -12,6 +12,7 @@
 
 #include "gui.h"
 #include "images.h"
+#include "trails.h"
 
 #ifdef WINDOWS
 #include <windows.h>
@@ -107,8 +108,17 @@ static void handleNetwork(){
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
 			SDL_RenderFillRect(render, &rect);
+			while((data[i]&0x80) && i+3<len){
+				int dx = ((uint8_t*)data)[i+1];
+				int dy = ((uint8_t*)data)[i+2];
+				if(data[i+3] & 0x04) dx-=256;
+				if(data[i+3] & 0x02) dy-=256;
+				addTrail(x, y, x+dx, y+dy, data[i+3]&0x1F);
+				i+=3;
+			}
 			i++;
 		}
+		drawTrails(render);
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.y = height;
 		rect.h = 20;

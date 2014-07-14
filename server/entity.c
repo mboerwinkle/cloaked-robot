@@ -21,6 +21,9 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 	ret->next = where->firstentity;
 	where->firstentity = ret;
 	ret->mySector = where;
+	ret->trailTargets = malloc(sizeof(entity*)*2);
+	ret->numTrails = 0;
+	ret->maxTrails = 2;
 	if(type == 0){
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
@@ -72,7 +75,17 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 	return ret;
 }
 
+void addTrail(entity* from, entity* to, char type){
+	if(from->numTrails == from->maxTrails){
+		from->trailTargets = realloc(from->trailTargets, sizeof(entity*)*(from->maxTrails+=2));
+		from->trailTypes = realloc(from->trailTypes, sizeof(int)*from->maxTrails);
+	}
+	from->trailTypes[from->numTrails] = type;
+	from->trailTargets[from->numTrails++] = to;
+}
+
 void tick(entity* who){
+	who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	(*who->myAi->act)(who);
