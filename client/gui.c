@@ -114,6 +114,7 @@ static void handleNetwork(){
 			rect.w = rect.w*(data[i]&0x1F)/31;
 			SDL_RenderFillRect(render, &rect);
 			while((data[i]&0x80) && i+3<len){
+				puts("Lazor!");
 				int dx = ((uint8_t*)data)[i+1];
 				int dy = ((uint8_t*)data)[i+2];
 				if(data[i+3] & 0x04) dx-=256;

@@ -23,6 +23,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	where->firstentity = ret;
 	ret->mySector = where;
 	ret->trailTargets = malloc(sizeof(entity*)*2);
+	ret->trailTypes = malloc(sizeof(int)*2);
 	ret->numTrails = 0;
 	ret->maxTrails = 2;
 	if(type == 0){
@@ -87,7 +88,7 @@ void addTrail(entity* from, entity* to, char type){
 }
 
 void tick(entity* who){
-	who->numTrails = 0;
+	//who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	(*who->myAi->act)(who);
