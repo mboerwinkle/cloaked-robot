@@ -40,18 +40,18 @@ static void lock(entity* who, char lockSettings){
 }
 
 static void aiHumanAct(entity* who){
-	short data = *(short*)who->aiFuncData;
-	if(data & 0x08){
-		lock(who, /*data/256*/2);
+	humanAiData *data = who->aiFuncData;
+	if(data->keys & 0x08){
+		lock(who, data->lockSettings);
 	}
-	if(data & 0x10){
+	if(data->keys & 0x10){
 		who->targetLock = NULL;
 	}
-	if(data & 0x01) turn(who, -1);
-	if(data & 0x02) turn(who, 1);
-	if(data & 0x04) thrust(who);
-	(*who->modules[0]->actFunc)(who, 0, data&0x20);
-	(*who->modules[1]->actFunc)(who, 0, data&0x40);
+	if(data->keys & 0x01) turn(who, -1);
+	if(data->keys & 0x02) turn(who, 1);
+	if(data->keys & 0x04) thrust(who);
+	(*who->modules[0]->actFunc)(who, 0, data->keys&0x20);
+	(*who->modules[1]->actFunc)(who, 0, data->keys&0x40);
 }
 
 static void aiDroneAct(entity* who){

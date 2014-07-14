@@ -64,8 +64,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
-		ret->aiFuncData = malloc(2);
-		*(short*)ret->aiFuncData = 0;
+		ret->aiFuncData = malloc(sizeof(humanAiData));
+		((humanAiData*)ret->aiFuncData)->lockSettings = 2;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(2, 1);

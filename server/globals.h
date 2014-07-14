@@ -28,6 +28,11 @@ typedef struct droneAiData{
 	char Attack;
 }droneAiData;
 
+typedef struct humanAiData{
+	char keys;
+	char lockSettings;
+}humanAiData;
+
 extern ai aiHuman;
 extern ai aiMissile;
 extern ai aiDrone;
