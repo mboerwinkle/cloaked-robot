@@ -59,7 +59,6 @@ static void aiDroneAct(entity* who){
 	double vy = who->vy;
 	droneAiData *data = who->aiFuncData;
 	if(data->timer == 200){
-		puts("still alive!");
 		data->timer = 0;
 	}
 	data->timer++;
@@ -88,34 +87,12 @@ static void aiDroneAct(entity* who){
 	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 		thrust(who);
 	}
-	if(data->timer == 1){
-		if(dx*dx+dy*dy < ((int64_t)LOCK_RANGE/3)*(LOCK_RANGE/3)){
-			data->Attack = 1;
-			puts("Attack!");
-		}
-		if(dx*dx+dy*dy > (int64_t)LOCK_RANGE/2*LOCK_RANGE/2){
-			data->Attack = 0;
-			puts("Defend Teh Base!");
-		}
+	if(x+(target->r+who->r+5000) > 0){
+		turn(who, 1);
 	}
-
-	if(data->Attack == 0){
-		if(x > 0){
-			turn(who, 1);
-		} 
-		if(x < 0){
-			turn(who, -1);
-		}
+	if(x+(target->r+who->r+5000) < 0){
+		turn(who, -1);
 	}
-	else{	
-		if(x+(target->r+who->r+5000) > 0){
-			turn(who, 1);
-		}
-		if(x+(target->r+who->r+5000) < 0){
-			turn(who, -1);
-		}
-	}
-	
 }
 
 static void noCareCollision(entity* me, entity* him){}

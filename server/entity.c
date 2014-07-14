@@ -54,8 +54,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
 		ret->moduleDatas = calloc(1, sizeof(void*));
-		ret->thrust = 2;
-		ret->maxTurn = 1;
+		ret->thrust = 3;
+		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
