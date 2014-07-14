@@ -6,7 +6,7 @@ ai aiMissile;
 ai aiHuman;
 ai aiDrone;
 
-static void lock(entity* who){
+static void lock(entity* who, char lockSettings){
 	linkNear(who, LOCK_RANGE);
 	double bestScore = LOCK_RANGE*2;
 	who->targetLock = NULL;
@@ -14,7 +14,7 @@ static void lock(entity* who){
 	double dx, dy;
 	int64_t d;
 	while(runner){
-		if(runner->r < 64*5 || runner == who){
+		if(runner->r < 64*5 || runner == who || !(lockSettings & (1<<runner->faction))){
 			runner = runner->next;
 			continue;
 		}
@@ -40,17 +40,18 @@ static void lock(entity* who){
 }
 
 static void aiHumanAct(entity* who){
-	char data = *(char*)who->aiFuncData;
-	if(data & 0x10){
-		lock(who);
+	short data = *(short*)who->aiFuncData;
+	if(data & 0x08){
+		lock(who, /*data/256*/2);
 	}
-	if(data & 0x20){
+	if(data & 0x10){
 		who->targetLock = NULL;
 	}
 	if(data & 0x01) turn(who, -1);
 	if(data & 0x02) turn(who, 1);
 	if(data & 0x04) thrust(who);
-	(*who->modules[0]->actFunc)(who, 0, data&0x08);
+	(*who->modules[0]->actFunc)(who, 0, data&0x20);
+	(*who->modules[1]->actFunc)(who, 0, data&0x40);
 }
 
 static void aiDroneAct(entity* who){
@@ -62,15 +63,15 @@ static void aiDroneAct(entity* who){
 		data->timer = 0;
 	}
 	data->timer++;
-	if(vx*vx+vy*vy < 22500){
-		thrust(who);
-	}
 	if(data->timer == 1 && who->targetLock == NULL){
-		lock(who);
+		lock(who, 12);//lock on to
 	}
 	entity* target = who->targetLock;
 	if(target == NULL){		
 //		(*who->modules[0]->actFunc)(who, 0, 0);
+		if(vx*vx+vy*vy < 62500){
+			thrust(who);
+		}
 		return;
 	}
 //	(*who->modules[0]->actFunc)(who, 0, 1);
@@ -79,8 +80,14 @@ static void aiDroneAct(entity* who){
 	double unx = who->cosTheta;
 	double uny = who->sinTheta;
 	double x = dy*unx - dx*uny;
-	double y = dx*unx + dy*uny;
+	double dvx = who->vx - target->vx;
+	double dvy = who->vy - target->vy;	
+	double unvx = unx*dvx;
+	double unvy = uny*dvy;
 
+	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
+		thrust(who);
+	}
 	if(data->timer == 1){
 		if(dx*dx+dy*dy < ((int64_t)LOCK_RANGE/3)*(LOCK_RANGE/3)){
 			data->Attack = 1;
@@ -100,12 +107,11 @@ static void aiDroneAct(entity* who){
 			turn(who, -1);
 		}
 	}
-	else{
-		if(y == 0) y++;
-		if(x+(8000/y) > 0){
+	else{	
+		if(x+(target->r+who->r+5000) > 0){
 			turn(who, 1);
 		}
-		if(x+(8000/y) < 0){
+		if(x+(target->r+who->r+5000) < 0){
 			turn(who, -1);
 		}
 	}
@@ -155,9 +161,6 @@ static void aiMissileAct(entity* who){
 			else turn(who, spin);
 		}
 	}
-
-	dvx = who->vx - target->vx;
-	dvy = who->vy - target->vy;
 	if(dvx == 0 && dvy == 0) return;
 	double dv = sqrt(dvx*dvx + dvy*dvy);
 	unx = dvx/dv;

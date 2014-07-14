@@ -4,7 +4,7 @@
 
 entity *loadship(char name[MAXNAMELEN]){
 	printf("loadship called (%s)\n", name);
-	char path[MAXNAMELEN + 6];
+	char path[MAXNAMELEN + 6], faction;
 	FILE *fp;
 uint64_t secx, secy;
 	int32_t posx, posy;
@@ -13,9 +13,10 @@ uint64_t secx, secy;
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}
-	fscanf(fp, "%lX_%lX\n%d %d", &secx, &secy, &posx, &posy);
+	fscanf(fp, "%lX_%lX\n%d %d\n", &secx, &secy, &posx, &posy);
+	fscanf(fp, "%hhd", &faction); 
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	return newEntity(0, 0, conductor, posx, posy);
+	return newEntity(0, 0, faction, conductor, posx, posy);
 }

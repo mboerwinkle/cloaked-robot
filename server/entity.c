@@ -5,9 +5,10 @@
 #include <limits.h>
 #include "globals.h"
 
-entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
+entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
+	ret->faction = faction;
 	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
@@ -28,15 +29,16 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
 		ret->r = 640;
-		ret->numModules = 1;
-		ret->modules = calloc(1, sizeof(void *));
-		ret->moduleDatas = calloc(1, sizeof(void*));
+		ret->numModules = 2;
+		ret->modules = calloc(2, sizeof(void *));
+		ret->moduleDatas = calloc(2, sizeof(void*));
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
+		(*lazorModule.initFunc)(ret, 1, 1);
 	}else if(type == 1){
 		ret->r = 64;
 		ret->numModules = 0;
@@ -53,7 +55,7 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 		ret->modules = calloc(1, sizeof(void *));
 		ret->moduleDatas = calloc(1, sizeof(void*));
 		ret->thrust = 2;
-		ret->maxTurn = 6;
+		ret->maxTurn = 1;
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
@@ -61,8 +63,8 @@ entity* newEntity(int type, int aiType, sector *where, int32_t x, int32_t y){
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
-		ret->aiFuncData = malloc(1);
-		*(char*)ret->aiFuncData = 0;
+		ret->aiFuncData = malloc(2);
+		*(short*)ret->aiFuncData = 0;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(2, 1);
