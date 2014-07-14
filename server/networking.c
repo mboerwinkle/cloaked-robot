@@ -57,16 +57,11 @@ void sendInfo(){
 		entity *runner = sec->firstentity;
 		((int16_t*)data)[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
 		*(int16_t*)(data+2) = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
-		data[4] = 0x01*me->theta+0x10*0+0x20*me->faction;
-		data[5] = me->type;
-		data[6] = me->shield*255/me->maxShield;
-		data[7] = me->energy*255/me->maxEnergy;
-		dataLen = 8;
+		data[4] = me->shield*255/me->maxShield;
+		data[5] = me->energy*255/me->maxEnergy;
+		data[6] = me->faction;
+		dataLen = 7;
 		while(runner){
-			if(runner == me){
-				runner = runner->next;
-				continue;
-			}
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);

@@ -71,21 +71,13 @@ static void handleNetwork(){
 			rect.y = bgy;
 			SDL_RenderCopy(render, background1, NULL, &rect);
 		}
-		unsigned char theta = 0x0F & data[4];
-//		char flame = 0x10 & data[4];
-		char faction = (0xE0 & data[4])/0x20;
-		int ship = (uint8_t)data[5];
-		int size = rect.w = rect.h = pictures[ship].size;
-		rect.x =  width/2-size/2;
-		rect.y = height/2-size/2;
-		SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
-		int i = 8;
+		int i = 7;
 		while(i+6 < len){
-			theta = 0x0F & data[i];
+			unsigned char theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
 			char faction = (0xE0 & data[i])/0x20;
-			ship = (uint8_t)data[++i];
-			size = rect.w = rect.h = pictures[ship].size;
+			int ship = (uint8_t)data[++i];
+			int size = rect.w = rect.h = pictures[ship].size;
 			int x = *(int16_t*)(data+(++i));
 			int y = *(int16_t*)(data+(i+=2));
 			rect.x =  width/2-size/2+x;
@@ -131,18 +123,19 @@ static void handleNetwork(){
 		rect.x = 0;
 		rect.w = width;
 		SDL_RenderFillRect(render, &rect);	
+		char faction = data[6];
 		if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
 		if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
 		if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
 		if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
-		rect.x = width/2-width/2*(uint8_t)data[6]/255;
-		rect.w = width*(uint8_t)data[6]/255;
+		rect.x = width/2-width/2*(uint8_t)data[4]/255;
+		rect.w = width*(uint8_t)data[4]/255;
 		rect.h = 10;
 		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
 		rect.y += 10;
-		rect.x = width/2-width/2*(uint8_t)data[7]/255;
-		rect.w = width*(uint8_t)data[7]/255;
+		rect.x = width/2-width/2*(uint8_t)data[5]/255;
+		rect.w = width*(uint8_t)data[5]/255;
 		SDL_RenderFillRect(render, &rect);
 		paint();
 	}
