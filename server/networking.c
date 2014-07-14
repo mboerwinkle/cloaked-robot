@@ -83,7 +83,6 @@ void sendInfo(){
 			dataLen+=7;
 			int count = 0;
 			while(count<runner->numTrails){
-				puts("Drawing lazor");
 				data[dataLen-1] |= 0x80;
 				data[dataLen+2] = runner->trailTypes[count];
 				d = simonDivide(displacementX(runner, runner->trailTargets[count])+32, 64);

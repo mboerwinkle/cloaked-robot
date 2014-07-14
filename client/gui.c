@@ -105,12 +105,13 @@ static void handleNetwork(){
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
 			SDL_RenderFillRect(render, &rect);
+			x += width/2;
+			y += height/2;
 			while((data[i]&0x80) && i+3<len){
-				puts("Lazor!");
 				int dx = ((uint8_t*)data)[i+1];
 				int dy = ((uint8_t*)data)[i+2];
-				if(data[i+3] & 0x04) dx-=256;
-				if(data[i+3] & 0x02) dy-=256;
+				if(data[i+3] & 0x40) dx-=256;
+				if(data[i+3] & 0x20) dy-=256;
 				addTrail(x, y, x+dx, y+dy, data[i+3]&0x1F);
 				i+=3;
 			}
@@ -166,6 +167,7 @@ int main(int argc, char** argv){
 		return 1;
 	}
 	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
 	loadPics();
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);

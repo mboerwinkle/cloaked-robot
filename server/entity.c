@@ -88,7 +88,7 @@ void addTrail(entity* from, entity* to, char type){
 }
 
 void tick(entity* who){
-	//who->numTrails = 0;
+	who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	(*who->myAi->act)(who);
