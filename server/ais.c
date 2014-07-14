@@ -42,7 +42,7 @@ static void lock(entity* who, char lockSettings){
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
 	if(data->keys & 0x10){
-		lock(who, /*data->lockSettings*/2);
+		lock(who, data->lockSettings);
 	}
 	if(data->keys & 0x20){
 		who->targetLock = NULL;
