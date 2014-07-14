@@ -30,7 +30,6 @@ typedef struct droneAiData{
 
 typedef struct humanAiData{
 	char keys;
-	char lockSettings;
 }humanAiData;
 
 extern ai aiHuman;
@@ -54,6 +53,7 @@ typedef struct entity{
 	int turn, maxTurn;
 	double thrust;
 	struct entity* targetLock;
+	char lockSettings;
 
 	char theta;
 	double sinTheta, cosTheta;

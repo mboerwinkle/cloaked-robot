@@ -6,7 +6,7 @@ ai aiMissile;
 ai aiHuman;
 ai aiDrone;
 
-static void lock(entity* who, char lockSettings){
+static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
 	double bestScore = LOCK_RANGE*2;
 	who->targetLock = NULL;
@@ -14,7 +14,7 @@ static void lock(entity* who, char lockSettings){
 	double dx, dy;
 	int64_t d;
 	while(runner){
-		if(runner->r < 64*5 || runner == who || !(lockSettings & (1<<runner->faction))){
+		if(runner->r < 64*5 || runner == who || !(who->lockSettings & (1<<runner->faction))){
 			runner = runner->next;
 			continue;
 		}
@@ -42,7 +42,7 @@ static void lock(entity* who, char lockSettings){
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
 	if(data->keys & 0x08){
-		lock(who, data->lockSettings);
+		lock(who);
 	}
 	if(data->keys & 0x10){
 		who->targetLock = NULL;
@@ -63,7 +63,7 @@ static void aiDroneAct(entity* who){
 	}
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
-		lock(who, 12);//lock on to
+		lock(who);
 	}
 	entity* target = who->targetLock;
 	if(target == NULL){		

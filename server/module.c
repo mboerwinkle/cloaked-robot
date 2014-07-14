@@ -34,6 +34,7 @@ static void missileAct(entity* who, int ix, char action){
 	what->vy = who->vy;
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
+	what->faction = who->faction;
 	appear(who->mySector->x, who->mySector->y);//TODO: Tidy this up.
 }
 
@@ -49,7 +50,7 @@ static void lazorAct(entity* who, int ix, char action){
 	entity* runner = who->mySector->firstentity;
 	int64_t bestDist = (int64_t)6400*6400;
 	while(runner){
-		if(runner == who){
+		if(runner == who || !(who->lockSettings & (1<<runner->faction))){
 			runner = runner->next;
 			continue;
 		}
