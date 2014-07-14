@@ -62,6 +62,10 @@ typedef struct entity{
 	struct module** modules;
 	void** moduleDatas;
 	int numModules;
+
+	struct entity** trailTargets;
+	int* trailTypes;
+	int numTrails, maxTrails;
 }entity;
 
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
@@ -87,6 +91,7 @@ typedef struct module{
 	void (*cleanupFunc)(entity* who, int ix);
 }module;
 
+extern void addTrail(entity* from, entity* to, char type);
 extern entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y);
 extern void tick(entity* who);
 extern char tick2(entity* who);
@@ -102,6 +107,7 @@ extern void cleanup();
 extern char globalActedFlag;
 
 extern module missileModule;
+extern module lazorModule;
 
 extern void initModules();
 

@@ -86,6 +86,24 @@ void sendInfo(){
 				 data[dataLen+6] |= 0x20;
 			}
 			dataLen+=7;
+			int count = 0;
+			while(count<runner->numTrails){
+				data[dataLen-1] |= 0x80;
+				data[dataLen+2] = runner->trailTypes[count];
+				d = simonDivide(displacementX(runner, runner->trailTargets[count])+32, 64);
+				if(d<0){
+					d+=256;
+					data[dataLen+2] |= 0x40;
+				}
+				data[dataLen] = d;
+				d = simonDivide(displacementY(runner, runner->trailTargets[count])+32, 64);
+				if(d<0){
+					d+=256;
+					data[dataLen+2] |= 0x20;
+				}
+				data[dataLen+1] = d;
+				count++;
+			}
 			runner = runner->next;
 		}
 		unlinkNear();

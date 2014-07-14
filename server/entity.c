@@ -22,19 +22,23 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	ret->next = where->firstentity;
 	where->firstentity = ret;
 	ret->mySector = where;
+	ret->trailTargets = malloc(sizeof(entity*)*2);
+	ret->numTrails = 0;
+	ret->maxTrails = 2;
 	if(type == 0){
 		ret->x += 5000 + POS_MIN;
 		ret->y += 5000 + POS_MIN;
 		ret->r = 640;
-		ret->numModules = 1;
-		ret->modules = calloc(1, sizeof(void *));
-		ret->moduleDatas = calloc(1, sizeof(void*));
+		ret->numModules = 2;
+		ret->modules = calloc(2, sizeof(void *));
+		ret->moduleDatas = calloc(2, sizeof(void*));
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
+		(*lazorModule.initFunc)(ret, 1, 1);
 	}else if(type == 1){
 		ret->r = 64;
 		ret->numModules = 0;
@@ -73,7 +77,17 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	return ret;
 }
 
+void addTrail(entity* from, entity* to, char type){
+	if(from->numTrails == from->maxTrails){
+		from->trailTargets = realloc(from->trailTargets, sizeof(entity*)*(from->maxTrails+=2));
+		from->trailTypes = realloc(from->trailTypes, sizeof(int)*from->maxTrails);
+	}
+	from->trailTypes[from->numTrails] = type;
+	from->trailTargets[from->numTrails++] = to;
+}
+
 void tick(entity* who){
+	who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	(*who->myAi->act)(who);

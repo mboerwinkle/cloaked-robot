@@ -12,6 +12,7 @@
 
 #include "gui.h"
 #include "images.h"
+#include "trails.h"
 
 #ifdef WINDOWS
 #include <windows.h>
@@ -26,7 +27,8 @@ SDL_Renderer* render;
 static int running = 1;
 static unsigned char keys = 0;
 static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-static int keyBindings[6] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_SPACE, SDLK_x, SDLK_z};
+#define numKeys 7
+static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_z, SDLK_a, SDLK_s};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -111,8 +113,17 @@ static void handleNetwork(){
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
 			SDL_RenderFillRect(render, &rect);
+			while((data[i]&0x80) && i+3<len){
+				int dx = ((uint8_t*)data)[i+1];
+				int dy = ((uint8_t*)data)[i+2];
+				if(data[i+3] & 0x04) dx-=256;
+				if(data[i+3] & 0x02) dy-=256;
+				addTrail(x, y, x+dx, y+dy, data[i+3]&0x1F);
+				i+=3;
+			}
 			i++;
 		}
+		drawTrails(render);
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.y = height;
 		rect.h = 20;
@@ -138,8 +149,8 @@ static void handleNetwork(){
 
 static void spKeyAction(int bit, char pressed){
 	int i = 0;
-	for(; i < 6 && bit!=keyBindings[i]; i++);
-	if(i==6) return;
+	for(; i < numKeys && bit!=keyBindings[i]; i++);
+	if(i==numKeys) return;
 	unsigned char old = keys;
 	if(pressed) keys |= twoPow[i];
 	else keys &= 0xFF-twoPow[i];
