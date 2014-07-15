@@ -73,7 +73,6 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	}else if(aiType == 2){
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
-		((droneAiData*)ret->aiFuncData)->Attack = 0;
 		((droneAiData*)ret->aiFuncData)->timer = 100;
 		ret->lockSettings = 12;
 	}

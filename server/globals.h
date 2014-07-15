@@ -21,11 +21,11 @@ extern void disappear(uint64_t x,uint64_t y);
 typedef struct ai{
 	void (*act)(struct entity*);
 	void (*handleCollision)(struct entity*, struct entity*);
+	char loadSector;
 }ai;
 
 typedef struct droneAiData{
 	short timer;
-	char Attack;
 }droneAiData;
 
 typedef struct humanAiData{
