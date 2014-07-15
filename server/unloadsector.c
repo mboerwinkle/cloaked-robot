@@ -29,30 +29,33 @@ int unloadsector(sector *target){
 	free(target);
 	return(0);
 }
+void writeentitytofile(entity *who){
+		fprintf(fp, "entity\n");
+		wint(who->type);
+		wdouble(who->vx);
+		wdouble(who->vy);
+		wdouble(who->r);
+		wlint(who->x);
+		wlint(who->y);
+		wdouble(who->shield);
+		wdouble(who->maxShield);
+		wdouble(who->energy);
+		wdouble(who->maxEnergy);
+		wdouble(who->energyRegen);
+		wint(who->turn);
+		wint(who->maxTurn);
+		wdouble(who->thrust);
+		wchar(who->theta);
+		wint(who->numModules);
+		fprintf(fp, "end\n");
+}
 int writesectortofile(sector *target){
 	char name[35];
 	sprintf(name, "sectors/%lX_%lX", target->x, target->y);
 	fp = fopen(name, "w");
 	entity *conductor = target->firstentity;
 	while(conductor != NULL){
-		fprintf(fp, "entity\n");
-		wint(conductor->type);
-		wdouble(conductor->vx);
-		wdouble(conductor->vy);
-		wdouble(conductor->r);
-		wlint(conductor->x);
-		wlint(conductor->y);
-		wdouble(conductor->shield);
-		wdouble(conductor->maxShield);
-		wdouble(conductor->energy);
-		wdouble(conductor->maxEnergy);
-		wdouble(conductor->energyRegen);
-		wint(conductor->turn);
-		wint(conductor->maxTurn);
-		wdouble(conductor->thrust);
-		wchar(conductor->theta);
-		wint(conductor->numModules);
-		fprintf(fp, "end\n");
+		writeentitytofile(conductor);
 		conductor = conductor->next;
 	}
 	fclose(fp);
