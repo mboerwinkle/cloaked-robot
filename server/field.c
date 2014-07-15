@@ -55,7 +55,7 @@ void cleanup(){
 	entity** current;
 	struct moveRequest *tmp;
 	while(firstRequest){
-		move(firstRequest->from->x, firstRequest->from->y, firstRequest->to->x, firstRequest->to->y);
+		if(firstRequest->who->myAi->loadSector) move(firstRequest->from->x, firstRequest->from->y, firstRequest->to->x, firstRequest->to->y);
 		current = &firstRequest->from->firstentity;
 		while(*current != firstRequest->who) current = &(*current)->next;
 		*current = (*current)->next;

@@ -9,6 +9,10 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
 	ret->faction = faction;
+	if(faction == 0) ret->lockSettings = 15;
+	if(faction == 1) ret->lockSettings = 12;
+	if(faction == 2) ret->lockSettings = 2;
+	if(faction == 3) ret->lockSettings = 3;
 	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
@@ -65,16 +69,13 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
 		ret->aiFuncData = malloc(sizeof(humanAiData));
-		ret->lockSettings = 2;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(2, 1);
-		ret->lockSettings = 0;
 	}else if(aiType == 2){
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
-		ret->lockSettings = 12;
 	}
 	return ret;
 }
