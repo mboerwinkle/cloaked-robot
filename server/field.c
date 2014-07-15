@@ -43,7 +43,7 @@ void run2(sector *sec){
 			tmp->destroyFlag = 3;
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
-			disappear(sec->x, sec->y); // TODO: Only do this if they were a player
+			if(tmp->myAi->loadSector)disappear(sec->x, sec->y);
 		}else{
 			prev = current;
 			current = current->next;

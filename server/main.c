@@ -22,7 +22,6 @@ int main(){
 	pthread_create(&id, NULL, netListen, NULL);
 	mkship("test");
 	loadship("test");
-	appear(0, 0);
 	newEntity(2, 2, 1, searchforsector(0, 0), 5000, 5000);
 //	mkship("yo");
 //	loadship("yo");

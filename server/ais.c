@@ -161,10 +161,13 @@ static void aiMissileCollision(entity* me, entity* him){
 }
 
 void initAis(){
+	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
 	aiHuman.handleCollision = noCareCollision;
+	aiMissile.loadSector = 0;
 	aiMissile.act = aiMissileAct;
 	aiMissile.handleCollision = aiMissileCollision;
+	aiDrone.loadSector = 0;
 	aiDrone.act = aiDroneAct;
 	aiDrone.handleCollision = noCareCollision;
 }
