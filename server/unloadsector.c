@@ -32,6 +32,9 @@ int unloadsector(sector *target){
 void writeentitytofile(entity *who){
 		fprintf(fp, "entity\n");
 		wint(who->type);
+		if(who->myAi == humanAi) wint(0);
+		else if(who->myAi == 
+		wint(who->
 		wdouble(who->vx);
 		wdouble(who->vy);
 		wdouble(who->r);
