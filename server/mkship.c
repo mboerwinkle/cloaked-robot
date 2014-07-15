@@ -14,8 +14,8 @@ int mkship(char name[MAXNAMELEN]){
 		return(-1);
 	}
 	fp = fopen(path, "w");
-	fprintf(fp, "0_0\n7000 7000");
-	fprintf(fp, "2");
+	fprintf(fp, "0_0\n7000 7000");//sector coordinates
+	fprintf(fp, "0 2 0");//ship faction ai
 	fclose(fp);
 	return(0);
 }
