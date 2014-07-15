@@ -32,24 +32,13 @@ int unloadsector(sector *target){
 void writeentitytofile(entity *who){
 		fprintf(fp, "entity\n");
 		wint(who->type);
-		if(who->myAi == humanAi) wint(0);
-		else if(who->myAi == 
-		wint(who->
-		wdouble(who->vx);
-		wdouble(who->vy);
-		wdouble(who->r);
+		wint(who->faction);
+		if(who->myAi == &aiHuman) wint(0);
+		else if(who->myAi == &aiMissile) wint(1);
+		else if(who->myAi == &aiDrone) wint(2);
+		else perror("Unknown ai in unloadsector.c");
 		wlint(who->x);
 		wlint(who->y);
-		wdouble(who->shield);
-		wdouble(who->maxShield);
-		wdouble(who->energy);
-		wdouble(who->maxEnergy);
-		wdouble(who->energyRegen);
-		wint(who->turn);
-		wint(who->maxTurn);
-		wdouble(who->thrust);
-		wchar(who->theta);
-		wint(who->numModules);
 		fprintf(fp, "end\n");
 }
 int writesectortofile(sector *target){
