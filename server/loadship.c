@@ -4,9 +4,9 @@
 
 entity *loadship(char name[MAXNAMELEN]){
 	printf("loadship called (%s)\n", name);
-	char path[MAXNAMELEN + 6], faction;
+	char path[MAXNAMELEN + 6], faction, shipType, aiType;
 	FILE *fp;
-uint64_t secx, secy;
+	uint64_t secx, secy;
 	int32_t posx, posy;
 	sector *conductor;
 	sprintf(path, "ships/%s", name);
@@ -14,9 +14,9 @@ uint64_t secx, secy;
 		return NULL;
 	}
 	fscanf(fp, "%lX_%lX\n%d %d\n", &secx, &secy, &posx, &posy);
-	fscanf(fp, "%hhd", &faction); 
+	fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType);
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	return newEntity(0, 0, faction, conductor, posx, posy);
+	return newEntity(shipType, aiType, faction, conductor, posx, posy);
 }
