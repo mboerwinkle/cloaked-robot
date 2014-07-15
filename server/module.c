@@ -22,6 +22,7 @@ static void realCleanup(entity* who, int ix){
 
 static void missileAct(entity* who, int ix, char action){
 	char* charge = (char*)who->moduleDatas[ix];
+	char random = rand()%256;
 	if(*charge < 10){
 		(*charge)++;
 		return;
@@ -30,8 +31,8 @@ static void missileAct(entity* who, int ix, char action){
 	*charge = 1;
 	who->energy -= 10;
 	entity* what = newEntity(1, 1, 0, who->mySector, who->x, who->y);
-	what->vx = who->vx;
-	what->vy = who->vy;
+	what->vx = who->vx + who->cosTheta*60 + -who->sinTheta*random*.5;
+	what->vy = who->vy + who->sinTheta*60 + who->cosTheta*random*.5;
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
 	what->faction = who->faction;
@@ -56,7 +57,7 @@ static void lazorAct(entity* who, int ix, char action){
 		}
 		int64_t dx = displacementX(who, runner);
 		int64_t dy = displacementY(who, runner);
-		dx = dx*dx+dy*dy;
+		dx = dx*dx+dy*dy-who->r-runner->r;
 		if(dx > 0 /*no overflows*/ && dx < bestDist){
 			bestDist = dx;
 			target = runner;
