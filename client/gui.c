@@ -23,6 +23,7 @@
 
 static SDL_Window* window;
 SDL_Renderer* render;
+static SDL_Texture* minimapTex;
 
 static int running = 1;
 static unsigned char keys = 0;
@@ -38,8 +39,29 @@ SDL_Texture* background1;
 
 static void paint(){
 	SDL_RenderPresent(render);
+}
+
+static void teamColor(char faction){
+	if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
+	if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
+	if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
+	if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
+}
+
+static void drawRadar(int8_t* data, int len){
+	SDL_SetRenderTarget(render, minimapTex);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 	SDL_RenderClear(render);
+	SDL_Rect rect = {.w = 2, .h = 2};
+	int i = 0;
+	while(i+2 < len){
+		teamColor(data[i]&0x7F);
+		rect.x = data[i+1];
+		rect.y = data[i+2];
+		SDL_RenderFillRect(render, &rect);
+		i+=3;
+	}
+	SDL_SetRenderTarget(render, NULL);
 }
 
 static void handleNetwork(){
@@ -51,10 +73,18 @@ static void handleNetwork(){
 	while(0<(len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
-		len/=2;
+		if(*data & 0x80){
+			//drawRadar(data, len);
+			continue;
+		}
+		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+		rect.x = rect.y = 0;
+		rect.w = width;
+		rect.h = height+20;
+		SDL_RenderFillRect(render, &rect);
 		rect.w = rect.h = 1500;
-		int16_t bgx = ((int16_t*)data)[0];
-		int16_t bgy = ((int16_t*)data)[1];
+		int16_t bgx = *(int16_t*)(data+1);
+		int16_t bgy = *(int16_t*)(data+3);
 		rect.x = bgx-1500;
 		rect.y = bgy-1500;
 		SDL_RenderCopy(render, background1, NULL, &rect);
@@ -97,10 +127,7 @@ static void handleNetwork(){
 				rect.x = width/2-size/2+x;
 				rect.w = pictures[ship].size;
 			}
-			if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
-			if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
-			if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
-			if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
+			teamColor(faction);
 			rect.y = height/2+size/2+y+2;
 			rect.h = 3;
 			rect.w = rect.w*(data[i]&0x1F)/31;
@@ -124,20 +151,30 @@ static void handleNetwork(){
 		rect.x = 0;
 		rect.w = width;
 		SDL_RenderFillRect(render, &rect);	
-		char faction = data[6];
-		if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
-		if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
-		if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
-		if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
-		rect.x = width/2-width/2*(uint8_t)data[4]/255;
-		rect.w = width*(uint8_t)data[4]/255;
+		teamColor(data[0]);
+		rect.x = width/2-width/2*(uint8_t)data[5]/255;
+		rect.w = width*(uint8_t)data[5]/255;
 		rect.h = 10;
 		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
 		rect.y += 10;
-		rect.x = width/2-width/2*(uint8_t)data[5]/255;
-		rect.w = width*(uint8_t)data[5]/255;
+		rect.x = width/2-width/2*(uint8_t)data[6]/255;
+		rect.w = width*(uint8_t)data[6]/255;
 		SDL_RenderFillRect(render, &rect);
+
+		SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
+		rect.x = width;
+		rect.y = 0;
+		rect.w = 130;
+		rect.h = height+20;
+		SDL_RenderFillRect(render, &rect);
+
+		rect.x = width+1;
+		rect.y = 1;
+		rect.w = 128;
+		rect.h = 128;
+		//SDL_RenderCopy(render, minimapTex, NULL, &rect);
+
 		paint();
 	}
 }
@@ -159,15 +196,18 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height+20, 0);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width+130, height+20, 0);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
 		SDL_Quit();
 		return 1;
 	}
-	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 	SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
+
+	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128);
+
 	loadPics();
 
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);

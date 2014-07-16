@@ -30,9 +30,41 @@ static int32_t simonMod(int64_t a, int32_t b){
 	return result;
 }
 
+static int8_t data[600];
+
+static void sendRadar(client* cli){
+	int dataLen = 0;
+	entity* who = cli->myShip;
+	linkNear(who, 64*6400);
+	entity* runner = who->mySector->firstentity;
+	int64_t d;
+	while(runner){
+		d = simonDivide(displacementX(who, runner)+3200, 6400);
+		if(d > 63 || d < -63){
+			runner = runner->next;
+			continue;
+		}
+		data[dataLen+1] = d+63;
+		d = simonDivide(displacementY(who, runner)+3200, 6400);
+		if(d > 63 || d < -63){
+			runner = runner->next;
+			continue;
+		}
+		data[dataLen+2] = d+63;
+		data[dataLen] = runner->faction;
+		dataLen+=3;
+		runner = runner->next;
+	}
+	unlinkNear();
+	data[0] |= 0x80; // It's a radar packet
+	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
+	sendto(sockfd, data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+}
+
 void sendInfo(){
+	static char counter = 0;
+	if(++counter == 10) counter = 0;
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334)};
-	static int8_t data[6*100];
 	//TODO: Decide if the above should be static
 	int dataLen;
 	int64_t d;
@@ -52,14 +84,15 @@ void sendInfo(){
 			conductor = clientList;
 			continue;
 		}
+		if(counter == 0) sendRadar(conductor);
 		linkNear(me, LOCK_RANGE);
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
-		((int16_t*)data)[0] = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
-		*(int16_t*)(data+2) = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
-		data[4] = me->shield*255/me->maxShield;
-		data[5] = me->energy*255/me->maxEnergy;
-		data[6] = me->faction;
+		data[0] = me->faction;
+		*(int16_t*)(data+1) = simonMod(((int64_t)sec->x%3000)*(464)-simonDivide(conductor->myShip->x,64), 3000)/2;
+		*(int16_t*)(data+3) = simonMod(((int64_t)sec->y%3000)*(464)-simonDivide(conductor->myShip->y,64), 3000)/2;
+		data[5] = me->shield*255/me->maxShield;
+		data[6] = me->energy*255/me->maxEnergy;
 		dataLen = 7;
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*runner->faction;
@@ -104,7 +137,7 @@ void sendInfo(){
 		}
 		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-		sendto(sockfd, (char*)data, dataLen*2, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+		sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 		prev = conductor;
 		conductor = conductor->next;
 	}
