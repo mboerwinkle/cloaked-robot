@@ -24,14 +24,6 @@ typedef struct ai{
 	char loadSector;
 }ai;
 
-typedef struct droneAiData{
-	short timer;
-}droneAiData;
-
-typedef struct humanAiData{
-	char keys;
-}humanAiData;
-
 extern ai aiHuman;
 extern ai aiMissile;
 extern ai aiDrone;
@@ -67,6 +59,15 @@ typedef struct entity{
 	int* trailTypes;
 	int numTrails, maxTrails;
 }entity;
+
+typedef struct droneAiData{
+	short timer;
+	entity *target;
+}droneAiData;
+
+typedef struct humanAiData{
+	char keys;
+}humanAiData;
 
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
 #define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
