@@ -76,6 +76,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
+		((droneAiData*)ret->aiFuncData)->target = NULL;
 	}
 	return ret;
 }

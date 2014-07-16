@@ -57,40 +57,67 @@ static void aiHumanAct(entity* who){
 static void aiDroneAct(entity* who){
 	double vx = who->vx;
 	double vy = who->vy;
+	double dx, dy;
 	droneAiData *data = who->aiFuncData;
 	if(data->timer == 200){
 		data->timer = 0;
 	}
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
-		lock(who);
+		linkNear(who, 64*6400);
+		double bestScore = 64*6400*4;
+		data->target = NULL;
+		entity* runner = who->mySector->firstentity;
+		int64_t d;
+		while(runner){
+			if(runner->r < 64*5 || runner == who){
+				runner = runner->next;
+				continue;
+			}
+			dx = displacementX(who, runner);
+			dy = displacementY(who, runner);
+			d = sqrt(dx*dx+dy*dy);
+			if(d > 64*6400){
+				runner = runner->next;
+				continue;
+			}
+			double angle = atan2(dy, dx);
+			if(angle < 0) angle += 2*M_PI;
+			angle = fabs(angle - (M_PI_4/2)*who->theta);
+			if(angle>M_PI) angle = 2*M_PI - angle;
+			double score = d*(1+angle/M_PI);
+			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400*2;
+			if(score < bestScore){
+				bestScore = score;
+				data->target = runner;
+			}
+			runner = runner->next;
+		}
+		unlinkNear();
 	}
-	entity* target = who->targetLock;
-	if(target == NULL){		
-//		(*who->modules[0]->actFunc)(who, 0, 0);
+	if(data->target == NULL){	
 		if(vx*vx+vy*vy < 62500){
 			thrust(who);
 		}
 		return;
 	}
-//	(*who->modules[0]->actFunc)(who, 0, 1);
-	int64_t dx = displacementX(who, target);
-	int64_t dy = displacementY(who, target);
+	dx = displacementX(who, data->target);
+	dy = displacementY(who, data->target);
 	double unx = who->cosTheta;
 	double uny = who->sinTheta;
 	double x = dy*unx - dx*uny;
-	double dvx = who->vx - target->vx;
-	double dvy = who->vy - target->vy;	
+	double dvx = who->vx - data->target->vx;
+	double dvy = who->vy - data->target->vy;	
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
-
+	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE) who->targetLock = data->target;
 	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 		thrust(who);
 	}
-	if(x+(target->r+who->r+5000) > 0){
+	if(x+(data->target->r+who->r+5000) > 0){
 		turn(who, 1);
 	}
-	if(x+(target->r+who->r+5000) < 0){
+	if(x+(data->target->r+who->r+5000) < 0){
 		turn(who, -1);
 	}
 }
