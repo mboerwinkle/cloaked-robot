@@ -74,7 +74,7 @@ static void handleNetwork(){
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){
-			//drawRadar(data, len);
+			drawRadar(data, len);
 			continue;
 		}
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
@@ -173,7 +173,7 @@ static void handleNetwork(){
 		rect.y = 1;
 		rect.w = 128;
 		rect.h = 128;
-		//SDL_RenderCopy(render, minimapTex, NULL, &rect);
+		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
 	}
@@ -204,7 +204,6 @@ int main(int argc, char** argv){
 		return 1;
 	}
 	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-	SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
 
 	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128);
 
