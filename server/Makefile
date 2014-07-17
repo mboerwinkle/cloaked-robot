@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wno-strict-aliasing -O2 -c -ffast-math $(DEBUG)
 LFLAGS=-lm -pthread -lrt
-SOURCES=main.c loadsector.c interpret.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c move.c searchforsector.c linkNear.c
+SOURCES=main.c loadsector.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c move.c searchforsector.c linkNear.c
 OBJECTS=$(SOURCES:.c=.o)
 
 .PHONY: debug remake clean
@@ -20,9 +20,6 @@ loadsector.o: loadsector.c globals.h
 
 loadship.o: loadship.c globals.h
 	$(CC) $(CFLAGS) loadship.c
-
-interpret.o: interpret.c globals.h
-	$(CC) $(CFLAGS) interpret.c
 
 unloadsector.o: unloadsector.c globals.h
 	$(CC) $(CFLAGS) unloadsector.c

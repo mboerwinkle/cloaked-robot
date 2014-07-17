@@ -17,6 +17,26 @@ void gensector(uint64_t x, uint64_t y){//only called from loadsector
 	fp = NULL;
 	printf("done generating (%s)\n", name);
 }
+static void readEntity(FILE* fp, sector* sec){
+	char line[80];
+	fgets(line, 80, fp);
+	if(strcmp(line, "entity\n")){
+		perror("Da fuq? Corrupt file in loadsector.c");
+		return;
+	}
+	int type = atoi(fgets(line, 80, fp));
+	int ai = atoi(fgets(line, 80, fp));
+	int faction = atoi(fgets(line, 80, fp));
+	int x = atoi(fgets(line, 80, fp));
+	int y = atoi(fgets(line, 80, fp));
+	fgets(line, 80, fp);
+	if(strcmp(line, "end\n")){
+		perror("Da fuq? Corrupt file in loadsector.c.");
+		return;
+	}
+	newEntity(type, ai, faction, sec, x, y);
+}
+
 void loadsector(uint64_t x, uint64_t y){
 	printf("loadsector called (%ld, %ld)\n", x, y);
 	sector *new = malloc(sizeof(sector));
@@ -29,11 +49,6 @@ void loadsector(uint64_t x, uint64_t y){
 		gensector(x, y);
 	}
 
-	if(fp != NULL){
-		fclose(fp);
-		fp = NULL;
-	}
-
 	new->nextsector = listrootsector;
 	listrootsector = new;
 
@@ -42,5 +57,11 @@ void loadsector(uint64_t x, uint64_t y){
 	listrootsector->x = x;
 	listrootsector->y = y;
 
-	interpretsector(x, y);
+	if(fp != NULL){
+		while(!feof(fp)){
+			readEntity(fp, listrootsector);
+		}
+		fclose(fp);
+		fp = NULL;
+	}
 }

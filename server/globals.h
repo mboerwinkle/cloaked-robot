@@ -8,7 +8,6 @@ struct entity;
 struct module;
 struct sector;
 
-extern void interpretsector(uint64_t x, uint64_t y);
 extern int main();
 extern void gensector(uint64_t x, uint64_t y);
 extern void loadsector(uint64_t x, uint64_t y); 
@@ -83,6 +82,7 @@ typedef struct sector {
 extern sector *searchforsector(uint64_t x, uint64_t y);
 extern int unloadsector(sector *target);
 extern int writesectortofile(sector *target);
+extern void addmetosector(entity* who, uint64_t x, uint64_t y);
 
 sector *listrootsector;
 

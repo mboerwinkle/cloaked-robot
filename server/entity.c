@@ -177,7 +177,10 @@ char tick2(entity* who){
 	}
 	if(secx!=who->mySector->x || secy!=who->mySector->y){
 		sector *new = searchforsector(secx, secy);
-		if(new == NULL) return 1;
+		if(new == NULL){
+			addmetosector(who, secx, secy);
+			return 1;
+		}
 		fileMoveRequest(who, who->mySector, new);
 		who->mySector = new;
 	}
