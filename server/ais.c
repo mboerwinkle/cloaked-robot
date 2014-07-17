@@ -51,7 +51,7 @@ static void aiHumanAct(entity* who){
 	if(data->keys & 0x02) turn(who, 1);
 	if(data->keys & 0x04) thrust(who);
 	(*who->modules[0]->actFunc)(who, 0, data->keys&0x20);
-	(*who->modules[1]->actFunc)(who, 0, data->keys&0x40);
+	(*who->modules[1]->actFunc)(who, 1, data->keys&0x40);
 }
 
 static void aiDroneAct(entity* who){
@@ -114,11 +114,23 @@ static void aiDroneAct(entity* who){
 	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 		thrust(who);
 	}
-	if(x+(data->target->r+who->r+5000) > 0){
-		turn(who, 1);
+	if(who->targetLock == NULL){
+		(*who->modules[0]->actFunc)(who, 0, 0);
+		if(x+(data->target->r+who->r+500) > 0){
+			turn(who, 1);
+		}
+		if(x+(data->target->r+who->r+500) < 0){
+			turn(who, -1);
+		}
 	}
-	if(x+(data->target->r+who->r+5000) < 0){
-		turn(who, -1);
+	else{		
+		(*who->modules[0]->actFunc)(who, 0, 1);
+		if(x > 0){
+			turn(who, 1);
+		}
+		if(x < 0){
+			turn(who, -1);
+		}
 	}
 }
 

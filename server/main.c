@@ -20,8 +20,6 @@ int main(){
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
-	mkship("test");
-	loadship("test");
 	newEntity(2, 2, 1, searchforsector(0, 0), 5000, 5000);
 //	mkship("yo");
 //	loadship("yo");
