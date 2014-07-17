@@ -59,8 +59,8 @@ void loadsector(uint64_t x, uint64_t y){
 
 	if(fp != NULL){
 		int a;
-		if((a = fgetc(fp)) != EOF) ungetc(a, fp); // Trigger the eof flag for empty files, don't affect filled files.
-		while(!feof(fp)){
+		while((a = fgetc(fp)) != EOF){
+			ungetc(a, fp); // Oops, not EOF, better put that back
 			readEntity(fp, listrootsector);
 		}
 		fclose(fp);
