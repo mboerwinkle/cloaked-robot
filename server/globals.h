@@ -39,6 +39,7 @@ typedef struct entity{
 	int32_t x, y;
 
 	double shield, maxShield;
+	double shieldRegen;
 	double energy, maxEnergy;
 	double energyRegen;
 	int turn, maxTurn;

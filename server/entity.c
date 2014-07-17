@@ -40,6 +40,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
+		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
@@ -62,6 +63,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
+		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
@@ -94,6 +96,8 @@ void tick(entity* who){
 	who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
+	who->shield += who->shieldRegen;
+	if(who->shield > who->maxShield) who->shield = who->maxShield;
 	(*who->myAi->act)(who);
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag){
