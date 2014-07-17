@@ -86,7 +86,7 @@ static void aiDroneAct(entity* who){
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
 			if(angle>M_PI) angle = 2*M_PI - angle;
 			double score = d*(1+angle/M_PI);
-			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400*2;
+			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400;
 			if(score < bestScore){
 				bestScore = score;
 				data->target = runner;
@@ -110,7 +110,7 @@ static void aiDroneAct(entity* who){
 	double dvy = who->vy - data->target->vy;	
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
-	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && !(who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
+	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
 	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 		thrust(who);
 	}
