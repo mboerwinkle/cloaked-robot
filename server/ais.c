@@ -110,7 +110,7 @@ static void aiDroneAct(entity* who){
 	double dvy = who->vy - data->target->vy;	
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
-	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE) who->targetLock = data->target;
+	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && !(who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
 	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 		thrust(who);
 	}
