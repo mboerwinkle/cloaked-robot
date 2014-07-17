@@ -64,7 +64,7 @@ static void loadPic(char *addr){
 	numPics++;
 }
 
-static void loadImage(char* str){
+static SDL_Texture* loadImage(char* str){
 	Imlib_Image img = imlib_load_image(str);
 	imlib_context_set_image(img);
 	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data(), imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
