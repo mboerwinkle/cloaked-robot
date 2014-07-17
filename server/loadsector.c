@@ -21,7 +21,7 @@ static void readEntity(FILE* fp, sector* sec){
 	char line[80];
 	fgets(line, 80, fp);
 	if(strcmp(line, "entity\n")){
-		perror("Da fuq? Corrupt file in loadsector.c");
+		perror("Da fuq? Corrupt file in loadsector.c\n");
 		return;
 	}
 	int type = atoi(fgets(line, 80, fp));
@@ -31,7 +31,7 @@ static void readEntity(FILE* fp, sector* sec){
 	int y = atoi(fgets(line, 80, fp));
 	fgets(line, 80, fp);
 	if(strcmp(line, "end\n")){
-		perror("Da fuq? Corrupt file in loadsector.c.");
+		perror("Da fuq? Corrupt file in loadsector.c.\n");
 		return;
 	}
 	newEntity(type, ai, faction, sec, x, y);
@@ -58,6 +58,8 @@ void loadsector(uint64_t x, uint64_t y){
 	listrootsector->y = y;
 
 	if(fp != NULL){
+		int a;
+		if((a = fgetc(fp)) != EOF) ungetc(a, fp); // Trigger the eof flag for empty files, don't affect filled files.
 		while(!feof(fp)){
 			readEntity(fp, listrootsector);
 		}
