@@ -23,20 +23,19 @@ static void realCleanup(entity* who, int ix){
 static void missileAct(entity* who, int ix, char action){
 	char* charge = (char*)who->moduleDatas[ix];
 	char random = rand()%256;
-	if(*charge < 10){
+	if(*charge < 60){
 		(*charge)++;
 		return;
 	}
-	if(!action || who->energy < 10) return;
+	if(!action || who->energy < 60) return;
 	*charge = 1;
-	who->energy -= 10;
+	who->energy -= 60;
 	entity* what = newEntity(1, 1, 0, who->mySector, who->x, who->y);
 	what->vx = who->vx + who->cosTheta*60 + -who->sinTheta*random*.5;
 	what->vy = who->vy + who->sinTheta*60 + who->cosTheta*random*.5;
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
 	what->faction = who->faction;
-	appear(who->mySector->x, who->mySector->y);//TODO: Tidy this up.
 }
 
 static void lazorAct(entity* who, int ix, char action){

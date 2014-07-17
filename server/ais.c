@@ -196,7 +196,7 @@ static void aiMissileAct(entity* who){
 static void aiMissileCollision(entity* me, entity* him){
 	if(him != me->targetLock) return;
 	me->shield = 0;
-	him->shield-=10;
+	him->shield-=40;
 }
 
 void initAis(){
