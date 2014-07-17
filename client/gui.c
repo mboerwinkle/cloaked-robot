@@ -36,6 +36,7 @@ static struct sockaddr_in serverAddr;
 
 spriteSheet* pictures;
 SDL_Texture* background1;
+SDL_Texture* lolyoudied;
 
 static void paint(){
 	SDL_RenderPresent(render);
@@ -74,6 +75,16 @@ static void handleNetwork(){
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){
+			if(*data & 0xC0){ // A control packet
+				if(*data == 0xC1){
+					rect.x = width/2-100;
+					rect.y = height/2-50;
+					rect.w = 200;
+					rect.h = 100;
+					SDL_RenderCopy(render, lolyoudied, NULL, &rect);
+					continue;
+				}
+			}
 			drawRadar(data, len);
 			continue;
 		}

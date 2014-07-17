@@ -64,15 +64,22 @@ static void loadPic(char *addr){
 	numPics++;
 }
 
+static void loadImage(char* str){
+	Imlib_Image img = imlib_load_image(str);
+	imlib_context_set_image(img);
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data(), imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
+	SDL_Texture* ret = SDL_CreateTextureFromSurface(render, surface);
+	SDL_FreeSurface(surface);
+	imlib_free_image();
+	return ret;
+}
+
 void loadPics(){
 	pictures = malloc(sizeof(spriteSheet)*3);
 	loadPic("mdls/ship1.png");
 	loadPic("mdls/missile1.png");
 	loadPic("mdls/GAMMABat.png");
-	Imlib_Image img = imlib_load_image("mdls/background1.png");
-	imlib_context_set_image(img);
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data(), 1500, 1500, 32, 6000, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
-	background1 = SDL_CreateTextureFromSurface(render, surface);
-	SDL_FreeSurface(surface);
-	imlib_free_image();
+	background1 = loadImage("mdls/background1.png");
+	lolyoudied = loadImage("mdls/death.png");
+	SDL_SetTextureBlendMode(lolyoudied, SDL_BLENDMODE_BLEND);
 }
