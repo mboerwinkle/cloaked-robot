@@ -74,9 +74,8 @@ void sendInfo(){
 		entity* me = conductor->myShip;
 		if(me->destroyFlag){
 			sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-			*data = 0xC1; // Lol, you died
+			*data = 0x41; // Lol, you died
 			sendto(sockfd, (char*)data, 1, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
-			puts("Signal away");
 			if(prev){
 				prev->next = conductor->next;
 				free(conductor);

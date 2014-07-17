@@ -75,19 +75,19 @@ static void handleNetwork(){
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){
-			if(*data & 0xC0){ // A control packet
-				if(*data == 0xC1){
-					puts("Armageddon");
-					rect.x = width/2-100;
-					rect.y = height/2-50;
-					rect.w = 200;
-					rect.h = 100;
-					SDL_RenderCopy(render, lolyoudied, NULL, &rect);
-					continue;
-				}
-			}
 			drawRadar(data, len);
 			continue;
+		}
+		if(*data & 0x40){ // A control packet
+			if(*data == 0x41){
+				rect.x = width/2-100;
+				rect.y = height/2-50;
+				rect.w = 200;
+				rect.h = 100;
+				SDL_RenderCopy(render, lolyoudied, NULL, &rect);
+				paint();
+				continue;
+			}
 		}
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.x = rect.y = 0;
