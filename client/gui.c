@@ -77,6 +77,7 @@ static void handleNetwork(){
 		if(*data & 0x80){
 			if(*data & 0xC0){ // A control packet
 				if(*data == 0xC1){
+					puts("Armageddon");
 					rect.x = width/2-100;
 					rect.y = height/2-50;
 					rect.w = 200;

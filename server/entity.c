@@ -31,8 +31,6 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	ret->numTrails = 0;
 	ret->maxTrails = 2;
 	if(type == 0){
-		ret->x += 5000 + POS_MIN;
-		ret->y += 5000 + POS_MIN;
 		ret->r = 640;
 		ret->numModules = 2;
 		ret->modules = calloc(2, sizeof(void *));
@@ -54,8 +52,6 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
 	}else if(type == 2){		
-		ret->x += 5000 + POS_MIN;
-		ret->y += 5000 + POS_MIN;
 		ret->r = 640;
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
