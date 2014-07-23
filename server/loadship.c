@@ -18,5 +18,5 @@ entity *loadship(char name[MAXNAMELEN]){
 	fclose(fp);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	return newEntity(shipType, aiType, faction, conductor, posx+5000+POS_MIN, posy+5000+POS_MIN);
+	return newEntity(shipType, aiType, faction, conductor, posx, posy);
 }

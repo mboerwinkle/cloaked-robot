@@ -4,6 +4,7 @@
 
 module missileModule;
 module lazorModule;
+module bayModule;
 
 static void missileInit(entity* who, int ix, double value){
 	who->modules[ix] = &missileModule;
@@ -12,6 +13,11 @@ static void missileInit(entity* who, int ix, double value){
 
 static void lazorInit(entity* who, int ix, double value){
 	who->modules[ix] = &lazorModule;
+	who->moduleDatas[ix] = calloc(1, 1);
+}
+
+static void bayInit(entity* who, int ix, double value){
+	who->modules[ix] = &bayModule;
 	who->moduleDatas[ix] = calloc(1, 1);
 }
 
@@ -30,12 +36,11 @@ static void missileAct(entity* who, int ix, char action){
 	if(!action || who->energy < 60) return;
 	*charge = 1;
 	who->energy -= 60;
-	entity* what = newEntity(1, 1, 0, who->mySector, who->x, who->y);
+	entity* what = newEntity(1, 1, who->faction, who->mySector, who->x, who->y);
 	what->vx = who->vx + who->cosTheta*60 + -who->sinTheta*random*.5;
 	what->vy = who->vy + who->sinTheta*60 + who->cosTheta*random*.5;
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
-	what->faction = who->faction;
 }
 
 static void lazorAct(entity* who, int ix, char action){
@@ -71,6 +76,21 @@ static void lazorAct(entity* who, int ix, char action){
 	addTrail(who, target, 0);
 }
 
+static void bayAct(entity *who, int ix, char action){
+	char* charge = (char*)who->moduleDatas[ix];
+	if(*charge < 120){
+		(*charge)++;
+		return;
+	}
+	if(!action || who->energy < 100) return;
+	*charge = 1;
+	who->energy -= 100;
+	entity* what = newEntity(2, 2, who->faction, who->mySector, who->x, who->y);
+	what->vx = who->vx;
+	what->vy = who->vy;
+	what->theta = who->theta;
+}	
+
 void initModules(){
 	missileModule.initFunc=missileInit;
 	missileModule.actFunc=missileAct;
@@ -78,4 +98,7 @@ void initModules(){
 	lazorModule.initFunc=lazorInit;
 	lazorModule.actFunc=lazorAct;
 	lazorModule.cleanupFunc=realCleanup;
+	bayModule.initFunc=bayInit;
+	bayModule.actFunc=bayAct;
+	bayModule.cleanupFunc=realCleanup;
 }

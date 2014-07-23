@@ -110,6 +110,7 @@ extern char globalActedFlag;
 
 extern module missileModule;
 extern module lazorModule;
+extern module bayModule;
 
 extern void initModules();
 

@@ -30,7 +30,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	ret->trailTypes = malloc(sizeof(int)*2);
 	ret->numTrails = 0;
 	ret->maxTrails = 2;
-	if(type == 0){
+	if(type == 0){//human
 		ret->r = 640;
 		ret->numModules = 2;
 		ret->modules = calloc(2, sizeof(void *));
@@ -43,7 +43,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 		(*lazorModule.initFunc)(ret, 1, 1);
-	}else if(type == 1){
+	}else if(type == 1){//missile
 		ret->r = 64;
 		ret->numModules = 0;
 		ret->modules = NULL;
@@ -51,18 +51,30 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 4;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
-	}else if(type == 2){		
+	}else if(type == 2){//drone	
 		ret->r = 640;
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
 		ret->moduleDatas = calloc(1, sizeof(void*));
-		ret->thrust = 3;
+		ret->thrust = 2;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
+	}else if(type == 3){//carrier	
+		ret->r = 3480;
+		ret->numModules = 1;
+		ret->modules = calloc(1, sizeof(void *));
+		ret->moduleDatas = calloc(1, sizeof(void*));
+		ret->thrust = 1;
+		ret->maxTurn = 12;
+		ret->shield = ret->maxShield = 300;
+		ret->shieldRegen = 0.05;
+		ret->energy = ret->maxEnergy = 100;
+		ret->energyRegen = 1;
+		(*bayModule.initFunc)(ret, 0, 1);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
