@@ -125,11 +125,9 @@ static void aiDroneAct(entity* who){
 	}
 	else{		
 		(*who->modules[0]->actFunc)(who, 0, 1);
-		if(x > 0){
-			turn(who, 1);
-		}
-		if(x < 0){
-			turn(who, -1);
+		double y = dy*uny + dx*unx;
+		if((x!=0 && y/x<5) || y<0){
+			turn(who, x>0?1:-1);
 		}
 	}
 }
