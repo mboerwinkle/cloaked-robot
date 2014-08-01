@@ -124,8 +124,8 @@ static void miningAct(entity* who, int ix, char action){
 					data->target->shield = -1000; // Very dead
 					who->minerals += data->target->r*data->target->r/3;
 					data->target = NULL;
-					return;
 				}
+				return;
 			}else{
 				data->target = NULL;
 			}
