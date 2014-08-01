@@ -80,6 +80,7 @@ void loadPics(){
 	loadPic("mdls/missile1.png");
 	loadPic("mdls/GAMMABat.png");
 	loadPic("mdls/UQMSamatra.png");
+	loadPic("mdls/UQMasteroid.png");
 	background1 = loadImage("mdls/background1.png");
 	lolyoudied = loadImage("mdls/death.png");
 	SDL_SetTextureBlendMode(lolyoudied, SDL_BLENDMODE_BLEND);
