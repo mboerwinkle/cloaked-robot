@@ -146,6 +146,7 @@ static void miningAct(entity* who, int ix, char action){
 			bestDist = dist;
 			data->target = runner;
 		}
+		runner = runner->next;
 	}
 	unlinkNear();
 	data->counter = 0;
