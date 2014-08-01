@@ -75,7 +75,7 @@ static void drawRadar(int8_t* data, int len){
 }
 
 static void handleNetwork(){
-	static int8_t data[6*100];
+	static int8_t data[6000];
 	struct sockaddr_in addr;
 	socklen_t addrLen = sizeof(addr);
 	int len;
