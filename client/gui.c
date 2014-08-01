@@ -54,9 +54,18 @@ static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 	SDL_RenderClear(render);
 	SDL_Rect rect = {.w = 2, .h = 2};
-	int i = 0;
+	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
+	if(data[2]&128){
+		puts("column");
+		SDL_RenderDrawLine(render, data[0]-128, 0, data[0]-128, 128);
+	}
+	if(data[2]&64){
+		puts("row");
+		SDL_RenderDrawLine(render, 0, data[1], 128, data[1]);
+	}
+	int i = 2;
 	while(i+2 < len){
-		teamColor(data[i]&0x7F);
+		teamColor(data[i]&0x3F);
 		rect.x = data[i+1];
 		rect.y = data[i+2];
 		SDL_RenderFillRect(render, &rect);

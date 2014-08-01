@@ -33,7 +33,7 @@ static int32_t simonMod(int64_t a, int32_t b){
 static int8_t data[600];
 
 static void sendRadar(client* cli){
-	int dataLen = 0;
+	int dataLen = 2;
 	entity* who = cli->myShip;
 	linkNear(who, 64*6400);
 	entity* runner = who->mySector->firstentity;
@@ -56,6 +56,13 @@ static void sendRadar(client* cli){
 		runner = runner->next;
 	}
 	unlinkNear();
+	data[2] += 192;
+	if(who->x < POS_MIN+6400*64) data[0] = (-who->x+POS_MIN)/6400;
+	else if(who->x > POS_MAX-6400*64) data[0] = (-who->x-POS_MAX+(6400*128))/6400;
+	else data[2] -= 128;
+	if(who->y < POS_MIN+6400*64) data[1] = (-who->y+POS_MIN)/6400;
+	else if(who->y > POS_MAX-6400*64) data[1] = (-who->y-POS_MAX+(6400*128))/6400;
+	else data[2] -= 64;
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
 	sendto(sockfd, data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
