@@ -23,6 +23,16 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 	firstRequest = new;
 }
 
+void addAsteroid(entity* poorSoul, int type){
+	entity* assRoid = newEntity(type, 3, 0, poorSoul->mySector, poorSoul->x, poorSoul->y);
+	*(char*)assRoid->aiFuncData = 1-2*(rand()%2); // It has been hit, tumble, plz.
+	double theta = ((double)rand()/RAND_MAX)*(2*M_PI);
+	int spd = rand()%70;
+	assRoid->vx = poorSoul->vx + cos(theta)*spd;
+	assRoid->vy = poorSoul->vy + sin(theta)*spd;
+	assRoid->theta = rand()%16;
+}
+
 void run(sector *sec){
 	entity *current = sec->firstentity;
 	while(current){
@@ -34,8 +44,9 @@ void run(sector *sec){
 void run2(sector *sec){
 	entity *prev = NULL;
 	entity *current = sec->firstentity;
+	char result;
 	while(current){
-		if(tick2(current)){
+		if( (result=tick2(current)) ){
 			entity *tmp = current;
 			current = current->next;
 			if(prev) prev->next = current;
@@ -43,6 +54,18 @@ void run2(sector *sec){
 			tmp->destroyFlag = 3;
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
+			if(result == 2){
+				int size = (2.0/3)*tmp->r*tmp->r;
+				if(size>=64*64*10){
+					while(size >= 64*64*10){
+						size -= 64*64*10;
+						addAsteroid(tmp, 1);
+					}
+					if(prev == NULL){ // ... Then it isn't anymore
+						for(prev = sec->firstentity; prev->next != current; prev = prev->next);
+					}
+				}
+			}
 			if(tmp->myAi->loadSector)disappear(sec->x, sec->y);
 		}else{
 			prev = current;

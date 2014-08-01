@@ -51,6 +51,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 4;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
+		ret->shieldRegen = 0;
+		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 2){//drone	
 		ret->r = 640;
 		ret->numModules = 1;
@@ -79,6 +81,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
 		ret->aiFuncData = malloc(sizeof(humanAiData));
+		((humanAiData*)ret->aiFuncData)->keys = 0;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(2, 1);
@@ -87,6 +90,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
 		((droneAiData*)ret->aiFuncData)->target = NULL;
+	}else if(aiType == 3){
+		ret->myAi = &aiAsteroid;
+		ret->aiFuncData = calloc(1, 1);
 	}
 	return ret;
 }
@@ -170,7 +176,6 @@ char tick2(entity* who){
 		otherGuy = otherGuy->next;
 	}
 	unlinkNear();
-	if(who->shield <= 0) return 1;
 	uint64_t secx = who->mySector->x;
 	uint64_t secy = who->mySector->y;
 	if(who->x > POS_MAX){
@@ -196,6 +201,7 @@ char tick2(entity* who){
 		fileMoveRequest(who, who->mySector, new);
 		who->mySector = new;
 	}
+	if(who->shield <= 0) return 2;
 	return 0;
 }
 
@@ -222,5 +228,9 @@ void freeEntity(entity* who){
 	for(; i < who->numModules; i++){
 		if(who->modules[i]) (*who->modules[i]->cleanupFunc)(who, i);
 	}
+	free(who->modules);
+	free(who->moduleDatas);
+	free(who->trailTypes);
+	free(who->trailTargets);
 	free(who);
 }

@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "globals.h"
 
 ai aiMissile;
 ai aiHuman;
 ai aiDrone;
+ai aiAsteroid;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -99,6 +101,10 @@ static void aiDroneAct(entity* who){
 		if(vx*vx+vy*vy < 62500){
 			thrust(who);
 		}
+		return;
+	}
+	if(data->target->destroyFlag){
+		data->target = NULL;
 		return;
 	}
 	dx = displacementX(who, data->target);
@@ -197,6 +203,18 @@ static void aiMissileCollision(entity* me, entity* him){
 	him->shield-=40;
 }
 
+static void aiAsteroidAct(entity* who){
+	if(*(char*)who->aiFuncData){
+		turn(who, *(char*)who->aiFuncData);
+	}else thrust(who);
+}
+
+static void aiAsteroidCollision(entity* me, entity* him){
+	char* aRat = (char*)me->aiFuncData;
+	if(*aRat) *aRat *= -1;
+	else *aRat = 1-2*(rand()%2);
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -207,4 +225,7 @@ void initAis(){
 	aiDrone.loadSector = 0;
 	aiDrone.act = aiDroneAct;
 	aiDrone.handleCollision = noCareCollision;
+	aiAsteroid.loadSector = 0;
+	aiAsteroid.act = aiAsteroidAct;
+	aiAsteroid.handleCollision = aiAsteroidCollision;
 }
