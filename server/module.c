@@ -103,6 +103,7 @@ static void bayAct(entity *who, int ix, char action){
 	what->theta = who->theta;
 }
 
+#define miningRange 2000
 static void miningAct(entity* who, int ix, char action){
 	miningModuleData* data = (miningModuleData*)who->moduleDatas[ix];
 	if(!action || who->energy<2){
@@ -116,7 +117,7 @@ static void miningAct(entity* who, int ix, char action){
 			int64_t dx = displacementX(who, data->target);
 			int64_t dy = displacementY(who, data->target);
 			double dist = sqrt(dx*dx + dy*dy);
-			if(dist <= who->r + data->target->r + 500){
+			if(dist <= who->r + data->target->r + miningRange){
 				data->counter += 3;
 				addTrail(who, data->target, 1);
 				who->energy -= 2;
@@ -131,9 +132,9 @@ static void miningAct(entity* who, int ix, char action){
 			}
 		}
 	}
-	linkNear(who, 8500);
+	linkNear(who, 1000*64+miningRange);
 	entity* runner = who->mySector->firstentity;
-	int bestDist = 501;
+	int bestDist = miningRange + 1;
 	while(runner){
 		if(runner->faction != 0){
 			runner = runner->next;
