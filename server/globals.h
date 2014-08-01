@@ -55,6 +55,7 @@ typedef struct entity{
 	struct module** modules;
 	void** moduleDatas;
 	int numModules;
+	uint64_t minerals;
 
 	struct entity** trailTargets;
 	int* trailTypes;
@@ -112,6 +113,7 @@ extern char globalActedFlag;
 extern module missileModule;
 extern module lazorModule;
 extern module bayModule;
+extern module miningModule;
 
 extern void initModules();
 

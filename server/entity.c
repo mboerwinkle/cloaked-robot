@@ -32,9 +32,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	ret->maxTrails = 2;
 	if(type == 0){//human
 		ret->r = 640;
-		ret->numModules = 2;
-		ret->modules = calloc(2, sizeof(void *));
-		ret->moduleDatas = calloc(2, sizeof(void*));
+		ret->numModules = 3;
+		ret->modules = calloc(3, sizeof(void *));
+		ret->moduleDatas = calloc(3, sizeof(void*));
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
@@ -43,6 +43,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 		(*lazorModule.initFunc)(ret, 1, 1);
+		(*miningModule.initFunc)(ret, 2, 1);
 	}else if(type == 1){//missile
 		ret->r = 64;
 		ret->numModules = 0;
@@ -83,8 +84,18 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->moduleDatas = NULL;
 		ret->modules = NULL;
 		ret->thrust = 0.5;
+		ret->maxTurn = 7;
+		ret->shield = ret->maxShield = 100;
+		ret->shieldRegen = 0;
+		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
+	}else if(type == 5){//medium asteroid
+		ret->r = 320;
+		ret->numModules = 0;
+		ret->moduleDatas = NULL;
+		ret->modules = NULL;
+		ret->thrust = 0.5;
 		ret->maxTurn = 5;
-		ret->shield = ret->maxShield = 120;
+		ret->shield = ret->maxShield = 60;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}
@@ -152,7 +163,7 @@ char tick2(entity* who){
 		who->y += who->vy;
 	}
 	who->actedFlag = globalActedFlag;
-	linkNear(who, 6400);
+	linkNear(who, 8000);
 	entity *otherGuy = who->mySector->firstentity;
 	double dx, dy, d;
 

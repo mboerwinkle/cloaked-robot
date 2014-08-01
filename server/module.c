@@ -5,6 +5,11 @@
 module missileModule;
 module lazorModule;
 module bayModule;
+module miningModule;
+typedef struct{
+	entity* target;
+	int counter;
+}miningModuleData;
 
 static void missileInit(entity* who, int ix, double value){
 	who->modules[ix] = &missileModule;
@@ -14,6 +19,13 @@ static void missileInit(entity* who, int ix, double value){
 static void lazorInit(entity* who, int ix, double value){
 	who->modules[ix] = &lazorModule;
 	who->moduleDatas[ix] = calloc(1, 1);
+}
+
+static void miningInit(entity* who, int ix, double value){
+	who->modules[ix] = &miningModule;
+	miningModuleData* data = malloc(sizeof(miningModuleData));
+	data->target = NULL;
+	who->moduleDatas[ix] = data;
 }
 
 static void bayInit(entity* who, int ix, double value){
@@ -89,7 +101,55 @@ static void bayAct(entity *who, int ix, char action){
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;
-}	
+}
+
+static void miningAct(entity* who, int ix, char action){
+	miningModuleData* data = (miningModuleData*)who->moduleDatas[ix];
+	if(!action || who->energy<2){
+		data->target = NULL;
+		return;
+	}
+	if(data->target){
+		if(data->target->destroyFlag || data->target->shield <= 0){
+			data->target = NULL;
+		}else{
+			int64_t dx = displacementX(who, data->target);
+			int64_t dy = displacementY(who, data->target);
+			double dist = sqrt(dx*dx + dy*dy);
+			if(dist <= who->r + data->target->r + 500){
+				data->counter += 3;
+				addTrail(who, data->target, 1);
+				who->energy -= 2;
+				if(data->counter >= data->target->maxShield){
+					data->target->shield = -1000; // Very dead
+					who->minerals += data->target->r*data->target->r/3;
+					data->target = NULL;
+					return;
+				}
+			}else{
+				data->target = NULL;
+			}
+		}
+	}
+	linkNear(who, 8500);
+	entity* runner = who->mySector->firstentity;
+	int bestDist = 501;
+	while(runner){
+		if(runner->faction != 0){
+			runner = runner->next;
+			continue;
+		}
+		int64_t dx = displacementX(who, runner);
+		int64_t dy = displacementY(who, runner);
+		int dist = sqrt(dx*dx + dy*dy) - who->r - runner->r;
+		if(dist < bestDist){
+			bestDist = dist;
+			data->target = runner;
+		}
+	}
+	unlinkNear();
+	data->counter = 0;
+}
 
 void initModules(){
 	missileModule.initFunc=missileInit;
@@ -101,4 +161,7 @@ void initModules(){
 	bayModule.initFunc=bayInit;
 	bayModule.actFunc=bayAct;
 	bayModule.cleanupFunc=realCleanup;
+	miningModule.initFunc=miningInit;
+	miningModule.actFunc=miningAct;
+	miningModule.cleanupFunc=realCleanup;
 }

@@ -30,7 +30,7 @@ static int32_t simonMod(int64_t a, int32_t b){
 	return result;
 }
 
-static int8_t data[600];
+static int8_t data[6000];
 
 static void sendRadar(client* cli){
 	int dataLen = 2;
@@ -147,7 +147,8 @@ void sendInfo(){
 		}
 		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-		sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+		if(dataLen > 6000) perror("Network packet too large, not sending!");
+		else sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 		prev = conductor;
 		conductor = conductor->next;
 	}
