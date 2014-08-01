@@ -57,6 +57,10 @@ void run2(sector *sec){
 			if(result == 2){
 				int size = (2.0/3)*tmp->r*tmp->r;
 				if(size>=64*64*10){
+					while(size >= 704*704){
+						size -= 704*704;
+						addAsteroid(tmp, 4);
+					}
 					while(size >= 64*64*10){
 						size -= 64*64*10;
 						addAsteroid(tmp, 1);

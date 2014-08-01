@@ -75,11 +75,12 @@ static SDL_Texture* loadImage(char* str){
 }
 
 void loadPics(){
-	pictures = malloc(sizeof(spriteSheet)*4);
+	pictures = malloc(sizeof(spriteSheet)*5);
 	loadPic("mdls/ship1.png");
 	loadPic("mdls/missile1.png");
 	loadPic("mdls/GAMMABat.png");
 	loadPic("mdls/UQMSamatra.png");
+	loadPic("mdls/UQMasteroid1.png");
 	background1 = loadImage("mdls/background1.png");
 	lolyoudied = loadImage("mdls/death.png");
 	SDL_SetTextureBlendMode(lolyoudied, SDL_BLENDMODE_BLEND);

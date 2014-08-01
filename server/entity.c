@@ -77,6 +77,16 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*bayModule.initFunc)(ret, 0, 1);
+	}else if(type == 4){//large asteroid
+		ret->r = 704;
+		ret->numModules = 0;
+		ret->moduleDatas = NULL;
+		ret->modules = NULL;
+		ret->thrust = 0.5;
+		ret->maxTurn = 5;
+		ret->shield = ret->maxShield = 120;
+		ret->shieldRegen = 0;
+		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -228,8 +238,10 @@ void freeEntity(entity* who){
 	for(; i < who->numModules; i++){
 		if(who->modules[i]) (*who->modules[i]->cleanupFunc)(who, i);
 	}
-	free(who->modules);
-	free(who->moduleDatas);
+	if(who->modules){
+		free(who->modules);
+		free(who->moduleDatas);
+	}
 	free(who->trailTypes);
 	free(who->trailTargets);
 	free(who);
