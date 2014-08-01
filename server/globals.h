@@ -55,6 +55,7 @@ typedef struct entity{
 	struct module** modules;
 	void** moduleDatas;
 	int numModules;
+	uint64_t minerals;
 
 	struct entity** trailTargets;
 	int* trailTypes;

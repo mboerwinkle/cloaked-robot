@@ -28,8 +28,8 @@ static SDL_Texture* minimapTex;
 static int running = 1;
 static unsigned char keys = 0;
 static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-#define numKeys 7
-static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_z, SDLK_a, SDLK_s};
+#define numKeys 8
+static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_z, SDLK_a, SDLK_s, SDLK_d};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;

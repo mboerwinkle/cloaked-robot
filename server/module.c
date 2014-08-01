@@ -8,7 +8,7 @@ module bayModule;
 module miningModule;
 typedef struct{
 	entity* target;
-	int charge;
+	int counter;
 }miningModuleData;
 
 static void missileInit(entity* who, int ix, double value){
@@ -120,8 +120,8 @@ static void miningAct(entity* who, int ix, char action){
 				data->counter += 3;
 				addTrail(who, data->target, 1);
 				who->energy -= 2;
-				if(data->counter >= who->target->maxShield){
-					who->target->shield = -1000; // Very dead
+				if(data->counter >= data->target->maxShield){
+					data->target->shield = -1000; // Very dead
 					who->minerals += data->target->r*data->target->r/3;
 					data->target = NULL;
 					return;

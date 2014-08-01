@@ -54,6 +54,7 @@ static void aiHumanAct(entity* who){
 	if(data->keys & 0x04) thrust(who);
 	(*who->modules[0]->actFunc)(who, 0, data->keys&0x20);
 	(*who->modules[1]->actFunc)(who, 1, data->keys&0x40);
+	(*who->modules[2]->actFunc)(who, 2, data->keys&0x80);
 }
 
 static void aiDroneAct(entity* who){

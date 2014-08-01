@@ -56,14 +56,14 @@ void run2(sector *sec){
 			thoseCondemnedToDeath = tmp;
 			if(result == 2){
 				int size = (2.0/3)*tmp->r*tmp->r;
-				if(size>=64*64*10){
+				if(size>=320*320){
 					while(size >= 704*704){
 						size -= 704*704;
 						addAsteroid(tmp, 4);
 					}
-					while(size >= 64*64*10){
-						size -= 64*64*10;
-						addAsteroid(tmp, 1);
+					while(size >= 320*320){
+						size -= 320*320;
+						addAsteroid(tmp, 5);
 					}
 					if(prev == NULL){ // ... Then it isn't anymore
 						for(prev = sec->firstentity; prev->next != current; prev = prev->next);
