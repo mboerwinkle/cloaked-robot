@@ -102,8 +102,8 @@ static void handleNetwork(){
 		rect.h = height+20;
 		SDL_RenderFillRect(render, &rect);
 		rect.w = rect.h = 1500;
-		int16_t bgx = *(int16_t*)(data+1);
-		int16_t bgy = *(int16_t*)(data+3);
+		int16_t bgx = (*(int16_t*)(data+1))%1500;
+		int16_t bgy = (*(int16_t*)(data+3))%1500;
 		rect.x = bgx-1500;
 		rect.y = bgy-1500;
 		SDL_RenderCopy(render, background1, NULL, &rect);
