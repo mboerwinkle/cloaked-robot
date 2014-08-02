@@ -35,7 +35,6 @@ static int sockfd;
 static struct sockaddr_in serverAddr;
 
 spriteSheet* pictures = NULL;
-SDL_Texture* background1;
 SDL_Texture* lolyoudied;
 
 static void paint(){
@@ -101,25 +100,8 @@ static void handleNetwork(){
 		rect.w = width;
 		rect.h = height+20;
 		SDL_RenderFillRect(render, &rect);
-		rect.w = rect.h = 1500;
 		int16_t bgx = (*(int16_t*)(data+1))%1500;
 		int16_t bgy = (*(int16_t*)(data+3))%1500;
-		rect.x = bgx-1500;
-		rect.y = bgy-1500;
-		SDL_RenderCopy(render, background1, NULL, &rect);
-		if(bgx<500){
-			rect.x = bgx;
-			SDL_RenderCopy(render, background1, NULL, &rect);
-			if(bgy<500){
-				rect.y = bgy;
-				SDL_RenderCopy(render, background1, NULL, &rect);
-				rect.x = bgx-1500;
-				SDL_RenderCopy(render, background1, NULL, &rect);
-			}
-		}else if(bgy<500){
-			rect.y = bgy;
-			SDL_RenderCopy(render, background1, NULL, &rect);
-		}
 		int i = 7;
 		while(i+6 < len){
 			unsigned char theta = 0x0F & data[i];
