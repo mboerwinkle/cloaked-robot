@@ -38,6 +38,7 @@ static void rotate(uint32_t* oldData, int size){
 
 static void loadPic(char *addr){
 	static int numPics = 0;
+	pictures = realloc(pictures, sizeof(spriteSheet)*(numPics+1));
 	Imlib_Image img = imlib_load_image(addr);
 	imlib_context_set_image(img);
 	int mySize = imlib_image_get_width();
@@ -75,13 +76,12 @@ static SDL_Texture* loadImage(char* str){
 }
 
 void loadPics(){
-	pictures = malloc(sizeof(spriteSheet)*5);
-	loadPic("mdls/ship1.png");
-	loadPic("mdls/missile1.png");
-	loadPic("mdls/GAMMABat.png");
-	loadPic("mdls/UQMSamatra.png");
-	loadPic("mdls/UQMasteroid1.png");
-	loadPic("mdls/UQMasteroid2.png");
+	char picturename[80];
+	FILE *fp = fopen("mdls/contents", "r");
+	while(fgets(picturename, 80, fp)){
+		picturename[strlen(picturename)-1] = '\0';
+		loadPic(picturename);
+	}
 	background1 = loadImage("mdls/background1.png");
 	lolyoudied = loadImage("mdls/death.png");
 	SDL_SetTextureBlendMode(lolyoudied, SDL_BLENDMODE_BLEND);

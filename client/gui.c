@@ -34,7 +34,7 @@ static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_
 static int sockfd;
 static struct sockaddr_in serverAddr;
 
-spriteSheet* pictures;
+spriteSheet* pictures = NULL;
 SDL_Texture* background1;
 SDL_Texture* lolyoudied;
 
