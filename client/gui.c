@@ -100,8 +100,8 @@ static void handleNetwork(){
 		rect.w = width;
 		rect.h = height+20;
 		SDL_RenderFillRect(render, &rect);
-		int16_t bgx = (*(int16_t*)(data+1))%1500;
-		int16_t bgy = (*(int16_t*)(data+3))%1500;
+		//int16_t bgx = (*(int16_t*)(data+1))%1500;
+		//int16_t bgy = (*(int16_t*)(data+3))%1500;
 		int i = 7;
 		while(i+6 < len){
 			unsigned char theta = 0x0F & data[i];
