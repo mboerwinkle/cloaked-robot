@@ -151,14 +151,14 @@ char tick2(entity* who){
 	double vx = who->vx;
 	double vy = who->vy;
 	double v = sqrt(vx*vx + vy*vy);
-	if(v <= 0.5){
+	if(v <= 2){
 		who->vx = 0;
 		who->vy = 0;
 	}else{
 		vx /= v;
 		vy /= v;
-		who->vx -= vx*0.5;
-		who->vy -= vy*0.5;
+		who->vx -= vx*1.5;
+		who->vy -= vy*1.5;
 		who->x += who->vx;
 		who->y += who->vy;
 	}
