@@ -73,7 +73,7 @@ static void aiDroneAct(entity* who){
 		entity* runner = who->mySector->firstentity;
 		int64_t d;
 		while(runner){
-			if(runner->r < 64*5 || runner == who){
+			if(runner->r < 64*5 || runner == who || runner->faction == 0){
 				runner = runner->next;
 				continue;
 			}
