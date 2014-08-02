@@ -83,7 +83,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->numModules = 0;
 		ret->moduleDatas = NULL;
 		ret->modules = NULL;
-		ret->thrust = 0.5;
+		ret->thrust = 1.5;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 0;
@@ -93,7 +93,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->numModules = 0;
 		ret->moduleDatas = NULL;
 		ret->modules = NULL;
-		ret->thrust = 0.5;
+		ret->thrust = 1.5;
 		ret->maxTurn = 5;
 		ret->shield = ret->maxShield = 60;
 		ret->shieldRegen = 0;
