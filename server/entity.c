@@ -163,7 +163,7 @@ char tick2(entity* who){
 		who->y += who->vy;
 	}
 	who->actedFlag = globalActedFlag;
-	linkNear(who, 8000);
+	linkNear(who, 64*1000);
 	entity *otherGuy = who->mySector->firstentity;
 	double dx, dy, d;
 
