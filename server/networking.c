@@ -99,8 +99,8 @@ void sendInfo(){
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = me->faction;
-		*(int16_t*)(data+1) = simonMod(-simonDivide(conductor->myShip->x,64), 4096);
-		*(int16_t*)(data+3) = simonMod(-simonDivide(conductor->myShip->y,64), 4096);
+		*(int16_t*)(data+1) = simonMod(simonDivide(conductor->myShip->x,64), 4096);
+		*(int16_t*)(data+3) = simonMod(simonDivide(conductor->myShip->y,64), 4096);
 		data[5] = me->shield*255/me->maxShield;
 		data[6] = me->energy*255/me->maxEnergy;
 		dataLen = 7;
@@ -147,7 +147,7 @@ void sendInfo(){
 		}
 		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-		if(dataLen > 6000) perror("Network packet too large, not sending!");
+		if(dataLen > 6000) puts("Network packet too large, not sending!");
 		else sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 		prev = conductor;
 		conductor = conductor->next;

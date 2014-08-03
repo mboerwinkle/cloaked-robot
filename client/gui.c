@@ -118,7 +118,7 @@ static void drawStars(int X, int Y){ // The stars are generated using the Halton
 		y -= Y;
 		if(y >= 2048) y -= 4096;
 		else if( y < -2048) y+= 4096;
-		starPoints[numPoints].y = 250+(y-Y)/z;
+		starPoints[numPoints++].y = 250+y/z;
 	}
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderDrawPoints(render, starPoints, 1000);
@@ -153,8 +153,8 @@ static void handleNetwork(){
 		rect.w = width;
 		rect.h = height+20;
 		SDL_RenderFillRect(render, &rect);
-		int16_t bgx = (*(int16_t*)(data+1))%1500;
-		int16_t bgy = (*(int16_t*)(data+3))%1500;
+		int16_t bgx = *(int16_t*)(data+1);
+		int16_t bgy = *(int16_t*)(data+3);
 		drawStars(bgx, bgy);
 		int i = 7;
 		while(i+6 < len){
