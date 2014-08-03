@@ -71,6 +71,59 @@ static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, NULL);
 }
 
+static int getStarN(int x){
+	int ret = 0;
+	int i = 0;
+	for(; i < 12; i++){
+		ret = ret << 1;
+		if(x&1) ret+=1;
+		x >> 1;
+	}
+	return ret;
+}
+
+static double halton(int n, int p){
+	double ret = 0;
+	int dasNum = p;
+	int dasOtherNum = 1;
+	double dasNumAgain;
+	while(dasOtherNum < 4096){
+		dasNumAgain = 1.0/dasNum;
+		while(n%dasNum){
+			ret += dasNumAgain;
+			n -= dasOtherNum;
+		}
+		dasOtherNum = dasNum;
+		dasNum *= p;
+	}
+	return ret;
+}
+
+static SDL_Point starPoints[1000];
+
+static void drawStars(int X, int Y){ // The stars are generated using the Halton sequence, which is a low-discrepancy sequence. If the purpose of the below code is hard to understand, that's why. Wikipedia it if you really care.
+	int x, n, y;
+	double z;
+	int numPoints = 0;
+	for(x = X-500; x<X+500; x++){
+		if(x&0xFFF){
+			n = getStarN(x);
+			y = 4096*halton(n, 3);
+			z = 1+halton(n, 5);
+		}else{
+			y = 0;
+			z = 1;
+		}
+		starPoints[numPoints].x = 250+(x-X)/z;
+		y -= Y;
+		if(y >= 2048) y -= 4096;
+		else if( y < -2048) y+= 4096;
+		starPoints[numPoints].y = 250+(y-Y)/z;
+	}
+	SDL_SetRenderDrawColor(255, 255, 255, 255);
+	SDL_RenderDrawPoints(render, starPoints, 1000);
+}
+
 static void handleNetwork(){
 	static int8_t data[6000];
 	struct sockaddr_in addr;
@@ -100,14 +153,16 @@ static void handleNetwork(){
 		rect.w = width;
 		rect.h = height+20;
 		SDL_RenderFillRect(render, &rect);
-		//int16_t bgx = (*(int16_t*)(data+1))%1500;
-		//int16_t bgy = (*(int16_t*)(data+3))%1500;
+		int16_t bgx = (*(int16_t*)(data+1))%1500;
+		int16_t bgy = (*(int16_t*)(data+3))%1500;
+		drawStars(bgx, bgy);
 		int i = 7;
 		while(i+6 < len){
 			unsigned char theta = 0x0F & data[i];
 //			char flame = 0x10 & data[i];
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
+//			if(faction == 1 && ship == 2) ship = 14;
 			int size = rect.w = rect.h = pictures[ship].size;
 			int x = *(int16_t*)(data+(++i));
 			int y = *(int16_t*)(data+(i+=2));

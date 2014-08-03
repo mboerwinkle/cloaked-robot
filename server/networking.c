@@ -99,8 +99,8 @@ void sendInfo(){
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[0] = me->faction;
-		*(int16_t*)(data+1) = simonMod(((int64_t)sec->x%12000)*(-5536)-simonDivide(conductor->myShip->x,64), 12000)/2;
-		*(int16_t*)(data+3) = simonMod(((int64_t)sec->y%12000)*(-5536)-simonDivide(conductor->myShip->y,64), 12000)/2;
+		*(int16_t*)(data+1) = simonMod(-simonDivide(conductor->myShip->x,64), 4096);
+		*(int16_t*)(data+3) = simonMod(-simonDivide(conductor->myShip->y,64), 4096);
 		data[5] = me->shield*255/me->maxShield;
 		data[6] = me->energy*255/me->maxEnergy;
 		dataLen = 7;
