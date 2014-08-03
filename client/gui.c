@@ -77,7 +77,7 @@ static int getStarN(int x){
 	for(; i < 12; i++){
 		ret = ret << 1;
 		if(x&1) ret+=1;
-		x >> 1;
+		x = x >> 1;
 	}
 	return ret;
 }
@@ -120,7 +120,7 @@ static void drawStars(int X, int Y){ // The stars are generated using the Halton
 		else if( y < -2048) y+= 4096;
 		starPoints[numPoints].y = 250+(y-Y)/z;
 	}
-	SDL_SetRenderDrawColor(255, 255, 255, 255);
+	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderDrawPoints(render, starPoints, 1000);
 }
 
