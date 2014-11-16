@@ -114,6 +114,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	}else if(aiType == 3){
 		ret->myAi = &aiAsteroid;
 		ret->aiFuncData = calloc(1, 1);
+	} else if (aiType == 4) {
+		ret->myAi = &aiPacer;
+		ret->aiFuncData = NULL;
 	}
 	return ret;
 }

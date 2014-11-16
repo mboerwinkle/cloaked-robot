@@ -7,6 +7,7 @@ ai aiMissile;
 ai aiHuman;
 ai aiDrone;
 ai aiAsteroid;
+ai aiPacer;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -41,6 +42,56 @@ static void lock(entity* who){
 	unlinkNear();
 }
 
+//dx and dy are the destination's position relative to me, and
+//vx and vy are my velocity relative to the destination.
+static void gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
+	if (dx * dx + dy * dy < who->r * who->r && vx * vx + vy * vy < who->thrust * who->thrust * 4)
+		return;
+	double desiredDir;
+	if (vx == 0 && vy == 0) {
+		desiredDir = atan2(dy, dx);
+	} else {
+		double vel = sqrt(vx*vx + vy*vy);
+		double unx = vx / vel;
+		double uny = vy / vel;
+		double dist = unx * dx + uny * dy;
+		double stoppingDist = 0.5 * vel * vel / who->thrust + vel * 2 * who->maxTurn;
+		if (dist > stoppingDist) {
+			desiredDir = atan2(vy, vx);
+		} else {
+			desiredDir = atan2(-vy, -vx);
+		}
+		vy = unx*dy - uny*dx;
+		if (fabs(vy) > dist/2) {
+			if ((vy < 0) ^ (dist > stoppingDist))
+				desiredDir += M_PI/4;
+			else
+				desiredDir -= M_PI/4;
+		}
+	}
+	desiredDir = desiredDir - who->theta * (2*M_PI/16);
+	while (desiredDir < -M_PI) desiredDir += 2*M_PI;
+	while (desiredDir > M_PI) desiredDir -= 2*M_PI;
+
+	if (fabs(desiredDir) > (2*M_PI/32)*1.2) {
+		turn(who, desiredDir > 0 ? 1 : -1);
+		if (fabs(desiredDir) > M_PI/4)
+			return;
+	}
+	thrust(who);
+}
+
+static void circle(entity *who, entity *target, double r, double v)
+{
+	int64_t dx = displacementX(who, target);
+	int64_t dy = displacementY(who, target);
+	double dist = sqrt(dx*dx + dy*dy);
+	double vx = who->vx - target->vx + dy * (v/dist);
+	double vy = who->vy - target->vy - dx * (v/dist);
+	double scale = 1 - (r / dist);
+	gotoPt(who, dx * scale, dy * scale, vx, vy);
+}
+
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
 	if(data->keys & 0x08){
@@ -48,6 +99,10 @@ static void aiHumanAct(entity* who){
 	}
 	if(data->keys & 0x10){
 		who->targetLock = NULL;
+	}
+	if (who->targetLock) {
+		circle(who, who->targetLock, 4000, 100);
+		return;
 	}
 	if(data->keys & 0x01) turn(who, -1);
 	if(data->keys & 0x02) turn(who, 1);
@@ -216,6 +271,11 @@ static void aiAsteroidCollision(entity* me, entity* him){
 	else *aRat = 1-2*(rand()%2);
 }
 
+static void aiPacerAct(entity* who)
+{
+	if (who->vx < 500) thrust(who);
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -229,4 +289,7 @@ void initAis(){
 	aiAsteroid.loadSector = 0;
 	aiAsteroid.act = aiAsteroidAct;
 	aiAsteroid.handleCollision = aiAsteroidCollision;
+	aiPacer.loadSector = 0;
+	aiPacer.act = aiPacerAct;
+	aiPacer.handleCollision = noCareCollision;
 }

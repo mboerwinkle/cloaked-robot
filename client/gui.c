@@ -162,7 +162,7 @@ static void handleNetwork(){
 //			char flame = 0x10 & data[i];
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
-//			if(faction == 1 && ship == 2) ship = 14;
+			//if(faction == 1 && ship == 2) ship = 14;
 			int size = rect.w = rect.h = pictures[ship].size;
 			int x = *(int16_t*)(data+(++i));
 			int y = *(int16_t*)(data+(i+=2));

@@ -27,6 +27,7 @@ extern ai aiHuman;
 extern ai aiMissile;
 extern ai aiDrone;
 extern ai aiAsteroid;
+extern ai aiPacer;
 extern void initAis();
 
 typedef struct entity{
