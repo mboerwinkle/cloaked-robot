@@ -29,7 +29,9 @@ void writeentitytofile(entity *who){
 		else if(who->myAi == &aiMissile) wint(1);
 		else if(who->myAi == &aiDrone) wint(2);
 		else if(who->myAi == &aiAsteroid) wint(3);
-		else perror("Unknown ai in unloadsector.c");
+		else if(who->myAi == &aiPacer) wint(4);
+		else if(who->myAi == &aiBullet) wint(6);
+		else perror("Unknown ai in unloadsector.c\n");
 		wint(who->faction);
 		wlint(who->x);
 		wlint(who->y);
@@ -53,8 +55,8 @@ void addmetosector(entity* who, uint64_t x, uint64_t y){
 	char name[35];
 	sprintf(name, "sectors/%lX_%lX", x, y);
 	fp = fopen(name, "a");
-	who->x = (int64_t)(POS_MAX-POS_MIN+1)*rand()/RAND_MAX + POS_MIN;
-	who->y = (int64_t)(POS_MAX-POS_MIN+1)*rand()/RAND_MAX + POS_MIN;
+	who->x = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
+	who->y = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
 	writeentitytofile(who);
 	fclose(fp);
 }

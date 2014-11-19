@@ -8,7 +8,7 @@
 #include "globals.h"
 
 int main(){
-	srand(time(NULL));
+	srandom(time(NULL));
 	struct timespec t = {.tv_sec=0};
 	struct timespec lastTime = {.tv_sec = 0, .tv_nsec = 0};
 	struct timespec otherTime = {.tv_sec = 0, .tv_nsec = 0};

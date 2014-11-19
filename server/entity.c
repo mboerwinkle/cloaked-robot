@@ -49,7 +49,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->numModules = 0;
 		ret->modules = NULL;
 		ret->moduleDatas = NULL;
-		ret->thrust = 4;
+		ret->thrust = 3.5;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
 		ret->shieldRegen = 0;
@@ -65,13 +65,14 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
-		(*missileModule.initFunc)(ret, 0, 1);
+		//(*missileModule.initFunc)(ret, 0, 1);
+		(*gunModule.initFunc)(ret, 0, 1);
 	}else if(type == 3){//carrier	
 		ret->r = 3480;
 		ret->numModules = 1;
 		ret->modules = calloc(1, sizeof(void *));
 		ret->moduleDatas = calloc(1, sizeof(void*));
-		ret->thrust = 1;
+		ret->thrust = 1.505;
 		ret->maxTurn = 12;
 		ret->shield = ret->maxShield = 300;
 		ret->shieldRegen = 0.05;
@@ -98,6 +99,16 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shield = ret->maxShield = 60;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
+	} else if (type == 6) { // Bullet
+		ret->r = 160;
+		ret->numModules = 0;
+		ret->modules = NULL;
+		ret->moduleDatas = NULL;
+		ret->thrust = 1.5;
+		ret->maxTurn = 1;
+		ret->shield = ret->maxShield = 7;
+		ret->shieldRegen = 0;
+		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -105,7 +116,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		((humanAiData*)ret->aiFuncData)->keys = 0;
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
-		ret->aiFuncData = calloc(2, 1);
+		ret->aiFuncData = calloc(1, 2);
 	}else if(aiType == 2){
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
@@ -117,6 +128,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	} else if (aiType == 4) {
 		ret->myAi = &aiPacer;
 		ret->aiFuncData = NULL;
+	} else if (aiType == 6) {
+		ret->myAi = &aiBullet;
+		ret->aiFuncData = calloc(1, 2);
 	}
 	return ret;
 }

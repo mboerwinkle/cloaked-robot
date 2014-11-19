@@ -130,7 +130,9 @@ static void handleNetwork(){
 	socklen_t addrLen = sizeof(addr);
 	int len;
 	SDL_Rect rect;
-	while(0<(len = recvfrom(sockfd, (char*)data, 600, 0, (struct sockaddr*)&addr, &addrLen))){
+	while(0<(len = recvfrom(sockfd, (char*)data, 6000, 0, (struct sockaddr*)&addr, &addrLen))){
+		if (len > 5000)
+			printf("%d\n", len);
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){

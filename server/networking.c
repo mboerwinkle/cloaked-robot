@@ -65,7 +65,8 @@ static void sendRadar(client* cli){
 	else data[2] -= 64;
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
-	sendto(sockfd, data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+	if(dataLen > 6000) puts("Radar packet too large, not sending!");
+	else sendto(sockfd, data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 }
 
 void sendInfo(){
@@ -107,6 +108,7 @@ void sendInfo(){
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
+			if (runner->type > 6) printf("Ermagerd, %d.\n", runner->type);
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;

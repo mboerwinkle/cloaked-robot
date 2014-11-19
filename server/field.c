@@ -25,12 +25,12 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 
 void addAsteroid(entity* poorSoul, int type){
 	entity* assRoid = newEntity(type, 3, 0, poorSoul->mySector, poorSoul->x, poorSoul->y);
-	*(char*)assRoid->aiFuncData = 1-2*(rand()%2); // It has been hit, tumble, plz.
-	double theta = ((double)rand()/RAND_MAX)*(2*M_PI);
-	int spd = rand()%70;
+	*(char*)assRoid->aiFuncData = 1-2*(random()%2); // It has been hit, tumble, plz.
+	double theta = ((double)random()/RAND_MAX)*(2*M_PI);
+	int spd = random() % (int)(poorSoul->r / 6.4);
 	assRoid->vx = poorSoul->vx + cos(theta)*spd;
 	assRoid->vy = poorSoul->vy + sin(theta)*spd;
-	assRoid->theta = rand()%16;
+	assRoid->theta = random()%16;
 }
 
 void run(sector *sec){

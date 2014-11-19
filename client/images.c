@@ -40,6 +40,11 @@ static void loadPic(char *addr){
 	static int numPics = 0;
 	pictures = realloc(pictures, sizeof(spriteSheet)*(numPics+1));
 	Imlib_Image img = imlib_load_image(addr);
+	if (img == NULL) {
+		puts("Unable to load this picture:");
+		puts(addr);
+		exit(5);
+	}
 	imlib_context_set_image(img);
 	int mySize = imlib_image_get_width();
 	pictures[numPics].size = mySize;

@@ -8,6 +8,7 @@ ai aiHuman;
 ai aiDrone;
 ai aiAsteroid;
 ai aiPacer;
+ai aiBullet;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -81,6 +82,7 @@ static void gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 	thrust(who);
 }
 
+//The radius and velocity which this function takes aren't exact (especially for high v), but they give a sense of scale.
 static void circle(entity *who, entity *target, double r, double v)
 {
 	int64_t dx = displacementX(who, target);
@@ -99,10 +101,6 @@ static void aiHumanAct(entity* who){
 	}
 	if(data->keys & 0x10){
 		who->targetLock = NULL;
-	}
-	if (who->targetLock) {
-		circle(who, who->targetLock, 4000, 100);
-		return;
 	}
 	if(data->keys & 0x01) turn(who, -1);
 	if(data->keys & 0x02) turn(who, 1);
@@ -178,12 +176,14 @@ static void aiDroneAct(entity* who){
 	}
 	if(who->targetLock == NULL){
 		(*who->modules[0]->actFunc)(who, 0, 0);
-		if(x+(data->target->r+who->r+500) > 0){
+		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.
+		circle(who, data->target, data->target->r+who->r+500, 60);
+		/*if(x+(data->target->r+who->r+500) > 0){
 			turn(who, 1);
 		}
 		if(x+(data->target->r+who->r+500) < 0){
 			turn(who, -1);
-		}
+		}*/
 	}
 	else{		
 		(*who->modules[0]->actFunc)(who, 0, 1);
@@ -268,12 +268,25 @@ static void aiAsteroidAct(entity* who){
 static void aiAsteroidCollision(entity* me, entity* him){
 	char* aRat = (char*)me->aiFuncData;
 	if(*aRat) *aRat *= -1;
-	else *aRat = 1-2*(rand()%2);
+	else *aRat = 1-2*(random()%2);
 }
 
 static void aiPacerAct(entity* who)
 {
 	if (who->vx < 500) thrust(who);
+}
+
+static void aiBulletAct(entity *who)
+{
+	if(++(*(uint16_t*)who->aiFuncData) == 40*6) who->shield = 0;
+	thrust(who);
+}
+
+static void aiBulletCollision(entity *me, entity *him)
+{
+	me->shield = 0;
+	if (me->lockSettings & 1 << him->faction)
+		him->shield -= 20;
 }
 
 void initAis(){
@@ -292,4 +305,7 @@ void initAis(){
 	aiPacer.loadSector = 0;
 	aiPacer.act = aiPacerAct;
 	aiPacer.handleCollision = noCareCollision;
+	aiBullet.loadSector = 0;
+	aiBullet.act = aiBulletAct;
+	aiBullet.handleCollision = aiBulletCollision;
 }

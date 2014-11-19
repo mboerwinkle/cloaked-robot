@@ -28,6 +28,7 @@ extern ai aiMissile;
 extern ai aiDrone;
 extern ai aiAsteroid;
 extern ai aiPacer;
+extern ai aiBullet;
 extern void initAis();
 
 typedef struct entity{
@@ -113,6 +114,7 @@ extern char globalActedFlag;
 
 extern module missileModule;
 extern module lazorModule;
+extern module gunModule;
 extern module bayModule;
 extern module miningModule;
 
