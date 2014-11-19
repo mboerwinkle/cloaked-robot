@@ -53,9 +53,9 @@ static void missileAct(entity* who, int ix, char action){
 		return;
 	}
 	char rand = random()%256;
-	if(!action || who->energy < 60) return;
+	if(!action || who->energy < MISSILE_E_COST) return;
 	*charge = 1;
-	who->energy -= 60;
+	who->energy -= MISSILE_E_COST;
 	entity* what = newEntity(1, 1, who->faction, who->mySector, who->x, who->y);
 	what->vx = who->vx + who->cosTheta*60 + -who->sinTheta*rand*.5;
 	what->vy = who->vy + who->sinTheta*60 + who->cosTheta*rand*.5;
@@ -81,7 +81,7 @@ static void lazorAct(entity* who, int ix, char action){
 		}
 		int64_t dx = displacementX(who, runner);
 		int64_t dy = displacementY(who, runner);
-		dx = dx*dx+dy*dy-who->r-runner->r;
+		dx = dx*dx+dy*dy;
 		if(dx > 0 /*no overflows*/ && dx < bestDist){
 			bestDist = dx;
 			target = runner;

@@ -31,6 +31,7 @@ void writeentitytofile(entity *who){
 		else if(who->myAi == &aiAsteroid) wint(3);
 		else if(who->myAi == &aiPacer) wint(4);
 		else if(who->myAi == &aiBullet) wint(6);
+		else if(who->myAi == &aiDestroyer) wint(7);
 		else perror("Unknown ai in unloadsector.c\n");
 		wint(who->faction);
 		wlint(who->x);

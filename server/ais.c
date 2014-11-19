@@ -9,6 +9,7 @@ ai aiDrone;
 ai aiAsteroid;
 ai aiPacer;
 ai aiBullet;
+ai aiDestroyer;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -45,9 +46,8 @@ static void lock(entity* who){
 
 //dx and dy are the destination's position relative to me, and
 //vx and vy are my velocity relative to the destination.
-static void gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
-	if (dx * dx + dy * dy < who->r * who->r && vx * vx + vy * vy < who->thrust * who->thrust * 4)
-		return;
+//Returns whether or not it made a turn, which is good for long-term planning.
+static char gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 	double desiredDir;
 	if (vx == 0 && vy == 0) {
 		desiredDir = atan2(dy, dx);
@@ -63,7 +63,7 @@ static void gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 			desiredDir = atan2(-vy, -vx);
 		}
 		vy = unx*dy - uny*dx;
-		if (fabs(vy) > dist/2) {
+		if (fabs(vy) > fabs(dist-stoppingDist)/2) {
 			if ((vy < 0) ^ (dist > stoppingDist))
 				desiredDir += M_PI/4;
 			else
@@ -76,10 +76,12 @@ static void gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 
 	if (fabs(desiredDir) > (2*M_PI/32)*1.2) {
 		turn(who, desiredDir > 0 ? 1 : -1);
-		if (fabs(desiredDir) > M_PI/4)
-			return;
+		if (fabs(desiredDir) <= M_PI/2)
+			thrust(who);
+		return 1;
 	}
 	thrust(who);
+	return 0;
 }
 
 //The radius and velocity which this function takes aren't exact (especially for high v), but they give a sense of scale.
@@ -88,8 +90,8 @@ static void circle(entity *who, entity *target, double r, double v)
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
 	double dist = sqrt(dx*dx + dy*dy);
-	double vx = who->vx - target->vx + dy * (v/dist);
-	double vy = who->vy - target->vy - dx * (v/dist);
+	double vx = who->vx - target->vx + dy * v / dist;
+	double vy = who->vy - target->vy - dx * v / dist;
 	double scale = 1 - (r / dist);
 	gotoPt(who, dx * scale, dy * scale, vx, vy);
 }
@@ -171,13 +173,10 @@ static void aiDroneAct(entity* who){
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
 	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
-	if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
-		thrust(who);
-	}
 	if(who->targetLock == NULL){
 		(*who->modules[0]->actFunc)(who, 0, 0);
 		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.
-		circle(who, data->target, data->target->r+who->r+500, 60);
+		circle(who, data->target, data->target->r+who->r+700, 30);
 		/*if(x+(data->target->r+who->r+500) > 0){
 			turn(who, 1);
 		}
@@ -186,6 +185,10 @@ static void aiDroneAct(entity* who){
 		}*/
 	}
 	else{		
+		//Addendum: Since the 'circle' method handles thrusting, I also moved this if statement into here.
+		if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
+			thrust(who);
+		}
 		(*who->modules[0]->actFunc)(who, 0, 1);
 		double y = dy*uny + dx*unx;
 		if((x!=0 && y/fabs(x)<5) || y<0){
@@ -253,10 +256,12 @@ static void aiMissileAct(entity* who){
 	return;
 }
 
+#define MISSILE_DMG 40
+
 static void aiMissileCollision(entity* me, entity* him){
 	if(him != me->targetLock) return;
 	me->shield = 0;
-	him->shield-=40;
+	him->shield-=MISSILE_DMG;
 }
 
 static void aiAsteroidAct(entity* who){
@@ -289,6 +294,67 @@ static void aiBulletCollision(entity *me, entity *him)
 		him->shield -= 20;
 }
 
+static void aiDestroyerAct(entity *who)
+{
+#define destroyerComputeShotsLeft() data->shotsLeft = who->targetLock->shield / MISSILE_DMG + 1;
+	destroyerAiData *data = (destroyerAiData *)who->aiFuncData;
+	if (who->targetLock) {
+		circle(who, who->targetLock, 6400*2 /*twice lazor distance*/, 60);
+		int e = who->energy;
+		(*who->modules[0]->actFunc)(who, 0, 1);
+		(*who->modules[1]->actFunc)(who, 1, 1);
+		data->shotsLeft -= (e-who->energy) / MISSILE_E_COST;
+		(*who->modules[2]->actFunc)(who, 2, 1);
+		if (data->shotsLeft <= 0) {
+			lock(who);
+			if (who->targetLock != NULL)
+				destroyerComputeShotsLeft();
+		}
+	} else {
+		(*who->modules[0]->actFunc)(who, 0, 0);
+		(*who->modules[1]->actFunc)(who, 1, 0);
+		(*who->modules[2]->actFunc)(who, 2, 0);
+		if (--(data->recheckTime) == 0) {
+			linkNear(who, 64*6400);
+			double bestScore = 64*6400;
+			entity *target = NULL;
+			entity* runner = who->mySector->firstentity;
+			double d;
+			int64_t dx, dy;
+			while(runner){
+				if(1<<runner->faction & who->lockSettings){
+					dx = displacementX(who, runner);
+					dy = displacementY(who, runner);
+					d = sqrt(dx*dx+dy*dy);
+					if(d < bestScore){
+						bestScore = d;
+						target = runner;
+					}
+				}
+				runner = runner->next;
+			}
+			unlinkNear();
+			if (target == NULL) {
+				data->recheckTime = 200;
+				return;
+			}
+			if (bestScore < LOCK_RANGE) {
+				data->recheckTime = 1;
+				who->targetLock = target;
+				destroyerComputeShotsLeft();
+				return;
+			}
+			if (gotoPt(who, displacementX(who, target), displacementY(who, target), who->vx-target->vx, who->vy-target->vy)) {
+				data->recheckTime = 1;
+			} else {
+				data->recheckTime = 200*bestScore/(64*6400);
+			}
+		} else {
+			thrust(who);
+		}
+	}
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -308,4 +374,7 @@ void initAis(){
 	aiBullet.loadSector = 0;
 	aiBullet.act = aiBulletAct;
 	aiBullet.handleCollision = aiBulletCollision;
+	aiDestroyer.loadSector = 0;
+	aiDestroyer.act = aiDestroyerAct;
+	aiDestroyer.handleCollision = noCareCollision;
 }

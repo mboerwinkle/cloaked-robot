@@ -29,6 +29,7 @@ extern ai aiDrone;
 extern ai aiAsteroid;
 extern ai aiPacer;
 extern ai aiBullet;
+extern ai aiDestroyer;
 extern void initAis();
 
 typedef struct entity{
@@ -72,6 +73,11 @@ typedef struct droneAiData{
 typedef struct humanAiData{
 	char keys;
 }humanAiData;
+
+typedef struct {
+	char shotsLeft;
+	int recheckTime;
+} destroyerAiData;
 
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
 #define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
@@ -117,6 +123,8 @@ extern module lazorModule;
 extern module gunModule;
 extern module bayModule;
 extern module miningModule;
+
+#define MISSILE_E_COST 60
 
 extern void initModules();
 

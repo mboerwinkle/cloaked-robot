@@ -130,9 +130,11 @@ static void handleNetwork(){
 	socklen_t addrLen = sizeof(addr);
 	int len;
 	SDL_Rect rect;
+	//int loops = 0;
 	while(0<(len = recvfrom(sockfd, (char*)data, 6000, 0, (struct sockaddr*)&addr, &addrLen))){
-		if (len > 5000)
-			printf("%d\n", len);
+		/*loops++;
+		if (len > 874)
+			printf("\nlen: %d\n", len);*/
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){
@@ -235,6 +237,7 @@ static void handleNetwork(){
 
 		paint();
 	}
+	//printf("%d", loops);
 }
 
 static void spKeyAction(int bit, char pressed){

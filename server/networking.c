@@ -108,7 +108,7 @@ void sendInfo(){
 		while(runner){
 			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
-			if (runner->type > 6) printf("Ermagerd, %d.\n", runner->type);
+			if (runner->type > 10) printf("Ermagerd, %d.\n", runner->type);
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;

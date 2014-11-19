@@ -26,15 +26,18 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	ret->next = where->firstentity;
 	where->firstentity = ret;
 	ret->mySector = where;
+	ret->minerals = 0;
 	ret->trailTargets = malloc(sizeof(entity*)*2);
 	ret->trailTypes = malloc(sizeof(int)*2);
 	ret->numTrails = 0;
 	ret->maxTrails = 2;
+#define hasModules(n) \
+	ret->numModules = n;\
+	ret->modules = calloc(n, sizeof(void*));\
+	ret->moduleDatas = calloc(n, sizeof(void*))
 	if(type == 0){//human
 		ret->r = 640;
-		ret->numModules = 3;
-		ret->modules = calloc(3, sizeof(void *));
-		ret->moduleDatas = calloc(3, sizeof(void*));
+		hasModules(3);
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
@@ -46,9 +49,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*miningModule.initFunc)(ret, 2, 1);
 	}else if(type == 1){//missile
 		ret->r = 64;
-		ret->numModules = 0;
-		ret->modules = NULL;
-		ret->moduleDatas = NULL;
+		hasModules(0);
 		ret->thrust = 3.5;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
@@ -56,9 +57,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 2){//drone	
 		ret->r = 640;
-		ret->numModules = 1;
-		ret->modules = calloc(1, sizeof(void *));
-		ret->moduleDatas = calloc(1, sizeof(void*));
+		hasModules(1);
 		ret->thrust = 2;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
@@ -69,9 +68,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*gunModule.initFunc)(ret, 0, 1);
 	}else if(type == 3){//carrier	
 		ret->r = 3480;
-		ret->numModules = 1;
-		ret->modules = calloc(1, sizeof(void *));
-		ret->moduleDatas = calloc(1, sizeof(void*));
+		hasModules(1);
 		ret->thrust = 1.505;
 		ret->maxTurn = 12;
 		ret->shield = ret->maxShield = 300;
@@ -81,9 +78,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*bayModule.initFunc)(ret, 0, 1);
 	}else if(type == 4){//large asteroid
 		ret->r = 704;
-		ret->numModules = 0;
-		ret->moduleDatas = NULL;
-		ret->modules = NULL;
+		hasModules(0);
 		ret->thrust = 1.5;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 100;
@@ -91,9 +86,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 5){//medium asteroid
 		ret->r = 320;
-		ret->numModules = 0;
-		ret->moduleDatas = NULL;
-		ret->modules = NULL;
+		hasModules(0);
 		ret->thrust = 1.5;
 		ret->maxTurn = 5;
 		ret->shield = ret->maxShield = 60;
@@ -101,14 +94,24 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	} else if (type == 6) { // Bullet
 		ret->r = 160;
-		ret->numModules = 0;
-		ret->modules = NULL;
-		ret->moduleDatas = NULL;
+		hasModules(0);
 		ret->thrust = 1.5;
 		ret->maxTurn = 1;
 		ret->shield = ret->maxShield = 7;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
+	} else if (type == 7) { // Destroyer
+		ret->r = 64*24;
+		hasModules(3);
+		ret->thrust = 2;
+		ret->maxTurn = 9;
+		ret->shield = ret->maxShield = 250;
+		ret->shieldRegen = .06;
+		ret->energy = ret->maxEnergy = 120;
+		ret->energyRegen = 2;
+		(*missileModule.initFunc)(ret, 0, 1);
+		(*missileModule.initFunc)(ret, 1, 1);
+		(*lazorModule.initFunc)(ret, 2, 1);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -128,9 +131,18 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	} else if (aiType == 4) {
 		ret->myAi = &aiPacer;
 		ret->aiFuncData = NULL;
+	} else if (aiType == 5) {
+		puts("WTF OMG LOL BBQ");
+		ret->myAi = &aiPacer;
+		ret->aiFuncData = NULL;
 	} else if (aiType == 6) {
 		ret->myAi = &aiBullet;
 		ret->aiFuncData = calloc(1, 2);
+	} else if (aiType == 7) {
+		ret->myAi = &aiDestroyer;
+		ret->aiFuncData = malloc(sizeof(destroyerAiData));
+		((destroyerAiData*)ret->aiFuncData)->shotsLeft = 0;
+		((destroyerAiData*)ret->aiFuncData)->recheckTime = 1;
 	}
 	return ret;
 }
