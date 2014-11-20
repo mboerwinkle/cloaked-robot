@@ -94,9 +94,9 @@ static void drawRadar(int8_t* data, int len){
 	int i = 2;
 	while(i+2 < len){
 		teamColor(data[i]&0x3F);
-		/*SDL_GetRenderDrawColor(render, ((uint8_t*)&color)+2, ((uint8_t*)&color)+1, ((uint8_t*)&color), ((uint8_t*)&color)+3);
 		rect.x = data[i+1];
 		rect.y = data[i+2];
+		/*SDL_GetRenderDrawColor(render, ((uint8_t*)&color)+2, ((uint8_t*)&color)+1, ((uint8_t*)&color), ((uint8_t*)&color)+3);
 		ix = rect.x + 128*rect.y;
 		if (rect.y >= 0) {
 			if (rect.x >= 0)
