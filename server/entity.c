@@ -69,7 +69,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	}else if(type == 3){//carrier	
 		ret->r = 3480;
 		hasModules(1);
-		ret->thrust = 1.505;
+		ret->thrust = 1.515;
 		ret->maxTurn = 12;
 		ret->shield = ret->maxShield = 300;
 		ret->shieldRegen = 0.05;
@@ -157,6 +157,7 @@ void addTrail(entity* from, entity* to, char type){
 }
 
 void tick(entity* who){
+	who->thrustFlag = 0;
 	who->numTrails = 0;
 	who->energy += who->energyRegen;
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
@@ -256,6 +257,11 @@ char tick2(entity* who){
 }
 
 void thrust(entity* who){
+	if (who->thrustFlag) {
+		puts("It appears we're thrusting twice in a tick?");
+		puts("Feel free to comment out these lines if it's okay.");
+	}
+	who->thrustFlag = 1;
 	who->vx += who->thrust*who->cosTheta;
 	who->vy += who->thrust*who->sinTheta;
 }

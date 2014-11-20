@@ -36,6 +36,7 @@ typedef struct entity{
 	char faction;
 	char actedFlag;
 	char destroyFlag;
+	char thrustFlag;
 	int type;
 	struct sector *mySector;
 	struct entity *next;

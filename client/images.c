@@ -48,18 +48,21 @@ static void loadPic(char *addr){
 	imlib_context_set_image(img);
 	int mySize = imlib_image_get_width();
 	pictures[numPics].size = mySize;
-	pictures[numPics].data = malloc(sizeof(SDL_Surface*)*16);
-	uint32_t *data = calloc(sizeof(uint32_t), 16*mySize*mySize);
+	pictures[numPics].data = malloc(sizeof(SDL_Surface*)*2*16);
+	uint32_t *data = calloc(2*16*mySize*mySize, sizeof(uint32_t));
 	uint32_t *myData = imlib_image_get_data();
-	rotationarray(myData, data, -M_PI/2, mySize);
-//	memcpy(data, myData, 4*mySize*mySize);
+	int o = 0; // "o" is for offset
+	for (; o <= 16*mySize*mySize; o += 16*mySize*mySize) {
+		//The "*2" in the following line is because we actually want the first and _third_ sprites.
+		rotationarray(myData+o/16*2, data+o, -M_PI/2, mySize);
+		rotationarray(data+o, data+o+1*mySize*mySize, -1*M_PI/8, mySize);
+		rotationarray(data+o, data+o+2*mySize*mySize, -2*M_PI/8, mySize);
+		rotationarray(data+o, data+o+3*mySize*mySize, -3*M_PI/8, mySize);
+		rotate(data+o, mySize);
+	}
 	imlib_free_image();
-	rotationarray(data, data+1*mySize*mySize, -1*M_PI/8, mySize);
-	rotationarray(data, data+2*mySize*mySize, -2*M_PI/8, mySize);
-	rotationarray(data, data+3*mySize*mySize, -3*M_PI/8, mySize);
-	rotate(data, mySize);
 	int i = 0;
-	for(; i<16; i++){
+	for(; i<2*16; i++){
 		SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data+i*mySize*mySize, mySize, mySize, 32, mySize*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
 		SDL_SetTextureBlendMode(
 			pictures[numPics].data[i] = SDL_CreateTextureFromSurface(render, surface),

@@ -130,11 +130,7 @@ static void handleNetwork(){
 	socklen_t addrLen = sizeof(addr);
 	int len;
 	SDL_Rect rect;
-	//int loops = 0;
 	while(0<(len = recvfrom(sockfd, (char*)data, 6000, 0, (struct sockaddr*)&addr, &addrLen))){
-		/*loops++;
-		if (len > 874)
-			printf("\nlen: %d\n", len);*/
 		addrLen = sizeof(addr);
 		if(addr.sin_addr.s_addr != serverAddr.sin_addr.s_addr) continue;
 		if(*data & 0x80){
@@ -162,8 +158,9 @@ static void handleNetwork(){
 		drawStars(bgx, bgy);
 		int i = 7;
 		while(i+6 < len){
-			unsigned char theta = 0x0F & data[i];
-//			char flame = 0x10 & data[i];
+			//unsigned char theta = 0x0F & data[i];
+			//char flame = 0x10 & data[i];
+			unsigned char sprite = (0x1F & data[i]) ^ 0x10;
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
 			//if(faction == 1 && ship == 2) ship = 14;
@@ -172,7 +169,7 @@ static void handleNetwork(){
 			int y = *(int16_t*)(data+(i+=2));
 			rect.x =  width/2-size/2+x;
 			rect.y = height/2-size/2+y;
-			SDL_RenderCopy(render, pictures[ship].data[theta], NULL, &rect);
+			SDL_RenderCopy(render, pictures[ship].data[sprite], NULL, &rect);
 			if(data[i+=2] & 0x20){
 				SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 				int index = abs(x)>abs(y) ? i-4 : i-2;
@@ -237,7 +234,6 @@ static void handleNetwork(){
 
 		paint();
 	}
-	//printf("%d", loops);
 }
 
 static void spKeyAction(int bit, char pressed){

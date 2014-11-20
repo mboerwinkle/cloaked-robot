@@ -106,9 +106,8 @@ void sendInfo(){
 		data[6] = me->energy*255/me->maxEnergy;
 		dataLen = 7;
 		while(runner){
-			data[dataLen+0] = 0x01*runner->theta+0x10*0/*flame or not*/+0x20*runner->faction;
+			data[dataLen+0] = 0x01*runner->theta+0x10*runner->thrustFlag+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
-			if (runner->type > 10) printf("Ermagerd, %d.\n", runner->type);
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
 			if(d < INT16_MIN || d > INT16_MAX){
 				runner = runner->next;
@@ -121,7 +120,10 @@ void sendInfo(){
 				continue;
 			}
 			*(int16_t*)(data+dataLen+4) = d;
-			data[dataLen+6] = runner->shield*31/runner->maxShield;
+			if (runner->shield <= 0)
+				data[dataLen+6] = 0;
+			else
+				data[dataLen+6] = runner->shield*31/runner->maxShield;
 			if(runner == conductor->myShip->targetLock){
 				 data[dataLen+6] |= 0x20;
 			}

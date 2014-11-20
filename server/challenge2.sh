@@ -6,6 +6,13 @@ echo 'entity
 7
 1
 100000
+4000
+end
+entity
+7
+7
+1
+100000
 -4000
 end
 entity
