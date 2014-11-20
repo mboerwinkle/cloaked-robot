@@ -336,6 +336,7 @@ static void aiDestroyerAct(entity *who)
 			unlinkNear();
 			if (target == NULL) {
 				data->recheckTime = 200;
+				data->shotsLeft = -100;
 				return;
 			}
 			if (bestScore < LOCK_RANGE) {
@@ -350,7 +351,8 @@ static void aiDestroyerAct(entity *who)
 				data->recheckTime = 200*bestScore/(64*6400);
 			}
 		} else {
-			thrust(who);
+			if (data->shotsLeft != -100)
+				thrust(who);
 		}
 	}
 }

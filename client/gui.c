@@ -4,6 +4,8 @@
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
+//#include <Imlib2.h>
+//#include <pthread.h>
 #include <SDL2/SDL.h>
 
 #include <arpa/inet.h>
@@ -47,6 +49,32 @@ static void teamColor(char faction){
 	if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
 	if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
 }
+/*
+struct myPthreadData {
+	uint32_t *imgData;
+	int number;
+	char join;
+	pthread_t prev;
+};
+char lastExists = 0;
+pthread_t lastId;
+
+static int radarCount = 0;
+static void *saveRadarImg(void *arg)
+{
+	struct myPthreadData *data = (struct myPthreadData*)arg;
+	Imlib_Image img = imlib_create_image_using_data(128, 128, data->imgData);
+	imlib_context_set_image(img);
+	char file[100];
+	sprintf(file, "radar%.4d.png", data->number);
+	imlib_save_image(file);
+	imlib_free_image();
+	free(data->imgData);
+	if (data->join)
+		pthread_join(data->prev, NULL);
+	free(data);
+	return NULL;
+}*/
 
 static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
@@ -60,14 +88,43 @@ static void drawRadar(int8_t* data, int len){
 	if(data[2]&64){
 		SDL_RenderDrawLine(render, 0, data[1], 128, data[1]);
 	}
+	/*uint32_t *imgData = calloc(128*128, 4);
+	uint32_t color;
+	int ix;*/
 	int i = 2;
 	while(i+2 < len){
 		teamColor(data[i]&0x3F);
+		/*SDL_GetRenderDrawColor(render, ((uint8_t*)&color)+2, ((uint8_t*)&color)+1, ((uint8_t*)&color), ((uint8_t*)&color)+3);
 		rect.x = data[i+1];
 		rect.y = data[i+2];
+		ix = rect.x + 128*rect.y;
+		if (rect.y >= 0) {
+			if (rect.x >= 0)
+			imgData[ix] = color;
+			if (rect.x < 127)
+			imgData[ix+1] = color;
+		}
+		if (rect.y < 127) {
+			if (rect.x >= 0)
+			imgData[ix+128] = color;
+			if (rect.x < 127)
+			imgData[ix+129] = color;
+		}*/
 		SDL_RenderFillRect(render, &rect);
 		i+=3;
 	}
+	/*struct myPthreadData *pData = malloc(sizeof(struct myPthreadData));
+	pData->imgData = imgData;
+	pData->number = radarCount++;
+	if (lastExists) {
+		pData->join = 1;
+		pData->prev = lastId;
+	} else {
+		pData->join = 0;
+		lastExists = 1;
+	}
+	pthread_create(&lastId, NULL, saveRadarImg, pData);*/
+
 	SDL_SetRenderTarget(render, NULL);
 }
 
@@ -297,6 +354,8 @@ int main(int argc, char** argv){
 		handleNetwork();
 		nanosleep(&t, NULL);
 	}
+	//if (lastExists)
+		//pthread_join(lastId, NULL);
 	SDL_DestroyRenderer(render);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
