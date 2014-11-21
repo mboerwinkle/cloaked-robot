@@ -112,6 +112,16 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*missileModule.initFunc)(ret, 0, 1);
 		(*missileModule.initFunc)(ret, 1, 1);
 		(*lazorModule.initFunc)(ret, 2, 1);
+	} else if (type == 8) { //Minor Miner
+		ret->r = 64*5+32;
+		hasModules(1);
+		ret->thrust = 1.8;
+		ret->maxTurn = 4;
+		ret->shield = ret->maxShield = 10;
+		ret->energy = ret->maxEnergy = 40;
+		ret->shieldRegen = ret->energyRegen = 0;
+		(*miningModule.initFunc)(ret, 0, 1);
+		ret->lockSettings = 1;
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -143,6 +153,10 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(destroyerAiData));
 		((destroyerAiData*)ret->aiFuncData)->shotsLeft = 0;
 		((destroyerAiData*)ret->aiFuncData)->recheckTime = 1;
+	} else if (aiType == 8) {
+		ret->myAi = &aiMinorMiner;
+		ret->aiFuncData = malloc(sizeof(minorMinerAiData));
+		((minorMinerAiData*)ret->aiFuncData)->goHome = 0;
 	}
 	return ret;
 }

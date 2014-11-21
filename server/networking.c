@@ -39,6 +39,10 @@ static void sendRadar(client* cli){
 	entity* runner = who->mySector->firstentity;
 	int64_t d;
 	while(runner){
+		if (runner == who) {
+			runner = runner->next;
+			continue;
+		}
 		d = simonDivide(displacementX(who, runner)+3200, 6400);
 		if(d > 63 || d < -63){
 			runner = runner->next;

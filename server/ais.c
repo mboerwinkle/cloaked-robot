@@ -10,6 +10,7 @@ ai aiAsteroid;
 ai aiPacer;
 ai aiBullet;
 ai aiDestroyer;
+ai aiMinorMiner;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -25,7 +26,7 @@ static void lock(entity* who){
 		}
 		dx = displacementX(who, runner);
 		dy = displacementY(who, runner);
-		d = sqrt(dx*dx+dy*dy);
+		d = sqrt(dx*dx+dy*dy)-runner->r;
 		if(d > LOCK_RANGE){
 			runner = runner->next;
 			continue;
@@ -107,9 +108,9 @@ static void aiHumanAct(entity* who){
 	if(data->keys & 0x01) turn(who, -1);
 	if(data->keys & 0x02) turn(who, 1);
 	if(data->keys & 0x04) thrust(who);
-	(*who->modules[0]->actFunc)(who, 0, data->keys&0x20);
-	(*who->modules[1]->actFunc)(who, 1, data->keys&0x40);
-	(*who->modules[2]->actFunc)(who, 2, data->keys&0x80);
+	int i = 0;
+	for (; i < who->numModules; i++)
+		(*who->modules[i]->actFunc)(who, i, data->keys&(0x20<<i));
 }
 
 static void aiDroneAct(entity* who){
@@ -325,7 +326,7 @@ static void aiDestroyerAct(entity *who)
 				if(1<<runner->faction & who->lockSettings){
 					dx = displacementX(who, runner);
 					dy = displacementY(who, runner);
-					d = sqrt(dx*dx+dy*dy);
+					d = sqrt(dx*dx+dy*dy)-runner->r;
 					if(d < bestScore){
 						bestScore = d;
 						target = runner;

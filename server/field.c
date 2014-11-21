@@ -55,7 +55,7 @@ void run2(sector *sec){
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
 			if(result == 2){
-				int size = (2.0/3)*tmp->r*tmp->r;
+				int size = (2.0/3)*(tmp->r*tmp->r + tmp->minerals);
 				if(size>=320*320){
 					while(size >= 704*704){
 						size -= 704*704;
