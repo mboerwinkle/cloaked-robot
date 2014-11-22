@@ -114,7 +114,7 @@ static void drawRadar(int8_t* data, int len){
 		i+=3;
 	}
 	rect.x = rect.y = 63;
-	SDL_SetRenderDrawColor(render, 0, 255, 255, 255);
+	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
 	SDL_RenderFillRect(render, &rect);
 	/*struct myPthreadData *pData = malloc(sizeof(struct myPthreadData));
 	pData->imgData = imgData;

@@ -82,7 +82,7 @@ typedef struct {
 } destroyerAiData;
 
 typedef struct {
-	char goHome;
+	char phase;
 	entity *home;
 } minorMinerAiData;
 
@@ -130,8 +130,10 @@ extern module lazorModule;
 extern module gunModule;
 extern module bayModule;
 extern module miningModule;
+extern module miningBayModule;
 
 #define MISSILE_E_COST 60
+#define miningRange 2000
 
 extern void initModules();
 

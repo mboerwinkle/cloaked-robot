@@ -8,11 +8,21 @@ module lazorModule;
 module gunModule;
 module bayModule;
 module miningModule;
+module miningBayModule;
+
+#define vecToTheta(x, y) ((int)((atan2(y, x) + M_PI*(2+1.0/16)) / (M_PI/8)) % 16)
 
 typedef struct{
 	entity* target;
 	int counter;
 }miningModuleData;
+
+typedef struct {
+	entity *(dronesDeployed[10]);
+	entity *(asteroidsTargeted[10]);
+	int numDeployed;
+	int charge;
+} miningBayModuleData;
 
 static void missileInit(entity* who, int ix, double value){
 	who->modules[ix] = &missileModule;
@@ -39,6 +49,15 @@ static void miningInit(entity* who, int ix, double value){
 static void bayInit(entity* who, int ix, double value){
 	who->modules[ix] = &bayModule;
 	who->moduleDatas[ix] = calloc(1, 1);
+}
+
+static void miningBayInit(entity *who, int ix, double value)
+{
+	who->modules[ix] = &miningBayModule;
+	miningBayModuleData *data = malloc(sizeof(miningBayModuleData));
+	who->moduleDatas[ix] = data;
+	data->numDeployed = 0;
+	data->charge = 0;
 }
 
 static void realCleanup(entity* who, int ix){
@@ -184,7 +203,7 @@ static void gunAct(entity* who, int ix, char action){
 	entity* what = newEntity(6, 6, who->faction, who->mySector, who->x, who->y);
 	what->vx = who->vx + cos*bulletV;
 	what->vy = who->vy + sin*bulletV;
-	what->theta = (int)((atan2(sin, cos) + M_PI*(2+1.0/16)) / (M_PI/8)) % 16;
+	what->theta = vecToTheta(cos, sin);
 }
 
 static void bayAct(entity *who, int ix, char action){
@@ -202,7 +221,6 @@ static void bayAct(entity *who, int ix, char action){
 	what->theta = who->theta;
 }
 
-#define miningRange 2000
 static void miningAct(entity* who, int ix, char action){
 	miningModuleData* data = (miningModuleData*)who->moduleDatas[ix];
 	if(!action || who->energy<2){
@@ -222,7 +240,7 @@ static void miningAct(entity* who, int ix, char action){
 				who->energy -= 2;
 				if(data->counter >= data->target->maxShield){
 					data->target->shield = -1000; // Very dead
-					who->minerals += data->target->r*data->target->r/3;
+					who->minerals += (data->target->minerals + data->target->r*data->target->r)/3;
 					data->target = NULL;
 				}
 				return;
@@ -235,7 +253,7 @@ static void miningAct(entity* who, int ix, char action){
 	entity* runner = who->mySector->firstentity;
 	int bestDist = miningRange + 1;
 	while(runner){
-		if(runner->faction != 0){
+		if (runner->faction != 0) {
 			runner = runner->next;
 			continue;
 		}
@@ -250,6 +268,69 @@ static void miningAct(entity* who, int ix, char action){
 	}
 	unlinkNear();
 	data->counter = 0;
+}
+
+static void miningBayAct(entity *who, int ix, char action)
+{
+	miningBayModuleData* data = (miningBayModuleData*)who->moduleDatas[ix];
+	int i = data->numDeployed-1;
+	for (; i >= 0; i--) {
+		if (data->dronesDeployed[i]->destroyFlag) {
+			data->numDeployed--;
+			data->dronesDeployed[i] = data->dronesDeployed[data->numDeployed];
+			data->asteroidsTargeted[i] = data->asteroidsTargeted[data->numDeployed];
+			continue;
+		}
+		if (data->asteroidsTargeted[i] && data->asteroidsTargeted[i]->destroyFlag)
+			data->asteroidsTargeted[i] = NULL;
+	}
+	if(data->charge < 8){
+		data->charge++;
+		return;
+	}
+	if(!action || data->numDeployed == 10 || who->minerals < 352*352) return;
+	entity *runner = who->mySector->firstentity;
+	int64_t dx, dy;
+	// We want high distances here, for two reasons:
+	// 1) Farther asteroids are less likely to be hit by other mining methods
+	// 2) We don't want drones en route to body slam other drones, dispatched earlier, who are trying to mine.
+	int bestScore = miningRange*4+1;
+	entity *winner = NULL;
+	linkNear(who, miningRange*4);
+	while (runner) {
+		if (runner->type != 5) {
+			runner = runner->next;
+			continue;
+		}
+		dx = displacementX(who, runner);
+		dy = displacementY(who, runner);
+		int dist = sqrt(dx*dx + dy*dy);
+		if (dist < bestScore) {
+			for (i = data->numDeployed-1; i >= 0; i--) {
+				if (runner == data->asteroidsTargeted[i])
+					break;
+			}
+			if (i < 0) {
+				winner = runner;
+				bestScore = dist;
+			}
+		}
+		runner = runner->next;
+	}
+	unlinkNear();
+	if (winner == NULL)
+		return;
+	entity* what = newEntity(8, 8, who->faction, who->mySector, who->x, who->y);
+	data->charge = 1;
+	who->minerals -= 352*352;
+	((minorMinerAiData*)what->aiFuncData)->home = who;
+	data->asteroidsTargeted[data->numDeployed] = winner;
+	data->dronesDeployed[data->numDeployed] = what;
+	data->numDeployed++;
+	what->vx = who->vx;
+	what->vy = who->vy;
+	what->theta = vecToTheta(displacementX(what, winner), displacementY(what, winner));
+	what->targetLock = winner;
 }
 
 void initModules(){
@@ -268,4 +349,7 @@ void initModules(){
 	miningModule.initFunc=miningInit;
 	miningModule.actFunc=miningAct;
 	miningModule.cleanupFunc=realCleanup;
+	miningBayModule.initFunc=miningBayInit;
+	miningBayModule.actFunc=miningBayAct;
+	miningBayModule.cleanupFunc=realCleanup;
 }

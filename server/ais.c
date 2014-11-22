@@ -110,7 +110,7 @@ static void aiHumanAct(entity* who){
 	if(data->keys & 0x04) thrust(who);
 	int i = 0;
 	for (; i < who->numModules; i++)
-		(*who->modules[i]->actFunc)(who, i, data->keys&(0x20<<i));
+		(who->modules[i]->actFunc)(who, i, data->keys&(0x20<<i));
 }
 
 static void aiDroneAct(entity* who){
@@ -175,7 +175,7 @@ static void aiDroneAct(entity* who){
 	double unvy = uny*dvy;
 	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
 	if(who->targetLock == NULL){
-		(*who->modules[0]->actFunc)(who, 0, 0);
+		(who->modules[0]->actFunc)(who, 0, 0);
 		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.
 		circle(who, data->target, data->target->r+who->r+700, 30);
 		/*if(x+(data->target->r+who->r+500) > 0){
@@ -190,7 +190,7 @@ static void aiDroneAct(entity* who){
 		if(unvx + unvy < 0 || dvy * dvy + dvx *dvx < 62500){
 			thrust(who);
 		}
-		(*who->modules[0]->actFunc)(who, 0, 1);
+		(who->modules[0]->actFunc)(who, 0, 1);
 		double y = dy*uny + dx*unx;
 		if((x!=0 && y/fabs(x)<5) || y<0){
 			turn(who, x>0?1:-1);
@@ -200,11 +200,8 @@ static void aiDroneAct(entity* who){
 
 static void noCareCollision(entity* me, entity* him){}
 
-static void aiMissileAct(entity* who){
-	uint16_t* ttl = who->aiFuncData;
-	if(++(*ttl) == 40*6) who->shield = 0;
-	entity* target = who->targetLock;
-	if(target == NULL) return;
+static void crazyPursuit(entity *who, entity *target)
+{
 	thrust(who);
 
 	int64_t dx = displacementX(who, target);
@@ -254,7 +251,14 @@ static void aiMissileAct(entity* who){
 	if(y >= dv || y < 0) return;
 	who->x += dx+target->vx-who->vx - var/2*unx;
 	who->y += dy+target->vy-who->vy - var/2*uny;
-	return;
+}
+
+static void aiMissileAct(entity* who){
+	uint16_t* ttl = who->aiFuncData;
+	if(++(*ttl) == 40*6) who->shield = 0;
+	if (who->targetLock == NULL)
+		return;
+	crazyPursuit(who, who->targetLock);
 }
 
 #define MISSILE_DMG 40
@@ -302,19 +306,19 @@ static void aiDestroyerAct(entity *who)
 	if (who->targetLock) {
 		circle(who, who->targetLock, 6400*2 /*twice lazor distance*/, 60);
 		int e = who->energy;
-		(*who->modules[0]->actFunc)(who, 0, 1);
-		(*who->modules[1]->actFunc)(who, 1, 1);
+		(who->modules[0]->actFunc)(who, 0, 1);
+		(who->modules[1]->actFunc)(who, 1, 1);
 		data->shotsLeft -= (e-who->energy) / MISSILE_E_COST;
-		(*who->modules[2]->actFunc)(who, 2, 1);
+		(who->modules[2]->actFunc)(who, 2, 1);
 		if (data->shotsLeft <= 0) {
 			lock(who);
 			if (who->targetLock != NULL)
 				destroyerComputeShotsLeft();
 		}
 	} else {
-		(*who->modules[0]->actFunc)(who, 0, 0);
-		(*who->modules[1]->actFunc)(who, 1, 0);
-		(*who->modules[2]->actFunc)(who, 2, 0);
+		(who->modules[0]->actFunc)(who, 0, 0);
+		(who->modules[1]->actFunc)(who, 1, 0);
+		(who->modules[2]->actFunc)(who, 2, 0);
 		if (--(data->recheckTime) == 0) {
 			linkNear(who, 64*6400);
 			double bestScore = 64*6400;
@@ -358,6 +362,45 @@ static void aiDestroyerAct(entity *who)
 	}
 }
 
+static void aiMinorMinerAct(entity *who)
+{
+	minorMinerAiData *data = (minorMinerAiData*)who->aiFuncData;
+	if (data->home == NULL || data->home->destroyFlag) {
+		who->shield = 0;
+		return;
+	}
+	if (data->phase) {
+		if (who->energy < 2 || who->targetLock == NULL) {
+			data->phase = 0;
+		} else {
+			if (data->phase == 1) {
+				int64_t dx = displacementX(who, who->targetLock);
+				int64_t dy = displacementY(who, who->targetLock);
+				if (sqrt(dx*dx + dy*dy) < miningRange/2*1.1 + who->r + who->targetLock->r)
+					data->phase = 2;
+			}
+			if (data->phase == 2) {
+				(who->modules[0]->actFunc)(who, 0, 1);
+			}
+			//Circle w/ a velocity of zero actually just pulls it alongside.
+			circle(who, who->targetLock, miningRange/2 + who->r + who->targetLock->r, 0);
+			return;
+		}
+	}
+	crazyPursuit(who, data->home);
+}
+
+static void aiMinorMinerCollision(entity *who, entity *him)
+{
+	minorMinerAiData *data = (minorMinerAiData*)who->aiFuncData;
+	if (data->phase == 0 && data->home == him) {
+		who->shield = 0;
+		him->minerals += who->r*who->r + who->minerals;
+		//So my death doesn't cause an asteroid explosion
+		who->minerals = -who->r*who->r;
+	}
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -380,4 +423,7 @@ void initAis(){
 	aiDestroyer.loadSector = 0;
 	aiDestroyer.act = aiDestroyerAct;
 	aiDestroyer.handleCollision = noCareCollision;
+	aiMinorMiner.loadSector = 0;
+	aiMinorMiner.act = aiMinorMinerAct;
+	aiMinorMiner.handleCollision = aiMinorMinerCollision;
 }
