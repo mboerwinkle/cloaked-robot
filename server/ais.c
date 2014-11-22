@@ -396,8 +396,10 @@ static void aiMinorMinerCollision(entity *who, entity *him)
 	if (data->phase == 0 && data->home == him) {
 		who->shield = 0;
 		him->minerals += who->r*who->r + who->minerals;
+		//So we don't knock our target about too much
+		who->r = 1;
 		//So my death doesn't cause an asteroid explosion
-		who->minerals = -who->r*who->r;
+		who->minerals = -1;
 	}
 }
 

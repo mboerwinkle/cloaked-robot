@@ -119,7 +119,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 1.8;
 		ret->maxTurn = 4;
 		ret->shield = ret->maxShield = 10;
-		ret->energy = ret->maxEnergy = 40;
+		ret->energy = ret->maxEnergy = 68;
 		ret->shieldRegen = ret->energyRegen = 0;
 		(*miningModule.initFunc)(ret, 0, 1);
 		ret->lockSettings = 1;

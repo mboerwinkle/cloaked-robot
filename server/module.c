@@ -17,9 +17,10 @@ typedef struct{
 	int counter;
 }miningModuleData;
 
+#define MAX_MINING_DRONES 30
 typedef struct {
-	entity *(dronesDeployed[10]);
-	entity *(asteroidsTargeted[10]);
+	entity *(dronesDeployed[MAX_MINING_DRONES]);
+	entity *(asteroidsTargeted[MAX_MINING_DRONES]);
 	int numDeployed;
 	int charge;
 } miningBayModuleData;
@@ -288,7 +289,7 @@ static void miningBayAct(entity *who, int ix, char action)
 		data->charge++;
 		return;
 	}
-	if(!action || data->numDeployed == 10 || who->minerals < 352*352) return;
+	if(!action || data->numDeployed == MAX_MINING_DRONES || who->minerals < 352*352) return;
 	entity *runner = who->mySector->firstentity;
 	int64_t dx, dy;
 	// We want high distances here, for two reasons:
@@ -298,7 +299,7 @@ static void miningBayAct(entity *who, int ix, char action)
 	entity *winner = NULL;
 	linkNear(who, miningRange*4);
 	while (runner) {
-		if (runner->type != 5) {
+		if (runner->faction != 0) {
 			runner = runner->next;
 			continue;
 		}
