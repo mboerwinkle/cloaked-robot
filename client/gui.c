@@ -22,6 +22,7 @@
 
 #define width 500
 #define height 500
+#define SCREEN_MULTIPLE 2
 
 static SDL_Window* window;
 SDL_Renderer* render;
@@ -174,11 +175,11 @@ static void drawStars(int X, int Y){ // The stars are generated using the Halton
 			y = 0;
 			z = 1;
 		}
-		starPoints[numPoints].x = 250+(x-X)/z;
+		starPoints[numPoints].x = 250*SCREEN_MULTIPLE+(x-X)*SCREEN_MULTIPLE/z;
 		y -= Y;
 		if(y >= 2048) y -= 4096;
 		else if( y < -2048) y+= 4096;
-		starPoints[numPoints++].y = 250+y/z;
+		starPoints[numPoints++].y = 250*SCREEN_MULTIPLE+y*SCREEN_MULTIPLE/z;
 	}
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderDrawPoints(render, starPoints, 1000);
@@ -199,10 +200,10 @@ static void handleNetwork(){
 		}
 		if(*data & 0x40){ // A control packet
 			if(*data == 0x41){
-				rect.x = width/2-100;
-				rect.y = height/2-50;
-				rect.w = 200;
-				rect.h = 100;
+				rect.x = (width/2-100)*SCREEN_MULTIPLE;
+				rect.y = (height/2-50)*SCREEN_MULTIPLE;
+				rect.w = 200*SCREEN_MULTIPLE;
+				rect.h = 100*SCREEN_MULTIPLE;
 				SDL_RenderCopy(render, lolyoudied, NULL, &rect);
 				paint();
 				continue;
@@ -210,8 +211,8 @@ static void handleNetwork(){
 		}
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.x = rect.y = 0;
-		rect.w = width;
-		rect.h = height+20;
+		rect.w = width*SCREEN_MULTIPLE;
+		rect.h = (height+20)*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);
 		int16_t bgx = *(int16_t*)(data+1);
 		int16_t bgy = *(int16_t*)(data+3);
@@ -224,11 +225,11 @@ static void handleNetwork(){
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
 			//if(faction == 1 && ship == 2) ship = 14;
-			int size = rect.w = rect.h = pictures[ship].size;
-			int x = *(int16_t*)(data+(++i));
-			int y = *(int16_t*)(data+(i+=2));
-			rect.x =  width/2-size/2+x;
-			rect.y = height/2-size/2+y;
+			int size = rect.w = rect.h = pictures[ship].size*SCREEN_MULTIPLE;
+			int x = *(int16_t*)(data+(++i))*SCREEN_MULTIPLE;
+			int y = *(int16_t*)(data+(i+=2))*SCREEN_MULTIPLE;
+			rect.x =  width*SCREEN_MULTIPLE/2-size/2+x;
+			rect.y = height*SCREEN_MULTIPLE/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[sprite], NULL, &rect);
 			if(data[i+=2] & 0x20){
 				SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
@@ -236,26 +237,27 @@ static void handleNetwork(){
 				if(abs(*(int16_t*)(data+index)) > width/2){
 					double frac = (double)(width/2) / abs(*(int16_t*)(data+index));
 					size *= frac;
-					rect.x =  width/2-size/2+x*frac;
-					rect.y = height/2-size/2+y*frac;
+					rect.x =  width*SCREEN_MULTIPLE/2-size/2+x*frac;
+					rect.y = height*SCREEN_MULTIPLE/2-size/2+y*frac;
 					rect.w = rect.h = size;
+					size /= frac;
 				}
 				SDL_RenderDrawRect(render, &rect);
-				rect.x = width/2-size/2+x;
-				rect.w = pictures[ship].size;
+				rect.x = width*SCREEN_MULTIPLE/2-size/2+x;
+				rect.w = size;
 			}
 			teamColor(faction);
-			rect.y = height/2+size/2+y+2;
-			rect.h = 3;
+			rect.y = height*SCREEN_MULTIPLE/2+size/2+y+2*SCREEN_MULTIPLE;
+			rect.h = 3*SCREEN_MULTIPLE;
 			rect.w = rect.w*(data[i]&0x1F)/31;
 			SDL_RenderFillRect(render, &rect);
-			x += width/2;
-			y += height/2;
+			x += width*SCREEN_MULTIPLE/2;
+			y += height*SCREEN_MULTIPLE/2;
 			while((data[i]&0x80) && i+3<len){
-				int dx = ((uint8_t*)data)[i+1];
-				int dy = ((uint8_t*)data)[i+2];
-				if(data[i+3] & 0x40) dx-=256;
-				if(data[i+3] & 0x20) dy-=256;
+				int dx = ((uint8_t*)data)[i+1]*SCREEN_MULTIPLE;
+				int dy = ((uint8_t*)data)[i+2]*SCREEN_MULTIPLE;
+				if(data[i+3] & 0x40) dx-=256*SCREEN_MULTIPLE;
+				if(data[i+3] & 0x20) dy-=256*SCREEN_MULTIPLE;
 				addTrail(x, y, x+dx, y+dy, data[i+3]&0x1F);
 				i+=3;
 			}
@@ -263,33 +265,33 @@ static void handleNetwork(){
 		}
 		drawTrails(render);
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
-		rect.y = height;
-		rect.h = 20;
+		rect.y = height*SCREEN_MULTIPLE;
+		rect.h = 20*SCREEN_MULTIPLE;
 		rect.x = 0;
-		rect.w = width;
+		rect.w = width*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);	
 		teamColor(data[0]);
-		rect.x = width/2-width/2*(uint8_t)data[5]/255;
-		rect.w = width*(uint8_t)data[5]/255;
-		rect.h = 10;
+		rect.x = width*SCREEN_MULTIPLE/2-width*SCREEN_MULTIPLE/2*(uint8_t)data[5]/255;
+		rect.w = width*SCREEN_MULTIPLE*(uint8_t)data[5]/255;
+		rect.h = 10*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);
 		SDL_SetRenderDrawColor(render, 0, 0, 255, 255);
-		rect.y += 10;
-		rect.x = width/2-width/2*(uint8_t)data[6]/255;
-		rect.w = width*(uint8_t)data[6]/255;
+		rect.y += 10*SCREEN_MULTIPLE;
+		rect.x = width*SCREEN_MULTIPLE/2-width*SCREEN_MULTIPLE/2*(uint8_t)data[6]/255;
+		rect.w = width*SCREEN_MULTIPLE*(uint8_t)data[6]/255;
 		SDL_RenderFillRect(render, &rect);
 
 		SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
-		rect.x = width;
+		rect.x = width*SCREEN_MULTIPLE;
 		rect.y = 0;
-		rect.w = 130;
-		rect.h = height+20;
+		rect.w = 130*SCREEN_MULTIPLE;
+		rect.h = (height+20)*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);
 
-		rect.x = width+1;
-		rect.y = 1;
-		rect.w = 128;
-		rect.h = 128;
+		rect.x = (width+1)*SCREEN_MULTIPLE;
+		rect.y = 1*SCREEN_MULTIPLE;
+		rect.w = 128*SCREEN_MULTIPLE;
+		rect.h = 128*SCREEN_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
@@ -313,7 +315,7 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width+130, height+20, 0);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+130)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
