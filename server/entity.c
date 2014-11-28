@@ -246,17 +246,17 @@ char tick2(entity* who){
 	uint64_t secx = who->mySector->x;
 	uint64_t secy = who->mySector->y;
 	if(who->x > POS_MAX){
-		secx++;
+		secx = xcoord(secx, 1);
 		who->x -= (POS_MAX-POS_MIN+1);
 	}else if(who->x < POS_MIN){
-		secx--;
+		secx = xcoord(secx, -1);
 		who->x += (POS_MAX-POS_MIN+1);
 	}
 	if(who->y > POS_MAX){
-		secy++;
+		secy = ycoord(secy, 1);
 		who->y -= (POS_MAX-POS_MIN+1);
 	}else if(who->y < POS_MIN){
-		secy--;
+		secy = ycoord(secy, -1);
 		who->y += (POS_MAX-POS_MIN+1);
 	}
 	if(secx!=who->mySector->x || secy!=who->mySector->y){

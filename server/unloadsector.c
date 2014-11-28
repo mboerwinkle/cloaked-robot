@@ -18,7 +18,7 @@ void wdouble(double target){
 }
 int unloadsector(sector *target){
 	writesectortofile(target);
-	printf("unloadsector called %ld, %ld\n", target->x, target->y);
+	printf("unloadsector called %lld, %lld\n", target->x, target->y);
 	free(target);
 	return(0);
 }

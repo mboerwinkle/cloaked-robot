@@ -13,9 +13,10 @@ entity *loadship(char name[MAXNAMELEN]){
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}
-	fscanf(fp, "%lX_%lX\n%d %d\n", &secx, &secy, &posx, &posy);
+	fscanf(fp, "%lld %lld\n%ld %ld\n", &secx, &secy, &posx, &posy);
 	fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType);
 	fclose(fp);
+	printf("%lld %lld", secx, secy);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
 	return newEntity(shipType, aiType, faction, conductor, posx, posy);

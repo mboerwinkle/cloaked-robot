@@ -3,12 +3,16 @@
 #define POS_MAX 2097151
 #define POS_MIN (-2097152)
 #define LOCK_RANGE (64*1000)
+#define UNIVERSEX 10
+#define UNIVERSEY 10
 
 struct entity;
 struct module;
 struct sector;
 
 extern int main();
+extern uint64_t xcoord(uint64_t coord, char add);
+extern uint64_t ycoord(uint64_t coord, char add);
 extern void gensector(uint64_t x, uint64_t y);
 extern void loadsector(uint64_t x, uint64_t y); 
 extern int mkship(char *name);
