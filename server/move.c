@@ -2,10 +2,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int64_t xsectordisp(int64_t strt, int64_t end){
+	strt -= end;
+	if(strt > (0.5)*UNIVERSEX) strt -= UNIVERSEX;
+	if(-strt > (0.5)*UNIVERSEX) strt += UNIVERSEX;
+	return(strt);
+}
+
+int64_t ysectordisp(int64_t strt, int64_t end){
+	strt -= end;
+	if(strt > (0.5)*UNIVERSEY) strt -= UNIVERSEY;
+	if(-strt > (0.5)*UNIVERSEY) strt += UNIVERSEY;
+	return(strt);
+}
+
 uint64_t xcoord(uint64_t coord, char add){
-	if(coord < 0){
-		printf("Xou need to get that checked out...");
-	}
 	if(coord < -add){
 		coord += UNIVERSEX+add;
 	}
@@ -19,9 +30,6 @@ uint64_t xcoord(uint64_t coord, char add){
 }
 
 uint64_t ycoord(uint64_t coord, char add){
-	if(coord < 0){
-		printf("You need to get that checked out...");
-	}
 	if(coord < -add){
 		coord += UNIVERSEY+add;
 	}
@@ -55,11 +63,13 @@ void appear(uint64_t x, uint64_t y){
 	}
 }
 void disappear(uint64_t x, uint64_t y){
+	printf("disappear called. %lld %lld\n", x, y);
 	sector *target;
 	short counterone, countertwo;
 	for(counterone = -1; counterone <= 1; counterone++){
 		for(countertwo = -1; countertwo <= 1; countertwo++){
 			target = searchforsector(xcoord(x, counterone), ycoord(y, countertwo));
+			if(target == NULL) puts("that's an error...");
 			target->number--;
 		}
 	}

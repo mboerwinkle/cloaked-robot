@@ -26,7 +26,7 @@ void drawTrails(SDL_Renderer* render){
 	int i = 0;
 	for(; i < numTrails; i++){
 		if(trails[i].type == 0){
-			SDL_SetRenderDrawColor(render, 255, 0, 0, 12*trails[i].life);
+			SDL_SetRenderDrawColor(render, 0, 255, 0, 12*trails[i].life);
 		}else if(trails[i].type == 1){
 			SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
 		}
