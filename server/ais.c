@@ -11,6 +11,7 @@ ai aiPacer;
 ai aiBullet;
 ai aiDestroyer;
 ai aiMinorMiner;
+ai aiMajorMiner;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -403,6 +404,73 @@ static void aiMinorMinerCollision(entity *who, entity *him)
 	}
 }
 
+static void aiMajorMinerAct(entity *who){
+	majorMinerAiData *data = (majorMinerAiData*)who->aiFuncData;
+	(who->modules[0]->actFunc)(who, 0, 1);
+	char behavior = 2;
+	if(who->minerals >= 1000000) behavior = 1;
+	if(data->homestation == NULL) behavior = 0;
+	else if(data->homestation->destroyFlag){
+		data->homestation = NULL;
+	}	
+	if (--(data->recheckTime) == 0) {
+		data->recheckTime = 200;
+		if(behavior == 0){
+			linkNear(who, 64*6400);
+			entity* runner = who->mySector->firstentity;
+			while(runner){
+				if(runner->faction == who->faction)data->homestation = runner;
+//later add in that it has to be a station... after we add in stations... lol
+				if(data->homestation != NULL) break;
+				runner = runner->next;
+			}
+			unlinkNear();
+			return;
+		}
+		if((behavior == 2) && (data->target == NULL)){
+			linkNear(who, 64*6400);
+			double bestScore = 64*6400;
+			entity *temptarget = NULL;
+			entity* runner = who->mySector->firstentity;
+			double d;
+			int64_t dx, dy;
+			while(runner){
+				if(runner->faction == 0){
+					dx = displacementX(who, runner);
+					dy = displacementY(who, runner);
+					d = sqrt(dx*dx+dy*dy)-runner->r;
+					if(d < bestScore){
+						bestScore = d;
+						temptarget = runner;
+					}
+				}
+				runner = runner->next;
+			}
+			unlinkNear();
+			data->target = temptarget;
+			return;
+		}
+	}
+	if(behavior == 1){
+		entity* homestation = data->homestation;
+		circle(who, homestation, 1000 + who->r + homestation->r, 0);
+		int64_t dx = displacementX(who, homestation);
+		int64_t dy = displacementY(who, homestation);
+		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r){
+			homestation->minerals += who->minerals-(352*352*2);
+			who->minerals = 352*352*2;
+			addTrail(who, homestation, 1);
+		}
+	}
+	if(behavior == 2 && data->target != NULL){
+		if(data->target->destroyFlag){
+			data->target = NULL;
+			return;
+		}
+		circle(who, data->target, miningRange*2 + who->r + data->target->r, 100);
+	}
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -428,4 +496,7 @@ void initAis(){
 	aiMinorMiner.loadSector = 0;
 	aiMinorMiner.act = aiMinorMinerAct;
 	aiMinorMiner.handleCollision = aiMinorMinerCollision;
+	aiMajorMiner.loadSector = 0;
+	aiMajorMiner.act = aiMajorMinerAct;
+	aiMajorMiner.handleCollision = noCareCollision;
 }

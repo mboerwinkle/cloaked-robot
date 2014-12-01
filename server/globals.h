@@ -33,6 +33,7 @@ extern ai aiPacer;
 extern ai aiBullet;
 extern ai aiDestroyer;
 extern ai aiMinorMiner;
+extern ai aiMajorMiner;
 extern void initAis();
 
 typedef struct entity{
@@ -87,6 +88,12 @@ typedef struct {
 	char phase;
 	entity *home;
 } minorMinerAiData;
+
+typedef struct {
+	int recheckTime;
+	entity *homestation;
+	entity *target;
+} majorMinerAiData;
 
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
 #define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
