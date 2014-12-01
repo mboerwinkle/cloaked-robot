@@ -11,10 +11,6 @@ struct module;
 struct sector;
 
 extern int main();
-extern int64_t xsectordisp(int64_t strt, int64_t end);
-extern int64_t ysectordisp(int64_t strt, int64_t end);
-extern uint64_t xcoord(uint64_t coord, char add);
-extern uint64_t ycoord(uint64_t coord, char add);
 extern void gensector(uint64_t x, uint64_t y);
 extern void loadsector(uint64_t x, uint64_t y); 
 extern int mkship(char *name);
@@ -92,11 +88,10 @@ typedef struct {
 	entity *home;
 } minorMinerAiData;
 
-//#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
-//#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
+#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
+#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
+//macros are gay
 
-#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*xsectordisp(b->mySector->x,  a->mySector->x) + b->x - a->x)
-#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*ysectordisp(b->mySector->y, a->mySector->y) + b->y - a->y)
 typedef struct sector {
 	short number; //number of clients who need it open
 	struct sector *nextsector;

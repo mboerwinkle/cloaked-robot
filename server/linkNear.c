@@ -27,16 +27,16 @@ void linkNear(entity* who, int32_t radius){
 	if(numLinked != 0) numLinked = 0;
 	what = who;
 	if(l){
-		addLinkedSector(searchforsector(xcoord(x, -1), y));
-		if(u) addLinkedSector(searchforsector(xcoord(x, -1), ycoord(y, -1)));
-		else if(d) addLinkedSector(searchforsector(xcoord(x, -1), ycoord(y, 1)));
+		addLinkedSector(searchforsector(x-1, y));
+		if(u) addLinkedSector(searchforsector(x-1, y-1));
+		else if(d) addLinkedSector(searchforsector(x-1, y+1));
 	}else if(r){
-		addLinkedSector(searchforsector(xcoord(x, 1), y));
-		if(u) addLinkedSector(searchforsector(xcoord(x, 1), ycoord(y, -1)));
-		else if(d) addLinkedSector(searchforsector(xcoord(x, 1), ycoord(y, 1)));
+		addLinkedSector(searchforsector(x+1, y));
+		if(u) addLinkedSector(searchforsector(x+1, y-1));
+		else if(d) addLinkedSector(searchforsector(x+1, y+1));
 	}
-	if(u) addLinkedSector(searchforsector(x, ycoord(y, -1)));
-	else if(d) addLinkedSector(searchforsector(x, ycoord(y, 1)));
+	if(u) addLinkedSector(searchforsector(x, y-1));
+	else if(d) addLinkedSector(searchforsector(x, y+1));
 }
 
 void unlinkNear(){

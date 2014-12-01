@@ -79,7 +79,7 @@ static void *saveRadarImg(void *arg)
 
 static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
-	SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(render, 0, 0, 0, 0);
 	SDL_RenderClear(render);
 	SDL_Rect rect = {.w = 2, .h = 2};
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
