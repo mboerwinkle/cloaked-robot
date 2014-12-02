@@ -93,6 +93,7 @@ typedef struct {
 	int recheckTime;
 	entity *homestation;
 	entity *target;
+	char phase;
 } majorMinerAiData;
 
 #define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)

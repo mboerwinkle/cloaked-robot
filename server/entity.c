@@ -129,11 +129,10 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->thrust = 2.5;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 250;
-		ret->energy = ret->maxEnergy = 100;
-		ret->shieldRegen = .06;
+		ret->energy = ret->maxEnergy = 80;
+		ret->shieldRegen = .05;
 		ret->energyRegen = 1;
-		(*miningBayModule.initFunc)(ret, 0, 1);
-		ret->minerals = 352*352*2;
+		(*miningModule.initFunc)(ret, 0, 1);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -176,6 +175,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		((majorMinerAiData*)ret->aiFuncData)->homestation = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 200;
+		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
 	}
 	return ret;
 }

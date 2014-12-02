@@ -406,12 +406,12 @@ static void aiMinorMinerCollision(entity *who, entity *him)
 
 static void aiMajorMinerAct(entity *who){
 	majorMinerAiData *data = (majorMinerAiData*)who->aiFuncData;
-	(who->modules[0]->actFunc)(who, 0, 1);
 	char behavior = 2;
 	if(who->minerals >= 1000000) behavior = 1;
 	if(data->homestation == NULL) behavior = 0;
 	else if(data->homestation->destroyFlag){
 		data->homestation = NULL;
+		behavior = 0;
 	}	
 	if (--(data->recheckTime) == 0) {
 		data->recheckTime = 200;
@@ -457,17 +457,23 @@ static void aiMajorMinerAct(entity *who){
 		int64_t dx = displacementX(who, homestation);
 		int64_t dy = displacementY(who, homestation);
 		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r){
-			homestation->minerals += who->minerals-(352*352*2);
-			who->minerals = 352*352*2;
+			homestation->minerals += who->minerals;
+			who->minerals = 0;
 			addTrail(who, homestation, 1);
 		}
 	}
 	if(behavior == 2 && data->target != NULL){
 		if(data->target->destroyFlag){
 			data->target = NULL;
+			data->recheckTime = 1;
 			return;
 		}
-		circle(who, data->target, miningRange*2 + who->r + data->target->r, 100);
+		if(who->energy == who->maxEnergy) data->phase = 0;
+		if(who->energy < 2) data->phase = 1;
+		if(data->phase == 0){
+			(who->modules[0]->actFunc)(who, 0, 1);
+		}
+		circle(who, data->target, miningRange/2 + who->r + data->target->r, 20);
 	}
 }
 
