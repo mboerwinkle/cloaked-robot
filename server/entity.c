@@ -174,7 +174,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(majorMinerAiData));
 		((majorMinerAiData*)ret->aiFuncData)->homestation = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
-		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 200;
+		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 100;
 		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
 	}
 	return ret;

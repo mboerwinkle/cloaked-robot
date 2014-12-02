@@ -414,14 +414,16 @@ static void aiMajorMinerAct(entity *who){
 		behavior = 0;
 	}	
 	if (--(data->recheckTime) == 0) {
-		data->recheckTime = 200;
+		data->recheckTime = 300;
 		if(behavior == 0){
 			linkNear(who, 64*6400);
 			entity* runner = who->mySector->firstentity;
+			double r = 641;//must be bigger than a drone
 			while(runner){
-				if(runner->faction == who->faction)data->homestation = runner;
-//later add in that it has to be a station... after we add in stations... lol
-				if(data->homestation != NULL) break;
+				if(runner->faction == who->faction && runner->r > r){
+					data->homestation = runner;
+					r = runner->r;
+				}
 				runner = runner->next;
 			}
 			unlinkNear();
