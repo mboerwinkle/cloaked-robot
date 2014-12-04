@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "globals.h"
+
 static FILE *fp;
 void wchar(char target){
 	fprintf(fp, "%c\n", target);
@@ -18,7 +20,7 @@ void wdouble(double target){
 }
 int unloadsector(sector *target){
 	writesectortofile(target);
-	printf("unloadsector called %lld, %lld\n", target->x, target->y);
+	printf("unloadsector called %"PRIX64", %"PRIX64"\n", target->x, target->y);
 	free(target);
 	return(0);
 }
@@ -40,7 +42,7 @@ void writeentitytofile(entity *who){
 }
 int writesectortofile(sector *target){
 	char name[35];
-	sprintf(name, "sectors/%lX_%lX", target->x, target->y);
+	sprintf(name, "sectors/%"PRIX64"_%" PRIX64, target->x, target->y);
 	fp = fopen(name, "w");
 	entity *next, *conductor = target->firstentity;
 	while(conductor != NULL){
@@ -54,7 +56,7 @@ int writesectortofile(sector *target){
 }
 void addmetosector(entity* who, uint64_t x, uint64_t y){
 	char name[35];
-	sprintf(name, "sectors/%lX_%lX", x, y);
+	sprintf(name, "sectors/%"PRIX64"_%" PRIX64, x, y);
 	fp = fopen(name, "a");
 	who->x = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
 	who->y = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;

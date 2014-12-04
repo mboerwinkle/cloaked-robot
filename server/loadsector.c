@@ -3,12 +3,14 @@
 #include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <inttypes.h>
 #include "globals.h"
 
+//PRIX64 is a nifty macro from inttypes.h.
 void gensector(uint64_t x, uint64_t y){//only called from loadsector
-	printf("gensector called (%lld, %lld)\n", x, y);
+	printf("gensector called (%"PRId64", %"PRId64")\n", x, y);
 	char name[35];
-	sprintf(name, "sectors/%lld_%lld", x, y);
+	sprintf(name, "sectors/%"PRIX64"_%"PRIX64, x, y);
 	FILE *fp;
 	fp = fopen(name, "w");
 	//fprintf(fp, "sector\n");
@@ -38,11 +40,11 @@ static void readEntity(FILE* fp, sector* sec){
 }
 
 void loadsector(uint64_t x, uint64_t y){
-	printf("loadsector called (%lld, %lld)\n", x, y);
+	printf("loadsector called (%"PRId64", %"PRId64")\n", x, y);
 	sector *new = malloc(sizeof(sector));
 	FILE *fp;
 	char name[35];
-	sprintf(name, "sectors/%lld_%lld", x, y);//makes hexadecimal file name
+	sprintf(name, "sectors/%"PRIX64"_%"PRIX64, x, y);//makes hexadecimal file name
 
 	if((fp = fopen(name, "r")) == NULL){
 		printf("sector %s does not exist, generating\n", name);
