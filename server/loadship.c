@@ -1,6 +1,7 @@
 #include "globals.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 entity *loadship(char name[MAXNAMELEN]){
 	printf("loadship called (%s)\n", name);
@@ -13,10 +14,10 @@ entity *loadship(char name[MAXNAMELEN]){
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}
-	fscanf(fp, "%lld %lld\n%ld %ld\n", &secx, &secy, &posx, &posy);
+	fscanf(fp, "%"PRId64" %"PRId64"\n%"PRId32" %"PRId32"\n", &secx, &secy, &posx, &posy);
 	fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType);
 	fclose(fp);
-	printf("%lld %lld", secx, secy);
+	printf("%"PRId64" %" PRId64, secx, secy);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
 	return newEntity(shipType, aiType, faction, conductor, posx, posy);
