@@ -3,8 +3,6 @@
 #define POS_MAX 2097151
 #define POS_MIN (-2097152)
 #define LOCK_RANGE (64*1000)
-#define UNIVERSEX 10
-#define UNIVERSEY 10
 
 struct entity;
 struct module;
@@ -101,6 +99,7 @@ typedef struct {
 //macros are gay
 
 typedef struct sector {
+	short realnumber;// number of clients who are in the sector (0 is a border sector.
 	short number; //number of clients who need it open
 	struct sector *nextsector;
 	struct entity *firstentity;
@@ -112,6 +111,7 @@ extern sector *searchforsector(uint64_t x, uint64_t y);
 extern int unloadsector(sector *target);
 extern int writesectortofile(sector *target);
 extern void addmetosector(entity* who, uint64_t x, uint64_t y);
+extern void spawnstroids(sector *target);
 
 sector *listrootsector;
 

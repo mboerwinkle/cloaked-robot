@@ -315,7 +315,7 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+130)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+130)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0/*SDL_WINDOW_FULLSCREEN*/);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);

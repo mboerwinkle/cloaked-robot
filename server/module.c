@@ -213,9 +213,10 @@ static void bayAct(entity *who, int ix, char action){
 		(*charge)++;
 		return;
 	}
-	if(!action || who->energy < 100) return;
+	if(!action || who->energy < 100 || who->minerals < 640*640) return;
 	*charge = 1;
 	who->energy -= 100;
+	who->minerals -= 640*640;
 	entity* what = newEntity(2, 2, who->faction, who->mySector, who->x, who->y);
 	what->vx = who->vx;
 	what->vy = who->vy;

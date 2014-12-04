@@ -24,9 +24,14 @@ int main(){
 //	mkship("yo");
 //	loadship("yo");
 //	move(0, 0, 1, 0);
+	short adventuretime = 300;//nope, make that "char timetillpotentialtospawnastroidssothatwedontcheckeachtickandslowshitdown"
 	while(1){
 		conductor = listrootsector;
+		if(adventuretime-- == 0) adventuretime = 300;
 		while(conductor != NULL){
+			if(adventuretime == 300 && conductor->realnumber == 0){
+				spawnstroids(conductor);
+			}
 			run(conductor);
 			conductor = conductor->nextsector;
 		}

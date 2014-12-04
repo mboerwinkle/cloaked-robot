@@ -21,6 +21,7 @@ void appear(uint64_t x, uint64_t y){
 			}
 		}
 	}
+	searchforsector(x, y)->realnumber++;
 }
 void disappear(uint64_t x, uint64_t y){
 	printf("disappear called. %lld %lld\n", x, y);
@@ -31,6 +32,9 @@ void disappear(uint64_t x, uint64_t y){
 			target = searchforsector(x+counterone, y+countertwo);
 			if(target == NULL) puts("that's an error...");
 			target->number--;
+			if(counterone == 0 && countertwo == 0){
+				target->realnumber--;
+			}
 		}
 	}
 }
