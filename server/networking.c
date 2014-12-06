@@ -61,6 +61,7 @@ static void sendRadar(client* cli){
 	}
 	unlinkNear();
 	data[2] += 192;
+	if (dataLen < 3) dataLen = 3;
 	if(who->x < POS_MIN+6400*64) data[0] = (-who->x+POS_MIN+(6400*64))/6400;
 	else if(who->x > POS_MAX-6400*64) data[0] = (-who->x+POS_MAX+(6400*64))/6400;
 	else data[2] -= 128;

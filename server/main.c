@@ -25,6 +25,7 @@ int main(){
 //	loadship("yo");
 //	move(0, 0, 1, 0);
 	short adventuretime = 300;//nope, make that "char timetillpotentialtospawnastroidssothatwedontcheckeachtickandslowshitdown"
+	//nope, make that "char timeTillPotentialToSpawnAstroidsSoThatWeDontCheckEachTickAndSlowShitDown"
 	while(1){
 		conductor = listrootsector;
 		if(adventuretime-- == 0) adventuretime = 300;
