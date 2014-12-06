@@ -76,7 +76,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
-		(*bayModule.initFunc)(ret, 0, 1);
+		(*bayModule.initFunc)(ret, 0, 2.02);
+		ret->minerals = 640*640*10;
 	}else if(type == 4){//large asteroid
 		ret->r = 704;
 		hasModules(0);
@@ -133,6 +134,18 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shieldRegen = .05;
 		ret->energyRegen = 1;
 		(*miningModule.initFunc)(ret, 0, 1);
+	} else if (type == 10) { //Planet / station
+		ret->r = 4800;
+		hasModules(2);
+		ret->thrust = 0;
+		ret->maxTurn = 20;
+		ret->shield = ret->maxShield = 1000;
+		ret->energy = ret->maxEnergy = 100;
+		ret->shieldRegen = 0.05;
+		ret->energyRegen = 2;
+		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 100)
+		(*bayModule.initFunc)(ret, 0, 3.02);
+		(*bayModule.initFunc)(ret, 1, 7.07);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -176,6 +189,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 100;
 		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
+	} else if (aiType == 10) {
+		ret->myAi = &aiStation;
+		ret->aiFuncData = calloc(1, sizeof(int));
 	}
 	return ret;
 }

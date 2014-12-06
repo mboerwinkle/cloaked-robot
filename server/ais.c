@@ -12,6 +12,7 @@ ai aiBullet;
 ai aiDestroyer;
 ai aiMinorMiner;
 ai aiMajorMiner;
+ai aiStation;
 
 static void lock(entity* who){
 	linkNear(who, LOCK_RANGE);
@@ -481,6 +482,23 @@ static void aiMajorMinerAct(entity *who){
 	}
 }
 
+static void aiStationAct(entity *who)
+{
+	int count = *(int*)who->aiFuncData;
+	turn(who, 1);
+	int e = who->energy;
+	int i = 0;
+	for (; i < who->numModules; i++) {
+		(who->modules[i]->actFunc)(who, i, i==count);
+	}
+	if (e != who->energy) {
+		count++;
+		if (count == who->numModules)
+			count = 0;
+	}
+	*(int*)who->aiFuncData = count;
+}
+
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
@@ -509,4 +527,7 @@ void initAis(){
 	aiMajorMiner.loadSector = 0;
 	aiMajorMiner.act = aiMajorMinerAct;
 	aiMajorMiner.handleCollision = noCareCollision;
+	aiStation.loadSector = 1;
+	aiStation.act = aiStationAct;
+	aiStation.handleCollision = noCareCollision;
 }

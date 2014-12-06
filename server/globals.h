@@ -32,6 +32,7 @@ extern ai aiBullet;
 extern ai aiDestroyer;
 extern ai aiMinorMiner;
 extern ai aiMajorMiner;
+extern ai aiStation;
 extern void initAis();
 
 typedef struct entity{

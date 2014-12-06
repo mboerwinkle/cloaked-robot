@@ -9,6 +9,7 @@ module gunModule;
 module bayModule;
 module miningModule;
 module miningBayModule;
+module spawnModule;
 
 #define vecToTheta(x, y) ((int)((atan2(y, x) + M_PI*(2+1.0/16)) / (M_PI/8)) % 16)
 
@@ -16,6 +17,11 @@ typedef struct{
 	entity* target;
 	int counter;
 }miningModuleData;
+
+typedef struct {
+	char charge;
+	int cost, type, aiType;
+} bayModuleData;
 
 #define MAX_MINING_DRONES 30
 typedef struct {
@@ -49,7 +55,15 @@ static void miningInit(entity* who, int ix, double value){
 
 static void bayInit(entity* who, int ix, double value){
 	who->modules[ix] = &bayModule;
-	who->moduleDatas[ix] = calloc(1, 1);
+	bayModuleData *data = malloc(sizeof(bayModuleData));
+	who->moduleDatas[ix] = data;
+	data->charge = 0;
+	data->type = (int)value;
+	data->aiType = 100 * (value - data->type);
+	entity *killMe = newEntity(data->type, data->aiType, who->faction, who->mySector, 0, 0);
+	data->cost = killMe->r * killMe->r + killMe->minerals;
+	who->mySector->firstentity = killMe->next;
+	freeEntity(killMe);
 }
 
 static void miningBayInit(entity *who, int ix, double value)
@@ -208,16 +222,17 @@ static void gunAct(entity* who, int ix, char action){
 }
 
 static void bayAct(entity *who, int ix, char action){
-	char* charge = (char*)who->moduleDatas[ix];
+	bayModuleData *data = (bayModuleData*)who->moduleDatas[ix];
+	char* charge = &data->charge;
 	if(*charge < 120){
 		(*charge)++;
 		return;
 	}
-	if(!action || who->energy < 100 || who->minerals < 640*640) return;
+	if(!action || who->energy < 100 || who->minerals < data->cost) return;
 	*charge = 1;
 	who->energy -= 100;
-	who->minerals -= 640*640;
-	entity* what = newEntity(2, 2, who->faction, who->mySector, who->x, who->y);
+	who->minerals -= data->cost;
+	entity* what = newEntity(data->type, data->aiType, who->faction, who->mySector, who->x, who->y);
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;
@@ -293,9 +308,6 @@ static void miningBayAct(entity *who, int ix, char action)
 	if(!action || data->numDeployed == MAX_MINING_DRONES || who->minerals < 352*352) return;
 	entity *runner = who->mySector->firstentity;
 	int64_t dx, dy;
-	// We want high distances here, for two reasons:
-	// 1) Farther asteroids are less likely to be hit by other mining methods
-	// 2) We don't want drones en route to body slam other drones, dispatched earlier, who are trying to mine.
 	int bestScore = miningRange*4+1;
 	entity *winner = NULL;
 	linkNear(who, miningRange*4);

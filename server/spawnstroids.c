@@ -17,6 +17,7 @@ void spawnstroids(sector *target){
 		stroidnewEntity->theta = (char)theta;
 		if(theta > 8) stroidnewEntity->vy *= -1;
 		if(theta > 4 && theta < 12.5) stroidnewEntity->vx *= -1;
+		free(randomnum);
 	}
 }
 
