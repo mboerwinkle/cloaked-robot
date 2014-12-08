@@ -5,6 +5,7 @@
 #include <limits.h>
 #include "globals.h"
 
+//Note that creating an entity which does *not* load sectors, but spawns (using the bay module) entities that *do* load sectors, you might get a few spurious sector load / unload pairs when said entity is created.
 entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y){
 	if(where == NULL) return NULL;
 	entity* ret = malloc(sizeof(entity));
@@ -127,13 +128,19 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 	} else if (type == 9) { //Major Miner
 		ret->r = 1280;
 		hasModules(1);
+		ret->minerals = 352*352*2;
 		ret->thrust = 2.5;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 250;
 		ret->energy = ret->maxEnergy = 80;
 		ret->shieldRegen = .05;
 		ret->energyRegen = 1;
-		(*miningModule.initFunc)(ret, 0, 1);
+		if (aiType == 100) {
+			(*miningBayModule.initFunc)(ret, 0, 1);
+			aiType = 9;
+		} else {
+			(*miningModule.initFunc)(ret, 0, 1);
+		}
 	} else if (type == 10) { //Planet / station
 		ret->r = 4800;
 		hasModules(2);
@@ -182,6 +189,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(minorMinerAiData));
 		((minorMinerAiData*)ret->aiFuncData)->phase = 1;
 		((minorMinerAiData*)ret->aiFuncData)->home = NULL;
+		((minorMinerAiData*)ret->aiFuncData)->pleaseTurn = 0;
 	} else if (aiType == 9) {
 		ret->myAi = &aiMajorMiner;
 		ret->aiFuncData = malloc(sizeof(majorMinerAiData));
@@ -193,6 +201,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->myAi = &aiStation;
 		ret->aiFuncData = calloc(1, sizeof(int));
 	}
+	if (ret->myAi->loadSector)
+		appear(ret->mySector->x, ret->mySector->y);
 	return ret;
 }
 

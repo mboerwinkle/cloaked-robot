@@ -81,14 +81,14 @@ static char gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 		turn(who, desiredDir > 0 ? 1 : -1);
 		if (fabs(desiredDir) <= M_PI/2)
 			thrust(who);
-		return 1;
+		return desiredDir > 0 ? 1 : -1;
 	}
 	thrust(who);
 	return 0;
 }
 
 //The radius and velocity which this function takes aren't exact (especially for high v), but they give a sense of scale.
-static void circle(entity *who, entity *target, double r, double v)
+static char circle(entity *who, entity *target, double r, double v)
 {
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
@@ -96,7 +96,7 @@ static void circle(entity *who, entity *target, double r, double v)
 	double vx = who->vx - target->vx + dy * v / dist;
 	double vy = who->vy - target->vy - dx * v / dist;
 	double scale = 1 - (r / dist);
-	gotoPt(who, dx * scale, dy * scale, vx, vy);
+	return gotoPt(who, dx * scale, dy * scale, vx, vy);
 }
 
 static void aiHumanAct(entity* who){
@@ -202,7 +202,7 @@ static void aiDroneAct(entity* who){
 
 static void noCareCollision(entity* me, entity* him){}
 
-static void crazyPursuit(entity *who, entity *target)
+static char crazyPursuit(entity *who, entity *target)
 {
 	thrust(who);
 
@@ -223,36 +223,34 @@ static void crazyPursuit(entity *who, entity *target)
 
 	char spin = 1;
 	if(vx == 0){
-		if((x>0) ^ (vy>0)) turn(who, -spin);
-		else turn(who, spin);
+		if((x>0) ^ (vy>0)) spin = -1;
 	}else{
 		if(vx<0){
 			vx *= -1;
-			spin *= -1;
+			spin = -1;
 			x *= -1;
 		}
 
-		if(x<0){
-			turn(who, spin);
-		}else{
+		if(x >= 0){
 			double t = x/vx;
-			if(vy*t-who->thrust/2*t*t < y) turn(who, -spin);
-			else turn(who, spin);
+			if(vy*t-who->thrust/2*t*t < y) spin *= -1;
 		}
 	}
-	if(dvx == 0 && dvy == 0) return;
+	turn(who, spin);
+	if(dvx == 0 && dvy == 0) return spin;
 	double dv = sqrt(dvx*dvx + dvy*dvy);
 	unx = dvx/dv;
 	uny = dvy/dv;
 	y = dx*unx + dy*uny;
 	x = dy*unx - dx*uny;
 	int64_t r = who->r + target->r;
-	if(r <= fabs(x)) return;
+	if(r <= fabs(x)) return spin;
 	double var = sqrt(r*r - x*x);
 	y -= var;
-	if(y >= dv || y < 0) return;
+	if(y >= dv || y < 0) return spin;
 	who->x += dx+target->vx-who->vx - var/2*unx;
 	who->y += dy+target->vy-who->vy - var/2*uny;
+	return spin;
 }
 
 static void aiMissileAct(entity* who){
@@ -278,7 +276,7 @@ static void aiAsteroidAct(entity* who){
 }
 
 static void aiAsteroidCollision(entity* me, entity* him){
-	if(him->type != 4 && him->type != 5){//if it's not an asteroid; prevents formation of astroid fields. Feel free to delete if you want asteroid fields
+	if((him->type != 4 && him->type != 5) || *(char*)him->aiFuncData){//if it's not an asteroid; prevents formation of astroid fields. Feel free to delete if you want asteroid fields
 		char* aRat = (char*)me->aiFuncData;
 		if(*aRat) *aRat *= -1;
 		else *aRat = 1-2*(random()%2);
@@ -386,53 +384,77 @@ static void aiMinorMinerAct(entity *who)
 			if (data->phase == 2) {
 				(who->modules[0]->actFunc)(who, 0, 1);
 			}
-			//Circle w/ a velocity of zero actually just pulls it alongside.
-			circle(who, who->targetLock, miningRange/2 + who->r + who->targetLock->r, 0);
+			if (data->pleaseTurn && data->phase != 2) {
+				turn(who, 1);
+				thrust(who);
+			} else {
+				//Circle w/ a velocity of zero actually just pulls it alongside.
+				circle(who, who->targetLock, miningRange/2 + who->r + who->targetLock->r, 0);
+			}
+			if (data->pleaseTurn)
+				data->pleaseTurn--;
 			return;
 		}
 	}
-	crazyPursuit(who, data->home);
+	if (data->pleaseTurn) {
+		turn(who, 1);
+		thrust(who);
+		data->pleaseTurn--;
+	} else {
+		crazyPursuit(who, data->home);
+	}
 }
 
 static void aiMinorMinerCollision(entity *who, entity *him)
 {
 	minorMinerAiData *data = (minorMinerAiData*)who->aiFuncData;
-	if (data->phase == 0 && data->home == him) {
+	if (/*data->phase == 0 && */data->home == him) {
 		who->shield = 0;
 		him->minerals += who->r*who->r + who->minerals;
 		//So we don't knock our target about too much
 		who->r = 1;
 		//So my death doesn't cause an asteroid explosion
 		who->minerals = -1;
-	}
+	} else ((minorMinerAiData*)who->aiFuncData)->pleaseTurn = 4;
 }
 
 static void aiMajorMinerAct(entity *who){
 	majorMinerAiData *data = (majorMinerAiData*)who->aiFuncData;
 	char behavior = 2;
-	if(who->minerals >= 1000000) behavior = 1;
+	if (data->target == NULL) behavior = -1;
+	else if (data->target->destroyFlag) {
+		data->target = NULL;
+		behavior = -1;
+	}
+	//Note that the addtional 352*352*2 base minerals cancels with the below line, so that miners using the lazor will behave normally aside from carrying 352*352*2 extra wealth at all times. For the miners who use miners, it acts as a reserve to launch 2 at the beginning.
+	if (who->minerals >= 1000000 + 352*352*2 || who->shield != who->maxShield) behavior = 1;
 	if(data->homestation == NULL) behavior = 0;
 	else if(data->homestation->destroyFlag){
 		data->homestation = NULL;
 		behavior = 0;
 	}	
-	if (--(data->recheckTime) == 0) {
-		data->recheckTime = 300;
-		if(behavior == 0){
+	if(behavior == 0){
+		if (--(data->recheckTime) == 0) {
+			data->recheckTime = 300;
 			linkNear(who, 64*6400);
 			entity* runner = who->mySector->firstentity;
 			double r = 641;//must be bigger than a drone
 			while(runner){
-				if(runner->faction == who->faction && runner->r > r){
+				if(runner->faction == who->faction && runner->r > r && runner != who){
 					data->homestation = runner;
 					r = runner->r;
 				}
 				runner = runner->next;
 			}
 			unlinkNear();
-			return;
+			if (data->homestation)
+				data->recheckTime = 1;
 		}
-		if((behavior == 2) && (data->target == NULL)){
+		return;
+	}
+	if(behavior == -1) {
+		if (--(data->recheckTime) == 0) {
+			data->recheckTime = 300;
 			linkNear(who, 64*6400);
 			double bestScore = 64*6400;
 			entity *temptarget = NULL;
@@ -452,32 +474,34 @@ static void aiMajorMinerAct(entity *who){
 				runner = runner->next;
 			}
 			unlinkNear();
-			data->target = temptarget;
-			return;
+			if ((data->target = temptarget) != NULL)
+				data->recheckTime = 1;
+			else if (who->minerals) {
+				behavior = 1;
+				data->recheckTime = 1;
+			}
 		}
+	}
+	if(who->energy == who->maxEnergy) data->phase = 0;
+	if(who->energy < 2) data->phase = 1;
+	if(data->phase == 0){
+		(who->modules[0]->actFunc)(who, 0, 1);
 	}
 	if(behavior == 1){
 		entity* homestation = data->homestation;
 		circle(who, homestation, 1000 + who->r + homestation->r, 0);
 		int64_t dx = displacementX(who, homestation);
 		int64_t dy = displacementY(who, homestation);
-		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r){
-			homestation->minerals += who->minerals;
-			who->minerals = 0;
+		//The transfer now works in theoretically the opposite direction, if I'm wounded and he can give me enough for my 2 base miners.
+		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r
+		    && who->minerals != 352*352*2
+		    && homestation->minerals + who->minerals >= 352*352*2){
+			homestation->minerals += who->minerals - 352*352*2;
+			who->minerals = 352*352*2;
 			addTrail(who, homestation, 1);
 		}
 	}
 	if(behavior == 2 && data->target != NULL){
-		if(data->target->destroyFlag){
-			data->target = NULL;
-			data->recheckTime = 1;
-			return;
-		}
-		if(who->energy == who->maxEnergy) data->phase = 0;
-		if(who->energy < 2) data->phase = 1;
-		if(data->phase == 0){
-			(who->modules[0]->actFunc)(who, 0, 1);
-		}
 		circle(who, data->target, miningRange/2 + who->r + data->target->r, 20);
 	}
 }

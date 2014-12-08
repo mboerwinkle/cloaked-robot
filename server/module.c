@@ -63,6 +63,8 @@ static void bayInit(entity* who, int ix, double value){
 	entity *killMe = newEntity(data->type, data->aiType, who->faction, who->mySector, 0, 0);
 	data->cost = killMe->r * killMe->r + killMe->minerals;
 	who->mySector->firstentity = killMe->next;
+	if (killMe->myAi->loadSector)
+		disappear(killMe->mySector->x, killMe->mySector->y);
 	freeEntity(killMe);
 }
 
@@ -266,6 +268,16 @@ static void miningAct(entity* who, int ix, char action){
 			}
 		}
 	}
+	data->counter = 0;
+	int64_t dx, dy;
+	if (who->targetLock && who->targetLock->faction == 0) {
+		dx = displacementX(who, who->targetLock);
+		dy = displacementY(who, who->targetLock);
+		int dist = sqrt(dx*dx + dy*dy) - who->r - who->targetLock->r;
+		if(dist <= miningRange)
+			data->target = who->targetLock;
+		return;
+	}
 	linkNear(who, 1000*64+miningRange);
 	entity* runner = who->mySector->firstentity;
 	int bestDist = miningRange + 1;
@@ -274,8 +286,8 @@ static void miningAct(entity* who, int ix, char action){
 			runner = runner->next;
 			continue;
 		}
-		int64_t dx = displacementX(who, runner);
-		int64_t dy = displacementY(who, runner);
+		dx = displacementX(who, runner);
+		dy = displacementY(who, runner);
 		int dist = sqrt(dx*dx + dy*dy) - who->r - runner->r;
 		if(dist < bestDist){
 			bestDist = dist;
@@ -284,7 +296,6 @@ static void miningAct(entity* who, int ix, char action){
 		runner = runner->next;
 	}
 	unlinkNear();
-	data->counter = 0;
 }
 
 static void miningBayAct(entity *who, int ix, char action)

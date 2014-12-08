@@ -86,6 +86,7 @@ typedef struct {
 typedef struct {
 	char phase;
 	entity *home;
+	char pleaseTurn;
 } minorMinerAiData;
 
 typedef struct {

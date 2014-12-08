@@ -17,7 +17,7 @@ void gensector(uint64_t x, uint64_t y){//only called from loadsector
 	//other generaty thingys
 	fclose(fp);
 	fp = NULL;
-	printf("done generating (%s)\n", name);
+	//printf("done generating (%s)\n", name);
 }
 static void readEntity(FILE* fp, sector* sec){
 	char line[80];
@@ -47,24 +47,24 @@ void loadsector(uint64_t x, uint64_t y){
 	sprintf(name, "sectors/%"PRIX64"_%"PRIX64, x, y);//makes hexadecimal file name
 
 	if((fp = fopen(name, "r")) == NULL){
-		printf("sector %s does not exist, generating\n", name);
+		//printf("sector %s does not exist, generating\n", name);
 		gensector(x, y);
 	}
 
 	new->nextsector = listrootsector;
 	listrootsector = new;
 
-	listrootsector->realnumber = 0;
-	listrootsector->number = 1;
-	listrootsector->firstentity = NULL;
-	listrootsector->x = x;
-	listrootsector->y = y;
+	new->realnumber = 0;
+	new->number = 1;
+	new->firstentity = NULL;
+	new->x = x;
+	new->y = y;
 
 	if(fp != NULL){
 		int a;
 		while((a = fgetc(fp)) != EOF){
 			ungetc(a, fp); // Oops, not EOF, better put that back
-			readEntity(fp, listrootsector);
+			readEntity(fp, new);
 		}
 		fclose(fp);
 		fp = NULL;
