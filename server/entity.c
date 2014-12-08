@@ -147,9 +147,9 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energyRegen = 2;
 		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 100)
 		(*bayModule.initFunc)(ret, 0, 2.02);
-		(*bayModule.initFunc)(ret, 0, 3.02);
-		(*bayModule.initFunc)(ret, 1, 7.07);
-		(*bayModule.initFunc)(ret, 1, 9.09);
+		(*bayModule.initFunc)(ret, 1, 3.02);
+		(*bayModule.initFunc)(ret, 2, 7.07);
+		(*bayModule.initFunc)(ret, 3, 9.09);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
