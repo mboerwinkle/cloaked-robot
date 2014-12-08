@@ -81,6 +81,7 @@ typedef struct humanAiData{
 typedef struct {
 	char shotsLeft;
 	int recheckTime;
+	int rechecks;
 } destroyerAiData;
 
 typedef struct {
@@ -91,6 +92,7 @@ typedef struct {
 
 typedef struct {
 	int recheckTime;
+	int rechecks;
 	entity *homestation;
 	entity *target;
 	char phase;

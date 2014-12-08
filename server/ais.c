@@ -27,7 +27,15 @@ static void lock(entity* who){
 			continue;
 		}
 		dx = displacementX(who, runner);
+		if(abs(dx) > LOCK_RANGE){
+			runner = runner->next;
+			continue;
+		}
 		dy = displacementY(who, runner);
+		if(abs(dy) > LOCK_RANGE){
+			runner = runner->next;
+			continue;
+		}
 		d = sqrt(dx*dx+dy*dy)-runner->r;
 		if(d > LOCK_RANGE){
 			runner = runner->next;
@@ -115,6 +123,20 @@ static void aiHumanAct(entity* who){
 		(who->modules[i]->actFunc)(who, i, data->keys&(0x20<<i));
 }
 
+static void aiHumanCollision(entity *who, entity *him)
+{
+	if (who->minerals == 0 || who->faction != him->faction || him->r < who->r)
+		return;
+	int i = who->numModules - 1;
+	for (; i >= 0; i--) {
+		if (who->modules[i] == &miningModule && ((humanAiData*)who->aiFuncData)->keys & (0x20 << i)) {
+			him->minerals += who->minerals;
+			who->minerals = 0;
+			addTrail(who, him, 1);
+		}
+	}
+}
+
 static void aiDroneAct(entity* who){
 	double vx = who->vx;
 	double vy = who->vy;
@@ -136,7 +158,15 @@ static void aiDroneAct(entity* who){
 				continue;
 			}
 			dx = displacementX(who, runner);
+			if(abs(dx) > 64*6400){
+				runner = runner->next;
+				continue;
+			}
 			dy = displacementY(who, runner);
+			if(abs(dy) > 64*6400){
+				runner = runner->next;
+				continue;
+			}
 			d = sqrt(dx*dx+dy*dy);
 			if(d > 64*6400){
 				runner = runner->next;
@@ -322,8 +352,10 @@ static void aiDestroyerAct(entity *who)
 		(who->modules[1]->actFunc)(who, 1, 0);
 		(who->modules[2]->actFunc)(who, 2, 0);
 		if (--(data->recheckTime) == 0) {
-			linkNear(who, 64*6400);
-			double bestScore = 64*6400;
+			if (data->rechecks < 20)
+				data->rechecks++;
+			linkNear(who, 64*6400 * data->rechecks);
+			double bestScore = 64*6400 * data->rechecks;
 			entity *target = NULL;
 			entity* runner = who->mySector->firstentity;
 			double d;
@@ -331,7 +363,15 @@ static void aiDestroyerAct(entity *who)
 			while(runner){
 				if(1<<runner->faction & who->lockSettings){
 					dx = displacementX(who, runner);
+					if (abs(dx) >= bestScore) {
+						runner = runner->next;
+						continue;
+					}
 					dy = displacementY(who, runner);
+					if (abs(dy) >= bestScore) {
+						runner = runner->next;
+						continue;
+					}
 					d = sqrt(dx*dx+dy*dy)-runner->r;
 					if(d < bestScore){
 						bestScore = d;
@@ -346,6 +386,7 @@ static void aiDestroyerAct(entity *who)
 				data->shotsLeft = -100;
 				return;
 			}
+			data->rechecks = 0;
 			if (bestScore < LOCK_RANGE) {
 				data->recheckTime = 1;
 				who->targetLock = target;
@@ -355,7 +396,10 @@ static void aiDestroyerAct(entity *who)
 			if (gotoPt(who, displacementX(who, target), displacementY(who, target), who->vx-target->vx, who->vy-target->vy)) {
 				data->recheckTime = 1;
 			} else {
-				data->recheckTime = 200*bestScore/(64*6400);
+				if (bestScore < 64*6400)
+					data->recheckTime = 200*bestScore/(64*6400);
+				else
+					data->recheckTime = 200;
 			}
 		} else {
 			if (data->shotsLeft != -100)
@@ -408,14 +452,14 @@ static void aiMinorMinerAct(entity *who)
 static void aiMinorMinerCollision(entity *who, entity *him)
 {
 	minorMinerAiData *data = (minorMinerAiData*)who->aiFuncData;
-	if (/*data->phase == 0 && */data->home == him) {
+	if (data->phase == 0 && data->home == him) {
 		who->shield = 0;
 		him->minerals += who->r*who->r + who->minerals;
 		//So we don't knock our target about too much
 		who->r = 1;
 		//So my death doesn't cause an asteroid explosion
 		who->minerals = -1;
-	} else ((minorMinerAiData*)who->aiFuncData)->pleaseTurn = 4;
+	} else ((minorMinerAiData*)who->aiFuncData)->pleaseTurn = 16;
 }
 
 static void aiMajorMinerAct(entity *who){
@@ -436,27 +480,44 @@ static void aiMajorMinerAct(entity *who){
 	if(behavior == 0){
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			linkNear(who, 64*6400);
+			if (data->rechecks < 20)
+				data->rechecks++;
+			linkNear(who, 64*6400 * data->rechecks);
 			entity* runner = who->mySector->firstentity;
+			double bestDist = 64*6400 * data->rechecks;
 			double r = 641;//must be bigger than a drone
 			while(runner){
-				if(runner->faction == who->faction && runner->r > r && runner != who){
-					data->homestation = runner;
-					r = runner->r;
+				if(runner->faction == who->faction && runner->r >= r && runner != who){
+					int64_t dx = displacementX(who, runner);
+					int64_t dy = displacementY(who, runner);
+					if (runner->r == r && (abs(dx) >= bestDist || abs(dy) >= bestDist)) {
+						runner = runner->next;
+						continue;
+					}
+					double dist = sqrt(dx*dx + dy*dy);
+					if (runner->r > r || dist < bestDist) {
+						data->homestation = runner;
+						r = runner->r;
+						bestDist = dist;
+					}
 				}
 				runner = runner->next;
 			}
 			unlinkNear();
-			if (data->homestation)
+			if (data->homestation) {
 				data->recheckTime = 1;
+				data->rechecks = 0;
+			}
 		}
 		return;
 	}
 	if(behavior == -1) {
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			linkNear(who, 64*6400);
-			double bestScore = 64*6400;
+			if (data->rechecks < 20)
+				data->rechecks++;
+			linkNear(who, 64*6400 * data->rechecks);
+			double bestScore = 64*6400 * data->rechecks;
 			entity *temptarget = NULL;
 			entity* runner = who->mySector->firstentity;
 			double d;
@@ -474,25 +535,28 @@ static void aiMajorMinerAct(entity *who){
 				runner = runner->next;
 			}
 			unlinkNear();
-			if ((data->target = temptarget) != NULL)
+			if ((data->target = temptarget) != NULL) {
 				data->recheckTime = 1;
-			else if (who->minerals) {
+				data->rechecks = 0;
+			} else if (who->minerals != 352*352*2) {
 				behavior = 1;
 				data->recheckTime = 1;
+				data->rechecks = 0;
 			}
 		}
 	}
 	if(who->energy == who->maxEnergy) data->phase = 0;
 	if(who->energy < 2) data->phase = 1;
-	if(data->phase == 0){
+	if(data->phase == 0 && behavior > 0){
 		(who->modules[0]->actFunc)(who, 0, 1);
 	}
+	(who->modules[1]->actFunc)(who, 1, 1);
 	if(behavior == 1){
 		entity* homestation = data->homestation;
 		circle(who, homestation, 1000 + who->r + homestation->r, 0);
 		int64_t dx = displacementX(who, homestation);
 		int64_t dy = displacementY(who, homestation);
-		//The transfer now works in theoretically the opposite direction, if I'm wounded and he can give me enough for my 2 base miners.
+		//The transfer now works in theoretically the opposite direction, if I'm low on minerals and he can give me enough for my 2 base miners.
 		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r
 		    && who->minerals != 352*352*2
 		    && homestation->minerals + who->minerals >= 352*352*2){
@@ -502,7 +566,7 @@ static void aiMajorMinerAct(entity *who){
 		}
 	}
 	if(behavior == 2 && data->target != NULL){
-		circle(who, data->target, miningRange/2 + who->r + data->target->r, 20);
+		circle(who, data->target, miningRange/2 + who->r + data->target->r, 30);
 	}
 }
 
@@ -526,7 +590,7 @@ static void aiStationAct(entity *who)
 void initAis(){
 	aiHuman.loadSector = 1;
 	aiHuman.act = aiHumanAct;
-	aiHuman.handleCollision = noCareCollision;
+	aiHuman.handleCollision = aiHumanCollision;
 	aiMissile.loadSector = 0;
 	aiMissile.act = aiMissileAct;
 	aiMissile.handleCollision = aiMissileCollision;

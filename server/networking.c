@@ -30,7 +30,8 @@ static int32_t simonMod(int64_t a, int32_t b){
 	return result;
 }
 
-static int8_t data[6000];
+#define NETLEN 6000
+static int8_t data[NETLEN];
 
 static void sendRadar(client* cli){
 	int dataLen = 2;
@@ -54,6 +55,10 @@ static void sendRadar(client* cli){
 			runner = runner->next;
 			continue;
 		}
+		if (dataLen + 3 > NETLEN) {
+			puts("Dear Lord, even the radar packet is too big!");
+			break;
+		}
 		data[dataLen+2] = d+63;
 		data[dataLen] = runner->faction;
 		dataLen+=3;
@@ -70,7 +75,7 @@ static void sendRadar(client* cli){
 	else data[2] -= 64;
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
-	if(dataLen > 6000) puts("Radar packet too large, not sending!");
+	if(dataLen > NETLEN) puts("Radar packet too large, not sending!");
 	else sendto(sockfd, data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 }
 
@@ -111,16 +116,21 @@ void sendInfo(){
 		data[6] = me->energy*255/me->maxEnergy;
 		dataLen = 7;
 		while(runner){
+			if (dataLen + 7 > NETLEN) {
+				puts("Nope, too long!");
+				break;
+			}
 			data[dataLen+0] = 0x01*runner->theta+0x10*runner->thrustFlag+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
 			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
-			if(d < INT16_MIN || d > INT16_MAX){
+		#define NET_VIEW_RANGE ((LOCK_RANGE/64)+1)
+			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
 			}
 			*(int16_t*)(data+dataLen+2) = d;
 			d = simonDivide(displacementY(conductor->myShip, runner)+32, 64);
-			if(d < INT16_MIN || d > INT16_MAX){
+			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
 			}
@@ -134,7 +144,11 @@ void sendInfo(){
 			}
 			dataLen+=7;
 			int count = 0;
-			while(count<runner->numTrails){
+			for (; count<runner->numTrails; count++){
+				if (dataLen + 3 > NETLEN) {
+					puts("Just too long.");
+					break;
+				}
 				data[dataLen-1] |= 0x80;
 				data[dataLen+2] = runner->trailTypes[count];
 				d = simonDivide(displacementX(runner, runner->trailTargets[count])+32, 64);
@@ -150,13 +164,12 @@ void sendInfo(){
 				}
 				data[dataLen+1] = d;
 				dataLen+=3;
-				count++;
 			}
 			runner = runner->next;
 		}
 		unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-		if(dataLen > 6000) puts("Network packet too large, not sending!");
+		if(dataLen > NETLEN) puts("Network packet too large, not sending!");
 		else sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
 		prev = conductor;
 		conductor = conductor->next;

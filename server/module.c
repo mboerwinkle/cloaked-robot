@@ -23,7 +23,7 @@ typedef struct {
 	int cost, type, aiType;
 } bayModuleData;
 
-#define MAX_MINING_DRONES 30
+#define MAX_MINING_DRONES 8
 typedef struct {
 	entity *(dronesDeployed[MAX_MINING_DRONES]);
 	entity *(asteroidsTargeted[MAX_MINING_DRONES]);
@@ -234,7 +234,7 @@ static void bayAct(entity *who, int ix, char action){
 	*charge = 1;
 	who->energy -= 100;
 	who->minerals -= data->cost;
-	entity* what = newEntity(data->type, data->aiType, who->faction, who->mySector, who->x, who->y);
+	entity* what = newEntity(data->type, data->aiType, who->faction, who->mySector, who->x+10*who->cosTheta, who->y+10*who->sinTheta);
 	what->vx = who->vx;
 	what->vy = who->vy;
 	what->theta = who->theta;

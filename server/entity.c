@@ -47,8 +47,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 		(*lazorModule.initFunc)(ret, 1, 1);
-		(*miningBayModule.initFunc)(ret, 2, 1);
-		ret->minerals = 352*352;
+		(*miningModule.initFunc)(ret, 2, 1);
 	}else if(type == 1){//missile
 		ret->r = 64;
 		hasModules(0);
@@ -127,7 +126,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->lockSettings = 1;
 	} else if (type == 9) { //Major Miner
 		ret->r = 1280;
-		hasModules(1);
+		hasModules(2);
 		ret->minerals = 352*352*2;
 		ret->thrust = 2.5;
 		ret->maxTurn = 7;
@@ -135,12 +134,8 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = 80;
 		ret->shieldRegen = .05;
 		ret->energyRegen = 1;
-		if (aiType == 100) {
-			(*miningBayModule.initFunc)(ret, 0, 1);
-			aiType = 9;
-		} else {
-			(*miningModule.initFunc)(ret, 0, 1);
-		}
+		(*miningModule.initFunc)(ret, 0, 1);
+		(*miningBayModule.initFunc)(ret, 1, 1);
 	} else if (type == 10) { //Planet / station
 		ret->r = 4800;
 		hasModules(2);
@@ -184,6 +179,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(destroyerAiData));
 		((destroyerAiData*)ret->aiFuncData)->shotsLeft = 0;
 		((destroyerAiData*)ret->aiFuncData)->recheckTime = 1;
+		((destroyerAiData*)ret->aiFuncData)->rechecks = 0;
 	} else if (aiType == 8) {
 		ret->myAi = &aiMinorMiner;
 		ret->aiFuncData = malloc(sizeof(minorMinerAiData));
@@ -196,6 +192,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		((majorMinerAiData*)ret->aiFuncData)->homestation = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 100;
+		((majorMinerAiData*)ret->aiFuncData)->rechecks = 0;
 		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
 	} else if (aiType == 10) {
 		ret->myAi = &aiStation;
@@ -254,17 +251,30 @@ char tick2(entity* who){
 	who->actedFlag = globalActedFlag;
 	linkNear(who, 64*1000);
 	entity *otherGuy = who->mySector->firstentity;
-	double dx, dy, d;
+	double dx, dy, d, r;
 
 	while(otherGuy){
 		if(otherGuy->actedFlag != globalActedFlag || otherGuy == who){
 			otherGuy = otherGuy->next;
 			continue;
 		}
+		r = who->r + otherGuy->r;
 		dx = displacementX(who, otherGuy);
+		if (dx > r) {
+			otherGuy = otherGuy->next;
+			continue;
+		}
 		dy = displacementY(who, otherGuy);
+		if (dy > r) {
+			otherGuy = otherGuy->next;
+			continue;
+		}
+		if (dx == 0 && dy == 0) {
+			otherGuy = otherGuy->next;
+			continue;
+		}
 		d = sqrt(dx*dx+dy*dy);
-		if(d > who->r + otherGuy->r || d==0){
+		if(d > r){
 			otherGuy = otherGuy->next;
 			continue;
 		}
