@@ -147,8 +147,10 @@ static void aiDroneAct(entity* who){
 	}
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
-		linkNear(who, 64*6400);
-		double bestScore = 64*6400*4;
+		if (data->repeats < 20)
+			data->repeats++;
+		linkNear(who, 64*6400 * data->repeats);
+		double bestScore = 64*6400*4 * data->repeats;
 		data->target = NULL;
 		entity* runner = who->mySector->firstentity;
 		int64_t d;
@@ -158,17 +160,17 @@ static void aiDroneAct(entity* who){
 				continue;
 			}
 			dx = displacementX(who, runner);
-			if(abs(dx) > 64*6400){
+			if(abs(dx) > 64*6400 * data->repeats){
 				runner = runner->next;
 				continue;
 			}
 			dy = displacementY(who, runner);
-			if(abs(dy) > 64*6400){
+			if(abs(dy) > 64*6400 * data->repeats){
 				runner = runner->next;
 				continue;
 			}
 			d = sqrt(dx*dx+dy*dy);
-			if(d > 64*6400){
+			if(d > 64*6400 * data->repeats){
 				runner = runner->next;
 				continue;
 			}
@@ -177,7 +179,7 @@ static void aiDroneAct(entity* who){
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
 			if(angle>M_PI) angle = 2*M_PI - angle;
 			double score = d*(1+angle/M_PI);
-			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400;
+			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400 * data->repeats;
 			if(score < bestScore){
 				bestScore = score;
 				data->target = runner;
@@ -185,6 +187,9 @@ static void aiDroneAct(entity* who){
 			runner = runner->next;
 		}
 		unlinkNear();
+		// If we have an enemy target, we don't need to look any farther next time.
+		if (data->target && (who->lockSettings & (1<<data->target->faction)))
+			data->repeats--;
 	}
 	if(data->target == NULL){	
 		if(vx*vx+vy*vy < 62500){
@@ -205,7 +210,11 @@ static void aiDroneAct(entity* who){
 	double dvy = who->vy - data->target->vy;	
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
-	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) who->targetLock = data->target;
+	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) {
+		who->targetLock = data->target;
+		//So we can drop back to regular scanning range
+		data->repeats = 0;
+	}
 	if(who->targetLock == NULL){
 		(who->modules[0]->actFunc)(who, 0, 0);
 		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.

@@ -138,7 +138,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*miningBayModule.initFunc)(ret, 1, 1);
 	} else if (type == 10) { //Planet / station
 		ret->r = 4800;
-		hasModules(2);
+		hasModules(4);
 		ret->thrust = 0;
 		ret->maxTurn = 20;
 		ret->shield = ret->maxShield = 1000;
@@ -146,8 +146,10 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shieldRegen = 0.05;
 		ret->energyRegen = 2;
 		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 100)
+		(*bayModule.initFunc)(ret, 0, 2.02);
 		(*bayModule.initFunc)(ret, 0, 3.02);
 		(*bayModule.initFunc)(ret, 1, 7.07);
+		(*bayModule.initFunc)(ret, 1, 9.09);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -160,6 +162,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
+		((droneAiData*)ret->aiFuncData)->repeats = 0;
 		((droneAiData*)ret->aiFuncData)->target = NULL;
 	}else if(aiType == 3){
 		ret->myAi = &aiAsteroid;

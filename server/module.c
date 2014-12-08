@@ -259,7 +259,9 @@ static void miningAct(entity* who, int ix, char action){
 				who->energy -= 2;
 				if(data->counter >= data->target->maxShield){
 					data->target->shield = -1000; // Very dead
-					who->minerals += (data->target->minerals + data->target->r*data->target->r)/3;
+					double minerals = data->target->r*data->target->r + data->target->minerals;
+					int size = (2.0/3)*minerals;
+					who->minerals += minerals - size + (size%(704*704)%(320*320));
 					data->target = NULL;
 				}
 				return;

@@ -70,6 +70,7 @@ typedef struct entity{
 }entity;
 
 typedef struct droneAiData{
+	char repeats;
 	short timer;
 	entity *target;
 }droneAiData;

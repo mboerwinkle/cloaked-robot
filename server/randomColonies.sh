@@ -37,6 +37,13 @@ entity
 echo $1 >> sectors/0_0
 echo $2 >> sectors/0_0
 echo $(( $3 - 8000 )) >> sectors/0_0
+echo 'end
+entity
+9
+9' >> sectors/0_0
+echo $1 >> sectors/0_0
+echo $2 >> sectors/0_0
+echo $(( $3 + 8000 )) >> sectors/0_0
 echo end >> sectors/0_0
 }
 
