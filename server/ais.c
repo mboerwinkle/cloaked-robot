@@ -395,7 +395,8 @@ static void aiDestroyerAct(entity *who)
 				data->shotsLeft = -100;
 				return;
 			}
-			data->rechecks = 0;
+			data->rechecks = (bestScore + 6400) / (64*6400);
+			data->shotsLeft = -1;
 			if (bestScore < LOCK_RANGE) {
 				data->recheckTime = 1;
 				who->targetLock = target;

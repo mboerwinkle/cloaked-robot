@@ -145,11 +145,11 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energy = ret->maxEnergy = 100;
 		ret->shieldRegen = 0.05;
 		ret->energyRegen = 2;
-		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 100)
-		(*bayModule.initFunc)(ret, 0, 2.02);
-		(*bayModule.initFunc)(ret, 1, 3.02);
-		(*bayModule.initFunc)(ret, 2, 7.07);
-		(*bayModule.initFunc)(ret, 3, 9.09);
+		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 128)
+		(*bayModule.initFunc)(ret, 0, 2 + 2.0/128);
+		(*bayModule.initFunc)(ret, 1, 3 + 2.0/128);
+		(*bayModule.initFunc)(ret, 2, 7 + 7.0/128);
+		(*bayModule.initFunc)(ret, 3, 9 + 9.0/128);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
@@ -182,7 +182,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->aiFuncData = malloc(sizeof(destroyerAiData));
 		((destroyerAiData*)ret->aiFuncData)->shotsLeft = 0;
 		((destroyerAiData*)ret->aiFuncData)->recheckTime = 1;
-		((destroyerAiData*)ret->aiFuncData)->rechecks = 0;
+		((destroyerAiData*)ret->aiFuncData)->rechecks = 7;
 	} else if (aiType == 8) {
 		ret->myAi = &aiMinorMiner;
 		ret->aiFuncData = malloc(sizeof(minorMinerAiData));

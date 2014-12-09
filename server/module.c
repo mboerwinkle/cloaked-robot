@@ -59,7 +59,7 @@ static void bayInit(entity* who, int ix, double value){
 	who->moduleDatas[ix] = data;
 	data->charge = 0;
 	data->type = (int)value;
-	data->aiType = 100 * (value - data->type);
+	data->aiType = 128 * (value - data->type);
 	entity *killMe = newEntity(data->type, data->aiType, who->faction, who->mySector, 0, 0);
 	data->cost = killMe->r * killMe->r + killMe->minerals;
 	who->mySector->firstentity = killMe->next;
