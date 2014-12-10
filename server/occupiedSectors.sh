@@ -77,4 +77,4 @@ do
 done
 
 echo "Server launched. 8 colonies, 15 asteroid fields per team. The enemy sector is one east of here."
-./run
+gdb ./run

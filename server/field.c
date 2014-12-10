@@ -70,7 +70,8 @@ void run2(sector *sec){
 					}
 				}
 			}
-			if(tmp->myAi->loadSector)disappear(sec->x, sec->y);
+			if(tmp->myAi->loadSector)
+				disappear(sec->x, sec->y);
 		}else{
 			prev = current;
 			current = current->next;
