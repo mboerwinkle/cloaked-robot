@@ -46,7 +46,8 @@ static void paint(){
 
 static void teamColor(char faction){
 	if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
-	if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
+	//if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
+	if(faction == 1) SDL_SetRenderDrawColor(render, 0, 255,  0, 255);//red, pirates
 	if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
 	if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
 }
@@ -115,7 +116,7 @@ static void drawRadar(int8_t* data, int len){
 		i+=3;
 	}
 	rect.x = rect.y = 63;
-	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
+	SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
 	SDL_RenderFillRect(render, &rect);
 	/*struct myPthreadData *pData = malloc(sizeof(struct myPthreadData));
 	pData->imgData = imgData;
@@ -227,6 +228,7 @@ static void handleNetwork(){
 			//if(faction == 1 && ship == 2) ship = 14;
 #ifdef PAUL
 			if (faction == 1 && ship == 7) ship = 11;
+			if (faction == 2 && ship == 2) ship = 12;
 #endif
 			int size = rect.w = rect.h = pictures[ship].size*SCREEN_MULTIPLE;
 			int x = *(int16_t*)(data+(++i))*SCREEN_MULTIPLE;
