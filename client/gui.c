@@ -225,6 +225,9 @@ static void handleNetwork(){
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
 			//if(faction == 1 && ship == 2) ship = 14;
+#ifdef PAUL
+			if (faction == 1 && ship == 7) ship = 11;
+#endif
 			int size = rect.w = rect.h = pictures[ship].size*SCREEN_MULTIPLE;
 			int x = *(int16_t*)(data+(++i))*SCREEN_MULTIPLE;
 			int y = *(int16_t*)(data+(i+=2))*SCREEN_MULTIPLE;
