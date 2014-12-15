@@ -137,6 +137,8 @@ void sendInfo(){
 			*(int16_t*)(data+dataLen+4) = d;
 			if (runner->shield <= 0)
 				data[dataLen+6] = 0;
+			else if (runner->shield > runner->maxShield)
+				data[dataLen+6] = 31;
 			else
 				data[dataLen+6] = runner->shield*31/runner->maxShield;
 			if(runner == conductor->myShip->targetLock){

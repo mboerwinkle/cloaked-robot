@@ -225,6 +225,7 @@ static void handleNetwork(){
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
 			//if(faction == 1 && ship == 2) ship = 14;
+			if (ship == 11) ship = 0; // Freeze tag players look like regular human ships
 #ifdef PAUL
 			if (faction == 1 && ship == 7) ship = 11;
 			if (faction == 2 && ship == 2) ship = 12;

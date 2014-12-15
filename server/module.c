@@ -26,6 +26,7 @@ typedef struct {
 } bayModuleData;
 
 typedef struct {
+	int recheck;
 	char active;
 	int shield;
 	int energy;
@@ -90,13 +91,10 @@ static void miningBayInit(entity *who, int ix, double value)
 
 static void stasisInit(entity *who, int ix, double value)
 {
-	/*if (who->faction == 1) { // Pirates don't believe in stasis
-		who->modules[ix] = NULL;
-		return;
-	}*/
 	who->modules[ix] = &stasisModule;
 	stasisModuleData *data = malloc(sizeof(stasisModuleData));
 	data->active = 0;
+	data->recheck = 0;
 	who->moduleDatas[ix] = data;
 }
 
@@ -408,21 +406,69 @@ static void stasisAct(entity *who, int ix, char action)
 			who->energy = 0;
 			who->vx = 0;
 			who->vy = 0;
+			if (data->recheck--)
+				return;
+			data->recheck = 120;
+			linkNear(who, 64*6400);
+			entity *runner = who->mySector->firstentity;
+			while (runner) {
+				if (runner != who && runner->faction == 2 && runner->shield == runner->maxShield) {
+					break;
+				}
+				runner = runner->next;
+			}
+			if (runner == NULL) {
+				unlinkNear();
+				return;
+			}
+			puts("Everyone's frozen!");
+			runner = who->mySector->firstentity;
+			while (runner) {
+				runner->faction = 0;
+				runner->shield = runner->maxShield;
+			}
+			unlinkNear();
 		}
-	} else if (who->shield != who->maxShield) {
-		data->active = 1;
-		data->shield = who->shield;
-		data->energy = who->energy;
-		data->vx = who->vx;
-		data->vy = who->vy;
-		data->x = who->x;
-		data->y = who->y;
+	} else if (who->faction == 2) {
+		if(who->shield != who->maxShield) {
+			data->active = 1;
+			data->shield = who->shield;
+			data->energy = who->energy;
+			data->vx = who->vx;
+			data->vy = who->vy;
+			data->x = who->x;
+			data->y = who->y;
+			return;
+		}
+		if (data->recheck--)
+			return;
+		data->recheck = 120;
+		linkNear(who, 64*6400);
+		int count = 0;
+		entity *runner = who->mySector->firstentity;
+		while (runner) {
+			if (runner->faction != 2 || runner->shield != runner->maxShield)
+				break;
+			runner = runner->next;
+			count++;
+		}
+		if (runner != NULL) {
+			unlinkNear();
+			return;
+		}
+		puts("Picking someone to be 'it'!");
+		count = random() % count;
+		runner = who->mySector->firstentity;
+		while (count--)
+			runner = runner->next;
+		unlinkNear();
+		runner->faction = 1;
 	}
 }
 
 static void healRayAct(entity* who, int ix, char action){
 	char* charge = (char*)who->moduleDatas[ix];
-	if(*charge < 60){
+	if(*charge < 90){
 		(*charge)++;
 		return;
 	}
@@ -449,7 +495,7 @@ static void healRayAct(entity* who, int ix, char action){
 	if(target == NULL) return;
 	*charge = 1;
 	who->energy -= 20;
-	if (who->lockSettings & (1<<runner->faction))
+	if (who->lockSettings & (1<<target->faction))
 		target->shield -= 5;
 	else
 		target->shield += 20;
