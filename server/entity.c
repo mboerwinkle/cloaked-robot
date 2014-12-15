@@ -65,7 +65,6 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
-		//(*missileModule.initFunc)(ret, 0, 1);
 		(*gunModule.initFunc)(ret, 0, 1);
 	}else if(type == 3){//carrier	
 		ret->r = 3480;

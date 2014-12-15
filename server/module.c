@@ -10,6 +10,8 @@ module bayModule;
 module miningModule;
 module miningBayModule;
 module spawnModule;
+module stasisModule;
+module healRayModule;
 
 #define vecToTheta(x, y) ((int)((atan2(y, x) + M_PI*(2+1.0/16)) / (M_PI/8)) % 16)
 
@@ -22,6 +24,15 @@ typedef struct {
 	char charge;
 	int cost, type, aiType;
 } bayModuleData;
+
+typedef struct {
+	char active;
+	int shield;
+	int energy;
+	double vx;
+	double vy;
+	int32_t x, y;
+} stasisModuleData;
 
 #define MAX_MINING_DRONES 8
 typedef struct {
@@ -75,6 +86,23 @@ static void miningBayInit(entity *who, int ix, double value)
 	who->moduleDatas[ix] = data;
 	data->numDeployed = 0;
 	data->charge = 0;
+}
+
+static void stasisInit(entity *who, int ix, double value)
+{
+	/*if (who->faction == 1) { // Pirates don't believe in stasis
+		who->modules[ix] = NULL;
+		return;
+	}*/
+	who->modules[ix] = &stasisModule;
+	stasisModuleData *data = malloc(sizeof(stasisModuleData));
+	data->active = 0;
+	who->moduleDatas[ix] = data;
+}
+
+static void healRayInit(entity* who, int ix, double value){
+	who->modules[ix] = &healRayModule;
+	who->moduleDatas[ix] = calloc(1, 1);
 }
 
 static void realCleanup(entity* who, int ix){
@@ -360,6 +388,74 @@ static void miningBayAct(entity *who, int ix, char action)
 	what->targetLock = winner;
 }
 
+static void stasisAct(entity *who, int ix, char action)
+{
+	stasisModuleData *data = (stasisModuleData*)who->moduleDatas[ix];
+	if (data->active) {
+		who->x = data->x;
+		who->y = data->y;
+		if (who->shield == who->maxShield) {
+			data->active = 0;
+			who->vx = data->vx;
+			who->vy = data->vy;
+			who->energy = data->energy;
+		} else {
+			who->shield -= who->shieldRegen;
+			if (who->shield < data->shield)
+				who->shield = data->shield;
+			else
+				data->shield = who->shield;
+			who->energy = 0;
+			who->vx = 0;
+			who->vy = 0;
+		}
+	} else if (who->shield != who->maxShield) {
+		data->active = 1;
+		data->shield = who->shield;
+		data->energy = who->energy;
+		data->vx = who->vx;
+		data->vy = who->vy;
+		data->x = who->x;
+		data->y = who->y;
+	}
+}
+
+static void healRayAct(entity* who, int ix, char action){
+	char* charge = (char*)who->moduleDatas[ix];
+	if(*charge < 60){
+		(*charge)++;
+		return;
+	}
+	if(!action || who->energy < 20) return;
+	linkNear(who, 6400);
+	entity* target = NULL;
+	entity* runner = who->mySector->firstentity;
+	int64_t bestDist = (int64_t)6400*6400;
+	while(runner){
+		if(runner == who){
+			runner = runner->next;
+			continue;
+		}
+		int64_t dx = displacementX(who, runner);
+		int64_t dy = displacementY(who, runner);
+		dx = dx*dx+dy*dy;
+		if(dx > 0 /*no overflows*/ && dx < bestDist){
+			bestDist = dx;
+			target = runner;
+		}
+		runner = runner->next;
+	}
+	unlinkNear();
+	if(target == NULL) return;
+	*charge = 1;
+	who->energy -= 20;
+	if (who->lockSettings & (1<<runner->faction))
+		target->shield -= 5;
+	else
+		target->shield += 20;
+	addTrail(who, target, 0);
+}
+
 void initModules(){
 	missileModule.initFunc=missileInit;
 	missileModule.actFunc=missileAct;
@@ -379,4 +475,10 @@ void initModules(){
 	miningBayModule.initFunc=miningBayInit;
 	miningBayModule.actFunc=miningBayAct;
 	miningBayModule.cleanupFunc=realCleanup;
+	stasisModule.initFunc = stasisInit;
+	stasisModule.actFunc = stasisAct;
+	stasisModule.cleanupFunc = realCleanup;
+	healRayModule.initFunc = healRayInit;
+	healRayModule.actFunc = healRayAct;
+	healRayModule.cleanupFunc = realCleanup;
 }

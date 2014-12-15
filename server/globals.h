@@ -147,6 +147,8 @@ extern module gunModule;
 extern module bayModule;
 extern module miningModule;
 extern module miningBayModule;
+extern module stasisModule;
+extern module healRayModule;
 
 #define MISSILE_E_COST 60
 #define miningRange 2000
