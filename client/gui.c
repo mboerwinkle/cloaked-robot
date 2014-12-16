@@ -349,7 +349,10 @@ int main(int argc, char** argv){
 	serverAddr.sin_port=htons(3333);
 	inet_aton(argv[1], &serverAddr.sin_addr);
 
-	char* tmp = "]yo";
+	char tmp[20];
+	strcpy(tmp, "]yo");
+	if (argc >= 3)
+		strcpy(tmp+1, argv[2]);
 	sendto(sockfd, tmp, 4, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 	struct timespec t = {.tv_sec = 0, .tv_nsec = 10000000};
 	while(running){
