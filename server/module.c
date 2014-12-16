@@ -406,30 +406,42 @@ static void stasisAct(entity *who, int ix, char action)
 			who->energy = 0;
 			who->vx = 0;
 			who->vy = 0;
+			turn(who, 3);
 			if (data->recheck--)
 				return;
 			data->recheck = 120;
 			linkNear(who, 64*6400);
 			entity *runner = who->mySector->firstentity;
 			while (runner) {
-				if (runner != who && runner->faction == 2 && runner->shield == runner->maxShield) {
+				if (runner->type == 11 && runner != who && runner->faction == 2 && runner->shield == runner->maxShield) {
 					break;
 				}
 				runner = runner->next;
 			}
-			if (runner == NULL) {
+			if (runner != NULL) {
 				unlinkNear();
 				return;
 			}
 			puts("Everyone's frozen!");
 			runner = who->mySector->firstentity;
 			while (runner) {
-				runner->faction = 0;
-				runner->shield = runner->maxShield;
+				if (runner->type == 11) {
+					runner->faction = 2;
+					runner->thrust = 3;
+					runner->lockSettings = 2;
+					runner->shield = runner->maxShield;
+				}
+				runner = runner->next;
 			}
 			unlinkNear();
 		}
-	} else if (who->faction == 2) {
+		return;
+	}
+	if (who->mySector->x != 0)
+		who->x = -(1+POS_MAX-POS_MIN) * who->mySector->x;
+	if (who->mySector->y != 0)
+		who->y = -(1+POS_MAX-POS_MIN) * who->mySector->y;
+	if (who->faction == 2) {
 		if(who->shield != who->maxShield) {
 			data->active = 1;
 			data->shield = who->shield;
@@ -447,10 +459,12 @@ static void stasisAct(entity *who, int ix, char action)
 		int count = 0;
 		entity *runner = who->mySector->firstentity;
 		while (runner) {
-			if (runner->faction != 2 || runner->shield != runner->maxShield)
-				break;
+			if (runner->type == 11) {
+				if (runner->faction != 2 || runner->shield != runner->maxShield)
+					break;
+				count++;
+			}
 			runner = runner->next;
-			count++;
 		}
 		if (runner != NULL) {
 			unlinkNear();
@@ -459,10 +473,15 @@ static void stasisAct(entity *who, int ix, char action)
 		puts("Picking someone to be 'it'!");
 		count = random() % count;
 		runner = who->mySector->firstentity;
-		while (count--)
+		while (1) {
+			if (runner->type == 11 && count-- == 0)
+				break;
 			runner = runner->next;
+		}
 		unlinkNear();
 		runner->faction = 1;
+		runner->thrust = 4;
+		runner->lockSettings = 12;
 	}
 }
 

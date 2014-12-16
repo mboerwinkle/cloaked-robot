@@ -151,16 +151,17 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*bayModule.initFunc)(ret, 3, 9 + 9.0/128);
 	} else if (type == 11) { // freeze tag player
 		ret->r = 640;
-		hasModules(3);
+		hasModules(4);
 		ret->thrust = 3;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
-		ret->shieldRegen = 0.5;
+		ret->shieldRegen = 2;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
 		(*missileModule.initFunc)(ret, 0, 1);
 		(*healRayModule.initFunc)(ret, 1, 1);
-		(*stasisModule.initFunc)(ret, 2, 1);
+		(*miningModule.initFunc)(ret, 2, 1);
+		(*stasisModule.initFunc)(ret, 3, 1);
 	}
 	if(aiType == 0){
 		ret->myAi = &aiHuman;

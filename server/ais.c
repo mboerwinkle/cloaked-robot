@@ -120,7 +120,7 @@ static void aiHumanAct(entity* who){
 	if(data->keys & 0x04) thrust(who);
 	int i = 0;
 	for (; i < who->numModules; i++)
-		(who->modules[i]->actFunc)(who, i, data->keys&(0x20<<i));
+		(who->modules[i]->actFunc)(who, i, i<3 && (data->keys&(0x20<<i)));
 }
 
 static void aiHumanCollision(entity *who, entity *him)
@@ -490,11 +490,11 @@ static void aiMajorMinerAct(entity *who){
 	if(behavior == 0){
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			if (data->rechecks < 20)
-				data->rechecks++;
-			linkNear(who, 64*6400 * data->rechecks);
+			/*if (data->rechecks < 20)
+				data->rechecks++;*/
+			linkNear(who, 64*6400 * 20); // data->rechecks);
 			entity* runner = who->mySector->firstentity;
-			double bestDist = 64*6400 * data->rechecks;
+			double bestDist = 64*6400 * 20; // data->rechecks;
 			double r = 641;//must be bigger than a drone
 			while(runner){
 				if(runner->faction == who->faction && runner->r >= r && runner != who){
@@ -516,7 +516,7 @@ static void aiMajorMinerAct(entity *who){
 			unlinkNear();
 			if (data->homestation) {
 				data->recheckTime = 1;
-				data->rechecks = 0;
+				//data->rechecks = 0;
 			}
 		}
 		return;
@@ -524,10 +524,10 @@ static void aiMajorMinerAct(entity *who){
 	if(behavior == -1) {
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			if (data->rechecks < 20)
-				data->rechecks++;
-			linkNear(who, 64*6400 * data->rechecks);
-			double bestScore = 64*6400 * data->rechecks;
+			//if (data->rechecks < 20)
+				//data->rechecks++;
+			linkNear(who, 64*6400 * 20); // data->rechecks);
+			double bestScore = 64*6400 * 20; // data->rechecks;
 			entity *temptarget = NULL;
 			entity* runner = who->mySector->firstentity;
 			double d;
@@ -547,11 +547,11 @@ static void aiMajorMinerAct(entity *who){
 			unlinkNear();
 			if ((data->target = temptarget) != NULL) {
 				data->recheckTime = 1;
-				data->rechecks = 0;
+				//data->rechecks = 0;
 			} else if (who->minerals != 352*352*2) {
 				behavior = 1;
 				data->recheckTime = 1;
-				data->rechecks = 0;
+				//data->rechecks = 0;
 			}
 		}
 	}
