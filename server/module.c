@@ -287,7 +287,7 @@ static void miningAct(entity* who, int ix, char action){
 					data->target->shield = -1000; // Very dead
 					double minerals = data->target->r*data->target->r + data->target->minerals;
 					int size = (2.0/3)*minerals;
-					who->minerals += minerals - size + (size%(704*704)%(320*320));
+					who->minerals += minerals - size + (size%(1280*1280)%(704*704)%(320*320));
 					data->target = NULL;
 				}
 				return;
@@ -351,7 +351,7 @@ static void miningBayAct(entity *who, int ix, char action)
 	entity *winner = NULL;
 	linkNear(who, miningRange*4);
 	while (runner) {
-		if (runner->faction != 0) {
+		if (runner->faction != 0 || runner->maxShield > 100) {
 			runner = runner->next;
 			continue;
 		}

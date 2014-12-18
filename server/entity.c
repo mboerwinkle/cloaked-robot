@@ -77,6 +77,14 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		ret->energyRegen = 1;
 		(*bayModule.initFunc)(ret, 0, 2.02);
 		ret->minerals = 640*640*10;
+	}else if (type == 12) { // Huge asteroid
+		ret->r = 1300; // By rights this ought to be 1280, but I like the asteroid distribution better this way
+		hasModules(0);
+		ret->thrust = 1.5;
+		ret->maxTurn = 14;
+		ret->shield = ret->maxShield = 170;
+		ret->shieldRegen = 0;
+		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 4){//large asteroid
 		ret->r = 704;
 		hasModules(0);
@@ -162,7 +170,7 @@ entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, 
 		(*healRayModule.initFunc)(ret, 1, 1);
 		(*miningModule.initFunc)(ret, 2, 1);
 		(*stasisModule.initFunc)(ret, 3, 1);
-	}
+	} // type 12 is a bit up from here, because it's a huge asteroid
 	if(aiType == 0){
 		ret->myAi = &aiHuman;
 		ret->aiFuncData = malloc(sizeof(humanAiData));

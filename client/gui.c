@@ -228,7 +228,7 @@ static void handleNetwork(){
 			if (ship == 11) ship = 0; // Freeze tag players look like regular human ships
 #ifdef PAUL
 			if (faction == 1 && ship == 7) ship = 11;
-			if (faction == 2 && ship == 2) ship = 12;
+			if (faction == 2 && ship == 2) ship = 13;
 #endif
 			int size = rect.w = rect.h = pictures[ship].size*SCREEN_MULTIPLE;
 			int x = *(int16_t*)(data+(++i))*SCREEN_MULTIPLE;

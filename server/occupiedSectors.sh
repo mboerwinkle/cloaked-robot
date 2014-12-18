@@ -3,7 +3,7 @@
 #Bash is a bit weird. The syntax for making a function looks like there are no arguments, but actually every function has arbitrarily many args. Maybe we should move to, like, python or lisp or something for this scripting. IDK.
 makeAsteroid () {
 echo 'entity
-4
+12
 3
 0' >> sectors/0_0
 echo $1 >> sectors/0_0
@@ -17,9 +17,9 @@ while [ $x -le 8000 ];
 do y=-8000;
 while [ $y -le 8000 ];
 do makeAsteroid $(( $x + $1 )) $(( $y + $2 ));
-let y+=2000;
+let y+=4000;
 done;
-let x+=2000;
+let x+=4000;
 done;
 }
 
