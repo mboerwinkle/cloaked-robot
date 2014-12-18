@@ -4,8 +4,6 @@
 #include <string.h>
 #include <fcntl.h>
 #include <time.h>
-//#include <Imlib2.h>
-//#include <pthread.h>
 #include <SDL2/SDL.h>
 
 #include <arpa/inet.h>
@@ -38,7 +36,7 @@ static int sockfd;
 static struct sockaddr_in serverAddr;
 
 spriteSheet* pictures = NULL;
-SDL_Texture* lolyoudied;
+SDL_Texture *lolyoudied, *plzcomeback;
 
 static void paint(){
 	SDL_RenderPresent(render);
@@ -50,32 +48,6 @@ static void teamColor(char faction){
 	if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
 	if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
 }
-/*
-struct myPthreadData {
-	uint32_t *imgData;
-	int number;
-	char join;
-	pthread_t prev;
-};
-char lastExists = 0;
-pthread_t lastId;
-
-static int radarCount = 0;
-static void *saveRadarImg(void *arg)
-{
-	struct myPthreadData *data = (struct myPthreadData*)arg;
-	Imlib_Image img = imlib_create_image_using_data(128, 128, data->imgData);
-	imlib_context_set_image(img);
-	char file[100];
-	sprintf(file, "radar%.4d.png", data->number);
-	imlib_save_image(file);
-	imlib_free_image();
-	free(data->imgData);
-	if (data->join)
-		pthread_join(data->prev, NULL);
-	free(data);
-	return NULL;
-}*/
 
 static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
@@ -89,45 +61,17 @@ static void drawRadar(int8_t* data, int len){
 	if(data[2]&64){
 		SDL_RenderDrawLine(render, 0, data[1], 128, data[1]);
 	}
-	/*uint32_t *imgData = calloc(128*128, 4);
-	uint32_t color;
-	int ix;*/
 	int i = 2;
 	while(i+2 < len){
 		teamColor(data[i]&0x3F);
 		rect.x = data[i+1];
 		rect.y = data[i+2];
-		/*SDL_GetRenderDrawColor(render, ((uint8_t*)&color)+2, ((uint8_t*)&color)+1, ((uint8_t*)&color), ((uint8_t*)&color)+3);
-		ix = rect.x + 128*rect.y;
-		if (rect.y >= 0) {
-			if (rect.x >= 0)
-			imgData[ix] = color;
-			if (rect.x < 127)
-			imgData[ix+1] = color;
-		}
-		if (rect.y < 127) {
-			if (rect.x >= 0)
-			imgData[ix+128] = color;
-			if (rect.x < 127)
-			imgData[ix+129] = color;
-		}*/
 		SDL_RenderFillRect(render, &rect);
 		i+=3;
 	}
 	rect.x = rect.y = 63;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
 	SDL_RenderFillRect(render, &rect);
-	/*struct myPthreadData *pData = malloc(sizeof(struct myPthreadData));
-	pData->imgData = imgData;
-	pData->number = radarCount++;
-	if (lastExists) {
-		pData->join = 1;
-		pData->prev = lastId;
-	} else {
-		pData->join = 0;
-		lastExists = 1;
-	}
-	pthread_create(&lastId, NULL, saveRadarImg, pData);*/
 
 	SDL_SetRenderTarget(render, NULL);
 }
@@ -198,26 +142,33 @@ static void handleNetwork(){
 			drawRadar(data, len);
 			continue;
 		}
-		if(*data & 0x40){ // A control packet
-			if(*data == 0x41){
-				rect.x = (width/2-100)*SCREEN_MULTIPLE;
-				rect.y = (height/2-50)*SCREEN_MULTIPLE;
-				rect.w = 200*SCREEN_MULTIPLE;
-				rect.h = 100*SCREEN_MULTIPLE;
-				SDL_RenderCopy(render, lolyoudied, NULL, &rect);
-				paint();
-				continue;
-			}
-		}
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.x = rect.y = 0;
 		rect.w = width*SCREEN_MULTIPLE;
 		rect.h = (height+20)*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);
-		int16_t bgx = *(int16_t*)(data+1);
-		int16_t bgy = *(int16_t*)(data+3);
+		int i = 0;
+		if(*data == 0x41){
+			i = 1;
+			rect.x = (width/2-100)*SCREEN_MULTIPLE;
+			rect.y = (height/2-50)*SCREEN_MULTIPLE;
+			rect.w = 200*SCREEN_MULTIPLE;
+			rect.h = 100*SCREEN_MULTIPLE;
+			SDL_RenderCopy(render, lolyoudied, NULL, &rect);
+			if (len == 1) { // Then clear the minimap too and paint
+				rect.x = (width+1)*SCREEN_MULTIPLE;
+				rect.y = 1*SCREEN_MULTIPLE;
+				rect.w = 128*SCREEN_MULTIPLE;
+				rect.h = 128*SCREEN_MULTIPLE;
+				SDL_RenderCopy(render, plzcomeback, NULL, &rect);
+				paint();
+				continue;
+			}
+		}
+		int16_t bgx = *(int16_t*)(data+i+1);
+		int16_t bgy = *(int16_t*)(data+i+3);
 		drawStars(bgx, bgy);
-		int i = 7;
+		i += 7;
 		while(i+6 < len){
 			//unsigned char theta = 0x0F & data[i];
 			//char flame = 0x10 & data[i];
@@ -236,8 +187,8 @@ static void handleNetwork(){
 			rect.x =  width*SCREEN_MULTIPLE/2-size/2+x;
 			rect.y = height*SCREEN_MULTIPLE/2-size/2+y;
 			SDL_RenderCopy(render, pictures[ship].data[sprite], NULL, &rect);
-			if(data[i+=2] & 0x20){
-				SDL_SetRenderDrawColor(render, 255, 0, 0, 255);
+			teamColor(faction);
+			if(data[i+=2] & 0x20){ // Then we're drawing a target lock!!
 				int index = abs(x)>abs(y) ? i-4 : i-2;
 				if(abs(*(int16_t*)(data+index)) > width/2){
 					double frac = (double)(width/2) / abs(*(int16_t*)(data+index));
@@ -251,7 +202,6 @@ static void handleNetwork(){
 				rect.x = width*SCREEN_MULTIPLE/2-size/2+x;
 				rect.w = size;
 			}
-			teamColor(faction);
 			rect.y = height*SCREEN_MULTIPLE/2+size/2+y+2*SCREEN_MULTIPLE;
 			rect.h = 3*SCREEN_MULTIPLE;
 			rect.w = rect.w*(data[i]&0x1F)/31;

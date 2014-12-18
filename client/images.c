@@ -91,5 +91,6 @@ void loadPics(){
 		loadPic(picturename);
 	}
 	lolyoudied = loadImage("mdls/death.png");
+	plzcomeback = loadImage("mdls/respawn.png");
 	SDL_SetTextureBlendMode(lolyoudied, SDL_BLENDMODE_BLEND);
 }

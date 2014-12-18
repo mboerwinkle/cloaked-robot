@@ -6,3 +6,4 @@ typedef struct{
 }spriteSheet;
 extern spriteSheet* pictures;
 extern SDL_Texture* lolyoudied;
+extern SDL_Texture* plzcomeback;

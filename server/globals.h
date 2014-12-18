@@ -38,7 +38,7 @@ extern void initAis();
 typedef struct entity{
 	char faction;
 	char actedFlag;
-	char destroyFlag;
+	int16_t destroyFlag;
 	char thrustFlag;
 	int type;
 	struct sector *mySector;

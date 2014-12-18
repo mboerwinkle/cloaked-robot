@@ -24,7 +24,10 @@ void linkNear(entity* who, int32_t radius){
 	if(who->x < POS_MIN+radius) l=1;
 	else if(who->x > POS_MAX-radius) r=1;
 
-	if(numLinked != 0) numLinked = 0;
+	if(numLinked != 0) {
+		puts("I think we may have (yet another) linkNear issue...");
+		numLinked = 0;
+	}
 	what = who;
 	if(l){
 		addLinkedSector(searchforsector(x-1, y));
@@ -42,4 +45,5 @@ void linkNear(entity* who, int32_t radius){
 void unlinkNear(){
 	if(numLinked == 0) return;
 	for(numLinked--; numLinked>=0; numLinked--) linkedIn[numLinked]->next = NULL;
+	numLinked = 0;
 }

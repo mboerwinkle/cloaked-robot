@@ -2,20 +2,15 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <limits.h>
+#include <string.h>
 #include "globals.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "networking.h"
 
-typedef struct client{
-	struct client* next;
-	char keys[6];
-	struct sockaddr_in addr;
-	entity *myShip;
-}client;
-
-static client* clientList = NULL;
+client* clientList = NULL;
 
 static int sockfd;
 
@@ -30,13 +25,17 @@ static int32_t simonMod(int64_t a, int32_t b){
 	return result;
 }
 
+// -120 / 40 Hz = 3 seconds until respawn
+#define CANSPAWN -120
+
 #define NETLEN 6000
 static int8_t data[NETLEN];
 
 static void sendRadar(client* cli){
 	int dataLen = 2;
 	entity* who = cli->myShip;
-	linkNear(who, 64*6400);
+	if (who->destroyFlag == 0) // Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
+		linkNear(who, 64*6400);
 	entity* runner = who->mySector->firstentity;
 	int64_t d;
 	while(runner){
@@ -64,7 +63,8 @@ static void sendRadar(client* cli){
 		dataLen+=3;
 		runner = runner->next;
 	}
-	unlinkNear();
+	if (who->destroyFlag == 0)
+		unlinkNear();
 	data[2] += 192;
 	if (dataLen < 3) dataLen = 3;
 	if(who->x < POS_MIN+6400*64) data[0] = (-who->x+POS_MIN+(6400*64))/6400;
@@ -83,38 +83,43 @@ void sendInfo(){
 	static char counter = 0;
 	if(++counter == 10) counter = 0;
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334)};
-	//TODO: Decide if the above should be static
 	int dataLen;
 	int64_t d;
-	client* prev = NULL;
 	client* conductor = clientList;
 	while(conductor){
+		dataLen = 0;
 		entity* me = conductor->myShip;
+		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
 		if(me->destroyFlag){
-			sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
-			*data = 0x41; // Lol, you died
-			sendto(sockfd, (char*)data, 1, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
-			if(prev){
-				prev->next = conductor->next;
-				free(conductor);
-				conductor = prev->next;
-				continue;
+			if (me->destroyFlag > 0) {
+				memcpy(&conductor->ghostShip, me, sizeof(entity)); // We don't care about all the modules, pointers, etc.
+				conductor->ghostShip.destroyFlag = -1;
+				conductor->myShip = &conductor->ghostShip;
+			} else if (me->destroyFlag > CANSPAWN) {
+				me->destroyFlag--;
+				if (me->destroyFlag == CANSPAWN)
+					disappear(me->mySector->x, me->mySector->y);
 			}
-			clientList = conductor->next;
-			free(conductor);
-			conductor = clientList;
-			continue;
+			*data = 0x41; // Lol, you died
+			if (me->destroyFlag == CANSPAWN) {
+				sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
+				sendto(sockfd, (char*)data, 1, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
+				conductor = conductor->next;
+				continue;
+			} else {
+				dataLen = 1;
+			}
 		}
-		if(counter == 0) sendRadar(conductor);
-		linkNear(me, LOCK_RANGE);
+		if (me->destroyFlag == 0)
+			linkNear(me, LOCK_RANGE);
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
-		data[0] = me->faction;
-		*(int16_t*)(data+1) = simonMod(simonDivide(conductor->myShip->x,64), 4096);
-		*(int16_t*)(data+3) = simonMod(simonDivide(conductor->myShip->y,64), 4096);
-		data[5] = me->shield*255/me->maxShield;
-		data[6] = me->energy*255/me->maxEnergy;
-		dataLen = 7;
+		data[dataLen] = me->faction;
+		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->x,64), 4096);
+		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->y,64), 4096);
+		data[dataLen+5] = me->shield*255/me->maxShield;
+		data[dataLen+6] = me->energy*255/me->maxEnergy;
+		dataLen += 7;
 		while(runner){
 			if (dataLen + 7 > NETLEN) {
 				puts("Nope, too long!");
@@ -169,11 +174,11 @@ void sendInfo(){
 			}
 			runner = runner->next;
 		}
-		unlinkNear();
+		if (me->destroyFlag == 0)
+			unlinkNear();
 		sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
 		if(dataLen > NETLEN) puts("Network packet too large, not sending!");
 		else sendto(sockfd, (char*)data, dataLen, 0, (struct sockaddr*)&sendAddr, sizeof(sendAddr));
-		prev = conductor;
 		conductor = conductor->next;
 	}
 }
@@ -198,6 +203,12 @@ void* netListen(void* whoGivesADern){
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
+				if (current->myShip->destroyFlag == CANSPAWN) {
+					current->myShip = loadship(current->name);
+					printf("Player %s has respawned!\n", current->name);
+				} else if (current->myShip->destroyFlag) {
+					break;
+				}
 				if(msgSize == 1)
 					((humanAiData*)current->myShip->aiFuncData)->keys = *msg;
 				break;
@@ -206,14 +217,18 @@ void* netListen(void* whoGivesADern){
 		}
 		if(current == NULL){//That is, he isn't joined yet
 			if(msgSize <= 1 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
-			printf("He requested ship %s\n", msg+1);
+			if (strnlen(msg, 20) == 20) { // Why isn't our string null-terminated?!?
+				puts("What, is this a hack attack???\nOMG, man......");
+				continue;
+			}
 			client* new = malloc(sizeof(client));
+			strcpy(new->name, msg+1);
+			printf("He requested ship %s\n", msg+1);
 			new->next = clientList;
 			new->addr = bindAddr;
 			new->myShip = loadship(msg+1);
 			clientList = new;
 		}
-//		printf("Message from %s\n", inet_ntoa(bindAddr.sin_addr));
 	}
 	return NULL;
 }

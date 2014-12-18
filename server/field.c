@@ -3,6 +3,27 @@
 #include <stdio.h>
 #include "globals.h"
 #include <math.h>
+#include <netinet/in.h>
+#include "networking.h"
+
+#define numDeathMessages 16
+static char const *(deathMessages[numDeathMessages]) = {
+	"should have stayed on Dagobah and finished their training!",
+	"should have diverted power to shields!",
+	"should have tried a crazy Ivan!",
+	"was unceremoniously vaporized!",
+	"was murderfied!",
+	"was killified!",
+	"looks moderately cadaverous!",
+	"doesn't look very healthy...",
+	"made modern art out of their ship!",
+	"has an odd idea of fun...",
+	"really should have installed escape pods!",
+	"won't be missed as much as will be said in the obit!",
+	"has to wait 3 friggin' seconds!",
+	"let their ship explode!",
+	"was removed from the gene pool!",
+	"isn't here right now, please leave a message."};
 
 char globalActedFlag = 0;
 
@@ -74,8 +95,18 @@ void run2(sector *sec){
 					}
 				}
 			}
-			if(tmp->myAi->loadSector)
-				disappear(sec->x, sec->y);
+			if(tmp->myAi->loadSector) {
+				client *runner = clientList;
+				while (runner) {
+					if (runner->myShip == tmp) {
+						printf("Oh No!!! Player %s %s\n", runner->name, deathMessages[random()%numDeathMessages]);
+						break; // If it's a client, the disappear will be handled separately, 3 seconds later.
+					}
+					runner = runner->next;
+				}
+				if (runner == NULL)
+					disappear(sec->x, sec->y);
+			}
 		}else{
 			prev = current;
 			current = current->next;

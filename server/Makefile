@@ -24,7 +24,7 @@ loadship.o: loadship.c globals.h
 unloadsector.o: unloadsector.c globals.h
 	$(CC) $(CFLAGS) unloadsector.c
 
-field.o: field.c globals.h
+field.o: field.c globals.h networking.h
 	$(CC) $(CFLAGS) field.c
 
 entity.o: entity.c globals.h
@@ -36,7 +36,7 @@ module.o: module.c globals.h
 ais.o: ais.c globals.h
 	$(CC) $(CFLAGS) ais.c
 
-networking.o: networking.c globals.h
+networking.o: networking.c globals.h networking.h
 	$(CC) $(CFLAGS) networking.c
 
 move.o: move.c globals.h
