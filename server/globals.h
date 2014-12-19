@@ -9,7 +9,6 @@ struct module;
 struct sector;
 
 extern int main();
-extern void gensector(uint64_t x, uint64_t y);
 extern void loadsector(uint64_t x, uint64_t y); 
 extern int mkship(char *name);
 extern struct entity* loadship(char *name);

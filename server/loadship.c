@@ -14,8 +14,14 @@ entity *loadship(char name[MAXNAMELEN]){
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}
-	fscanf(fp, "%"PRId64" %"PRId64"\n%"PRId32" %"PRId32"\n", &secx, &secy, &posx, &posy);
-	fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType);
+	if (4 > fscanf(fp, "%"PRId64" %"PRId64"\n%"PRId32" %"PRId32"\n", &secx, &secy, &posx, &posy)) {
+		puts("Looks like a corrupt file in loadship.c");
+		return NULL;
+	}
+	if (3 > fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType)) {
+		puts("Looks like a corrupt file in loadship.c.");
+		return NULL;
+	}
 	fclose(fp);
 	printf("%"PRId64" %" PRId64 "\n", secx, secy);
 	appear(secx, secy);

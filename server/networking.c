@@ -194,12 +194,14 @@ void* netListen(void* whoGivesADern){
 		puts("When in danger,\nOr in doubt,\nRun in circles!\nScream and shout!!!");
 		return NULL;
 	}
-	char msg[20];
+	//Judging from loadship.c, MAXNAMELEN includes the null byte in the count.
+	//The +1 here is for the ']' character
+	char msg[MAXNAMELEN+1];
 	socklen_t len;
 	int msgSize;
 	while(1){
 		len = sizeof(bindAddr);
-		msgSize = recvfrom(sockfd, msg, 20, 0, (struct sockaddr*)&bindAddr, &len);
+		msgSize = recvfrom(sockfd, msg, MAXNAMELEN+1, 0, (struct sockaddr*)&bindAddr, &len);
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
@@ -217,8 +219,8 @@ void* netListen(void* whoGivesADern){
 		}
 		if(current == NULL){//That is, he isn't joined yet
 			if(msgSize <= 1 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
-			if (strnlen(msg, 20) == 20) { // Why isn't our string null-terminated?!?
-				puts("What, is this a hack attack???\nOMG, man......");
+			if (strnlen(msg, MAXNAMELEN + 1) > MAXNAMELEN) {
+				printf("player name '%s' exceeds MAXNAMELEN of %d.\n", msg+1, MAXNAMELEN);
 				continue;
 			}
 			client* new = malloc(sizeof(client));
@@ -227,7 +229,12 @@ void* netListen(void* whoGivesADern){
 			new->next = clientList;
 			new->addr = bindAddr;
 			new->myShip = loadship(msg+1);
-			clientList = new;
+			if (new->myShip == NULL) {
+				puts("...But that isn't actually a ship :(");
+				free(new);
+			} else {
+				clientList = new;
+			}
 		}
 	}
 	return NULL;
