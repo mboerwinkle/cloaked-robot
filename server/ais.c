@@ -315,7 +315,7 @@ static void aiAsteroidAct(entity* who){
 }
 
 static void aiAsteroidCollision(entity* me, entity* him){
-	if((him->type != 4 && him->type != 5) || *(char*)him->aiFuncData){//if it's not an asteroid; prevents formation of astroid fields. Feel free to delete if you want asteroid fields
+	if((him->faction != 0) || *(char*)him->aiFuncData){//if it's not an asteroid; prevents formation of astroid fields. Feel free to delete if you want asteroid fields
 		char* aRat = (char*)me->aiFuncData;
 		if(*aRat) *aRat *= -1;
 		else *aRat = 1-2*(random()%2);
