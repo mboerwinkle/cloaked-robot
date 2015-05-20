@@ -72,11 +72,12 @@ static void bayInit(entity* who, int ix, double value){
 	data->charge = 0;
 	data->type = (int)value;
 	data->aiType = 128 * (value - data->type);
-	entity *killMe = newEntity(data->type, data->aiType, who->faction, who->mySector, 0, 0);
-	data->cost = killMe->r * killMe->r + killMe->minerals;
+	entity *killMe = newEntity(who->me, data->type, data->aiType, who->faction, who->mySector, 0, 0, 0, 0);
+	data->cost = killMe->me->r * killMe->me->r + killMe->minerals;
 	who->mySector->firstentity = killMe->next;
 	if (killMe->myAi->loadSector)
 		disappear(killMe->mySector->x, killMe->mySector->y);
+	destroyGuarantee(killMe->me);
 	freeEntity(killMe);
 }
 
@@ -118,9 +119,9 @@ static void missileAct(entity* who, int ix, char action){
 	if(!action || who->energy < MISSILE_E_COST) return;
 	*charge = 1;
 	who->energy -= MISSILE_E_COST;
-	entity* what = newEntity(1, 1, who->faction, who->mySector, who->x, who->y);
-	what->vx = who->vx + who->cosTheta*60 + -who->sinTheta*rand*.5;
-	what->vy = who->vy + who->sinTheta*60 + who->cosTheta*rand*.5;
+	int32_t vx = who->me->vel[0] + who->cosTheta*60 + -who->sinTheta*rand*.5;
+	int32_t vy = who->me->vel[1] + who->sinTheta*60 + who->cosTheta*rand*.5;
+	entity* what = newEntity(who->me, 1, 1, who->faction, who->mySector, who->me->pos[0], who->me->pos[1], vx, vy);
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
 }
@@ -172,8 +173,8 @@ static void gunAct(entity* who, int ix, char action){
 	} else {
 		int64_t rx = displacementX(who, who->targetLock);
 		int64_t ry = displacementY(who, who->targetLock);
-		double dvx = who->targetLock->vx - who->vx;
-		double dvy = who->targetLock->vy - who->vy;
+		double dvx = who->targetLock->me->vel[0] - who->me->vel[0];
+		double dvy = who->targetLock->me->vel[1] - who->me->vel[1];
 		double vy = sqrt(dvx*dvx + dvy*dvy);
 		double unx = dvx / vy;
 		double uny = dvy / vy;
@@ -243,9 +244,7 @@ static void gunAct(entity* who, int ix, char action){
 	who->energy -= 50;
 
 
-	entity* what = newEntity(6, 6, who->faction, who->mySector, who->x, who->y);
-	what->vx = who->vx + cos*bulletV;
-	what->vy = who->vy + sin*bulletV;
+	entity* what = newEntity(who->me, 6, 6, who->faction, who->mySector, who->me->pos[0], who->me->pos[1], who->me->vel[0] + cos*bulletV, who->me->vel[1] + sin*bulletV);
 	what->theta = vecToTheta(cos, sin);
 }
 
@@ -260,9 +259,7 @@ static void bayAct(entity *who, int ix, char action){
 	*charge = 1;
 	who->energy -= 100;
 	who->minerals -= data->cost;
-	entity* what = newEntity(data->type, data->aiType, who->faction, who->mySector, who->x+10*who->cosTheta, who->y+10*who->sinTheta);
-	what->vx = who->vx;
-	what->vy = who->vy;
+	entity* what = newEntity(who->me, data->type, data->aiType, who->faction, who->mySector, who->me->pos[0]+10*who->cosTheta, who->me->pos[1]+10*who->sinTheta, who->me->vel[0], who->me->vel[1]);
 	what->theta = who->theta;
 }
 
@@ -272,6 +269,7 @@ static void miningAct(entity* who, int ix, char action){
 		data->target = NULL;
 		return;
 	}
+	//printGs(NULL, who->mySector->topGuarantee);
 	if(data->target){
 		if(data->target->destroyFlag || data->target->shield <= 0){
 			data->target = NULL;
@@ -279,13 +277,13 @@ static void miningAct(entity* who, int ix, char action){
 			int64_t dx = displacementX(who, data->target);
 			int64_t dy = displacementY(who, data->target);
 			double dist = sqrt(dx*dx + dy*dy);
-			if(dist <= who->r + data->target->r + miningRange){
+			if(dist <= who->me->r + data->target->me->r + miningRange){
 				data->counter += 3;
 				addTrail(who, data->target, 1);
 				who->energy -= 2;
 				if(data->counter >= data->target->maxShield){
 					data->target->shield = -1000; // Very dead
-					double minerals = data->target->r*data->target->r + data->target->minerals;
+					double minerals = data->target->me->r*data->target->me->r + data->target->minerals;
 					int size = (2.0/3)*minerals;
 					who->minerals += minerals - size + (size%(1280*1280)%(704*704)%(320*320));
 					data->target = NULL;
@@ -301,7 +299,7 @@ static void miningAct(entity* who, int ix, char action){
 	if (who->targetLock && who->targetLock->faction == 0) {
 		dx = displacementX(who, who->targetLock);
 		dy = displacementY(who, who->targetLock);
-		int dist = sqrt(dx*dx + dy*dy) - who->r - who->targetLock->r;
+		int dist = sqrt(dx*dx + dy*dy) - who->me->r - who->targetLock->me->r;
 		if(dist <= miningRange)
 			data->target = who->targetLock;
 		return;
@@ -316,7 +314,7 @@ static void miningAct(entity* who, int ix, char action){
 		}
 		dx = displacementX(who, runner);
 		dy = displacementY(who, runner);
-		int dist = sqrt(dx*dx + dy*dy) - who->r - runner->r;
+		int dist = sqrt(dx*dx + dy*dy) - who->me->r - runner->me->r;
 		if(dist < bestDist){
 			bestDist = dist;
 			data->target = runner;
@@ -373,15 +371,13 @@ static void miningBayAct(entity *who, int ix, char action)
 	unlinkNear();
 	if (winner == NULL)
 		return;
-	entity* what = newEntity(8, 8, who->faction, who->mySector, who->x, who->y);
+	entity* what = newEntity(who->me, 8, 8, who->faction, who->mySector, who->me->pos[0], who->me->pos[1], who->me->vel[0], who->me->vel[1]);
 	data->charge = 1;
 	who->minerals -= 352*352;
 	((minorMinerAiData*)what->aiFuncData)->home = who;
 	data->asteroidsTargeted[data->numDeployed] = winner;
 	data->dronesDeployed[data->numDeployed] = what;
 	data->numDeployed++;
-	what->vx = who->vx;
-	what->vy = who->vy;
 	what->theta = vecToTheta(displacementX(what, winner), displacementY(what, winner));
 	what->targetLock = winner;
 }
@@ -390,12 +386,12 @@ static void stasisAct(entity *who, int ix, char action)
 {
 	stasisModuleData *data = (stasisModuleData*)who->moduleDatas[ix];
 	if (data->active) {
-		who->x = data->x;
-		who->y = data->y;
+		who->me->pos[0] = data->x;
+		who->me->pos[1] = data->y;
 		if (who->shield == who->maxShield) {
 			data->active = 0;
-			who->vx = data->vx;
-			who->vy = data->vy;
+			who->me->vel[0] = data->vx;
+			who->me->vel[1] = data->vy;
 			who->energy = data->energy;
 		} else {
 			who->shield -= who->shieldRegen;
@@ -404,8 +400,8 @@ static void stasisAct(entity *who, int ix, char action)
 			else
 				data->shield = who->shield;
 			who->energy = 0;
-			who->vx = 0;
-			who->vy = 0;
+			who->me->vel[0] = 0;
+			who->me->vel[1] = 0;
 			turn(who, 3);
 			if (data->recheck--)
 				return;
@@ -438,18 +434,18 @@ static void stasisAct(entity *who, int ix, char action)
 		return;
 	}
 	if (who->mySector->x != 0)
-		who->x = -(1+POS_MAX-POS_MIN) * who->mySector->x;
+		who->me->pos[0] = -(1+POS_MAX-POS_MIN) * who->mySector->x;
 	if (who->mySector->y != 0)
-		who->y = -(1+POS_MAX-POS_MIN) * who->mySector->y;
+		who->me->pos[1] = -(1+POS_MAX-POS_MIN) * who->mySector->y;
 	if (who->faction == 2) {
 		if(who->shield != who->maxShield) {
 			data->active = 1;
 			data->shield = who->shield;
 			data->energy = who->energy;
-			data->vx = who->vx;
-			data->vy = who->vy;
-			data->x = who->x;
-			data->y = who->y;
+			data->vx = who->me->vel[0];
+			data->vy = who->me->vel[1];
+			data->x = who->me->pos[0];
+			data->y = who->me->pos[1];
 			return;
 		}
 		if (data->recheck--)

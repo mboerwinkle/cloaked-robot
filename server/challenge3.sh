@@ -85,4 +85,4 @@ entity
 250000
 end' > sectors/0_0
 echo "Server launched. Easier battle than challenge 2, but bigger in scale."
-./run
+gdb ./run

@@ -20,7 +20,8 @@ int main(){
 	//start network listening thread
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
-	newEntity(2, 2, 1, searchforsector(0, 0), 5000, 5000);
+	pthread_detach(id);
+	newEntity(NULL, 2, 2, 1, searchforsector(0, 0), 5000, 5000, 0, 0);
 //	mkship("yo");
 //	loadship("yo");
 //	move(0, 0, 1, 0);
@@ -31,7 +32,7 @@ int main(){
 		if(adventuretime-- == 0) adventuretime = 300;
 		while(conductor != NULL){
 			if(adventuretime == 300 && conductor->realnumber == 0){
-				spawnstroids(conductor);
+				//spawnstroids(conductor);
 			}
 			run(conductor);
 			conductor = conductor->nextsector;

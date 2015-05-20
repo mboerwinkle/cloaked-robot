@@ -45,12 +45,11 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 }
 
 static void addAsteroid(entity* poorSoul, int type){
-	entity* assRoid = newEntity(type, 3, 0, poorSoul->mySector, poorSoul->x, poorSoul->y);
-	*(char*)assRoid->aiFuncData = 1-2*(random()%2); // It has been hit, tumble, plz.
+	guarantee *g = poorSoul->me;
 	double theta = ((double)random()/RAND_MAX)*(2*M_PI);
-	int spd = random() % (int)(poorSoul->r / 6.4);
-	assRoid->vx = poorSoul->vx + cos(theta)*spd;
-	assRoid->vy = poorSoul->vy + sin(theta)*spd;
+	int spd = random() % (int)(g->r / 6.4);
+	entity* assRoid = newEntity(g, type, 3, 0, poorSoul->mySector, g->pos[0], g->pos[1], g->vel[0] + cos(theta)*spd, g->vel[1] + sin(theta)*spd);
+	*(char*)assRoid->aiFuncData = 1-2*(random()%2); // It has been hit, tumble, plz.
 	assRoid->theta = random()%16;
 }
 
@@ -60,6 +59,7 @@ void run(sector *sec){
 		tick(current);
 		current = current->next;
 	}
+	doStep(sec->firstentity);
 }
 
 void run2(sector *sec){
@@ -76,7 +76,7 @@ void run2(sector *sec){
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
 			if(result == 2){
-				int size = (2.0/3)*(tmp->r*tmp->r + tmp->minerals);
+				int size = (2.0/3)*(tmp->me->r*tmp->me->r + tmp->minerals);
 				if(size>=320*320){
 					while(size >= 1280*1280){
 						size -= 1280*1280;
@@ -95,11 +95,12 @@ void run2(sector *sec){
 					}
 				}
 			}
-			if(tmp->myAi->loadSector) {
+			if (tmp->myAi->loadSector) {
 				client *runner = clientList;
 				while (runner) {
 					if (runner->myShip == tmp) {
 						printf("Oh No!!! Player %s %s\n", runner->name, deathMessages[random()%numDeathMessages]);
+						memcpy(&runner->ghostGuarantee, tmp->me, sizeof(guarantee));
 						break; // If it's a client, the disappear will be handled separately, 3 seconds later.
 					}
 					runner = runner->next;
@@ -107,7 +108,8 @@ void run2(sector *sec){
 				if (runner == NULL)
 					disappear(sec->x, sec->y);
 			}
-		}else{
+			destroyGuarantee(tmp->me);
+		} else {
 			prev = current;
 			current = current->next;
 		}

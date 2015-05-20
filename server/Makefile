@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -Wno-strict-aliasing -O2 -c -ffast-math $(DEBUG)
 LFLAGS=-lm -pthread -lrt
-SOURCES=main.c loadsector.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c move.c searchforsector.c linkNear.c spawnstroids.c
+SOURCES=main.c loadsector.c unloadsector.c field.c entity.c module.c ais.c mkship.c loadship.c networking.c move.c searchforsector.c positionFuncs.c spawnstroids.c collisions.c physics.c
 OBJECTS=$(SOURCES:.c=.o)
 
 .PHONY: debug remake clean
@@ -45,11 +45,17 @@ move.o: move.c globals.h
 searchforsector.o: searchforsector.c globals.h
 	$(CC) $(CFLAGS) searchforsector.c
 
-linkNear.o: linkNear.c globals.h
-	$(CC) $(CFLAGS) linkNear.c
+positionFuncs.o: positionFuncs.c globals.h
+	$(CC) $(CFLAGS) positionFuncs.c
 
 spawnstroids.o: spawnstroids.c globals.h
 	$(CC) $(CFLAGS) spawnstroids.c
+
+collisions.o: collisions.c globals.h
+	$(CC) $(CFLAGS) collisions.c
+
+physics.o: physics.c globals.h
+	$(CC) $(CFLAGS) physics.c
 
 clean:
 	rm -f *.o run

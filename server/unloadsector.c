@@ -39,8 +39,8 @@ void writeentitytofile(entity *who){
 		else if(who->myAi == &aiStation) wint(10);
 		else perror("Unknown ai in unloadsector.c\n");
 		wint(who->faction);
-		wlint(who->x);
-		wlint(who->y);
+		wlint(who->me->pos[0]);
+		wlint(who->me->pos[1]);
 		fprintf(fp, "end\n");
 }
 int writesectortofile(sector *target){
@@ -51,6 +51,7 @@ int writesectortofile(sector *target){
 	while(conductor != NULL){
 		writeentitytofile(conductor);
 		next = conductor->next;
+		destroyGuarantee(conductor->me);
 		freeEntity(conductor);
 		conductor = next;
 	}
@@ -61,8 +62,8 @@ void addmetosector(entity* who, uint64_t x, uint64_t y){
 	char name[35];
 	sprintf(name, "sectors/%"PRIX64"_%" PRIX64, x, y);
 	fp = fopen(name, "a");
-	who->x = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
-	who->y = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
+	who->me->pos[0] = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
+	who->me->pos[1] = (int64_t)(POS_MAX-POS_MIN+1)*random()/RAND_MAX + POS_MIN;
 	writeentitytofile(who);
 	fclose(fp);
 }

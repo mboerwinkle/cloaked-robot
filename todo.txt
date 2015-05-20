@@ -1,14 +1,8 @@
-(M) Teams
-  -Draw colors
-  -Lock on intelligently
-(M) Draw ship thrusting stage
 (S) HUD
-  -Energy, weapon charge status
+  -weapon charge status - Do we want this?
 (MS) Save files
   -Sector
   -Ship
-(S) lazors
 (M) tethers
 (M) ship spawning
-Moar paralax?
-scaling
+scaling - Accomplished?

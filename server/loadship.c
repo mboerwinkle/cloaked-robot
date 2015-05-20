@@ -19,14 +19,14 @@ entity *loadship(char name[MAXNAMELEN]){
 		return NULL;
 	}
 	if (3 > fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType)) {
-		puts("Looks like a corrupt file in loadship.c.");
+		puts("Looks like a corrupt file in loadship.c. "); // Bogus space at the end of one message so the discerning debugger can deduce which line the error came from
 		return NULL;
 	}
 	fclose(fp);
 	printf("%"PRId64" %" PRId64 "\n", secx, secy);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
-	entity *ret = newEntity(shipType, aiType, faction, conductor, posx, posy);
+	entity *ret = newEntity(getCloseEntGuarantee(conductor, posx, posy), shipType, aiType, faction, conductor, posx, posy, 0, 0);
 	disappear(secx, secy); // Why would I do such a thing? Because newEntity has to do an appear itself, for paladin spawning & such. However, I can't get rid of this function's appear call either, because the sector needs to be loaded when we spawn the player.
 	return ret;
 }

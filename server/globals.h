@@ -20,7 +20,7 @@ typedef struct ai{
 	void (*act)(struct entity*);
 	void (*handleCollision)(struct entity*, struct entity*);
 	char loadSector;
-}ai;
+} ai;
 
 extern ai aiHuman;
 extern ai aiMissile;
@@ -34,7 +34,23 @@ extern ai aiMajorMiner;
 extern ai aiStation;
 extern void initAis();
 
-typedef struct entity{
+struct entity;
+struct guarantee;
+struct sector; // Defined further down
+
+typedef struct contact{
+	int inertia;
+	struct entity *other;
+	double vec[2];
+	struct contact *twin; // So we can access the data for him contacting me
+} contact;
+
+typedef struct entity {
+	struct guarantee *me;
+	contact *contacts;
+	int numContacts, maxContacts;
+	int lastIteration;
+
 	char faction;
 	char actedFlag;
 	int16_t destroyFlag;
@@ -42,8 +58,8 @@ typedef struct entity{
 	int type;
 	struct sector *mySector;
 	struct entity *next;
-	double vx, vy, r;
-	int32_t x, y;
+	//double vx, vy, r; // All of this is now stored in the guarantee
+	//int32_t x, y;
 
 	double shield, maxShield;
 	double shieldRegen;
@@ -66,7 +82,25 @@ typedef struct entity{
 	struct entity** trailTargets;
 	int* trailTypes;
 	int numTrails, maxTrails;
-}entity;
+} entity;
+
+typedef struct guarantee {
+	struct guarantee **intersects;
+	int32_t *ito; //Intersect time offset
+	int numIntersects;
+	int maxIntersects;
+	struct guarantee **kids;
+	int numKids;
+	int maxKids;
+	struct guarantee *parent;
+	int32_t r;
+	int32_t pos[2];
+	int32_t vel[2];
+	int32_t T;
+	int32_t pto; // Time from my parent's start to my start (Parent Time Offset)
+	entity *ent;
+	struct sector *sec; // Used only for the top guarantee in each sector. Elsewise, == NULL
+} guarantee;
 
 typedef struct droneAiData{
 	char repeats;
@@ -98,8 +132,8 @@ typedef struct {
 	char phase;
 } majorMinerAiData;
 
-#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->x - a->x)
-#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->y - a->y)
+#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->me->pos[0] - a->me->pos[0])
+#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->me->pos[1] - a->me->pos[1])
 //macros are gay
 
 typedef struct sector {
@@ -107,6 +141,7 @@ typedef struct sector {
 	short number; //number of clients who need it open
 	struct sector *nextsector;
 	struct entity *firstentity;
+	guarantee *topGuarantee;
 	uint64_t x;
 	uint64_t y;
 } sector;
@@ -126,7 +161,7 @@ typedef struct module{
 }module;
 
 extern void addTrail(entity* from, entity* to, char type);
-extern entity* newEntity(int type, int aiType, char faction, sector *where, int32_t x, int32_t y);
+extern entity* newEntity(struct guarantee *creator, int type, int aiType, char faction, sector *where, int32_t x, int32_t y, int32_t vx, int32_t vy);
 extern void tick(entity* who);
 extern char tick2(entity* who);
 //extern void drawEntity(entity* who, double x, double y, double zoom);
@@ -159,3 +194,12 @@ extern void* netListen(void* arg);
 
 extern void linkNear(entity* who, int32_t radius);
 extern void unlinkNear();
+extern guarantee* getCloseEntGuarantee(sector *sec, int32_t x, int32_t y);
+
+extern void doStep();
+
+extern void destroyGuarantee(guarantee *g);
+extern void guaranteeMoved(guarantee *g, int time);
+extern guarantee* createEntityGuarantee(guarantee *creator, sector *sec, int r, int *pos, int *vel, entity *ent);
+extern void printGs(char *prefix, guarantee *g);
+

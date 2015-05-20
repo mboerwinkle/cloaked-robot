@@ -67,11 +67,11 @@ static void sendRadar(client* cli){
 		unlinkNear();
 	data[2] += 192;
 	if (dataLen < 3) dataLen = 3;
-	if(who->x < POS_MIN+6400*64) data[0] = (-who->x+POS_MIN+(6400*64))/6400;
-	else if(who->x > POS_MAX-6400*64) data[0] = (-who->x+POS_MAX+(6400*64))/6400;
+	if(who->me->pos[0] < POS_MIN+6400*64) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64))/6400;
+	else if(who->me->pos[0] > POS_MAX-6400*64) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64))/6400;
 	else data[2] -= 128;
-	if(who->y < POS_MIN+6400*64) data[1] = (-who->y+POS_MIN+(6400*64))/6400;
-	else if(who->y > POS_MAX-6400*64) data[1] = (-who->y+POS_MAX+(6400*64))/6400;
+	if(who->me->pos[1] < POS_MIN+6400*64) data[1] = (-who->me->pos[1]+POS_MIN+(6400*64))/6400;
+	else if(who->me->pos[1] > POS_MAX-6400*64) data[1] = (-who->me->pos[1]+POS_MAX+(6400*64))/6400;
 	else data[2] -= 64;
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
@@ -92,7 +92,9 @@ void sendInfo(){
 		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
 		if(me->destroyFlag){
 			if (me->destroyFlag > 0) {
+				puts("Doing ghost-type things");
 				memcpy(&conductor->ghostShip, me, sizeof(entity)); // We don't care about all the modules, pointers, etc.
+				conductor->ghostShip.me = &conductor->ghostGuarantee;
 				conductor->ghostShip.destroyFlag = -1;
 				conductor->myShip = &conductor->ghostShip;
 			} else if (me->destroyFlag > CANSPAWN) {
@@ -115,8 +117,8 @@ void sendInfo(){
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[dataLen] = me->faction;
-		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->x,64), 4096);
-		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->y,64), 4096);
+		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->me->pos[0], 64), 4096);
+		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->me->pos[1], 64), 4096);
 		data[dataLen+5] = me->shield*255/me->maxShield;
 		data[dataLen+6] = me->energy*255/me->maxEnergy;
 		dataLen += 7;
@@ -152,6 +154,7 @@ void sendInfo(){
 			dataLen+=7;
 			int count = 0;
 			for (; count<runner->numTrails; count++){
+				if (runner->trailTargets[count]->destroyFlag) continue;
 				if (dataLen + 3 > NETLEN) {
 					puts("Just too long.");
 					break;

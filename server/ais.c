@@ -22,7 +22,7 @@ static void lock(entity* who){
 	double dx, dy;
 	int64_t d;
 	while(runner){
-		if(runner->r < 64*5 || runner == who || !(who->lockSettings & (1<<runner->faction))){
+		if(runner->me->r < 64*5 || runner == who || !(who->lockSettings & (1<<runner->faction))){
 			runner = runner->next;
 			continue;
 		}
@@ -36,7 +36,7 @@ static void lock(entity* who){
 			runner = runner->next;
 			continue;
 		}
-		d = sqrt(dx*dx+dy*dy)-runner->r;
+		d = sqrt(dx*dx+dy*dy)-runner->me->r;
 		if(d > LOCK_RANGE){
 			runner = runner->next;
 			continue;
@@ -101,8 +101,8 @@ static char circle(entity *who, entity *target, double r, double v)
 	int64_t dx = displacementX(who, target);
 	int64_t dy = displacementY(who, target);
 	double dist = sqrt(dx*dx + dy*dy);
-	double vx = who->vx - target->vx + dy * v / dist;
-	double vy = who->vy - target->vy - dx * v / dist;
+	double vx = who->me->vel[0] - target->me->vel[0] + dy * v / dist;
+	double vy = who->me->vel[1] - target->me->vel[1] - dx * v / dist;
 	double scale = 1 - (r / dist);
 	return gotoPt(who, dx * scale, dy * scale, vx, vy);
 }
@@ -125,7 +125,7 @@ static void aiHumanAct(entity* who){
 
 static void aiHumanCollision(entity *who, entity *him)
 {
-	if (who->minerals == 0 || who->faction != him->faction || him->r < who->r)
+	if (who->minerals == 0 || who->faction != him->faction || him->me->r < who->me->r)
 		return;
 	int i = who->numModules - 1;
 	for (; i >= 0; i--) {
@@ -138,8 +138,8 @@ static void aiHumanCollision(entity *who, entity *him)
 }
 
 static void aiDroneAct(entity* who){
-	double vx = who->vx;
-	double vy = who->vy;
+	double vx = who->me->vel[0];
+	double vy = who->me->vel[1];
 	double dx, dy;
 	droneAiData *data = who->aiFuncData;
 	if(data->timer == 200){
@@ -155,7 +155,7 @@ static void aiDroneAct(entity* who){
 		entity* runner = who->mySector->firstentity;
 		int64_t d;
 		while(runner){
-			if(runner->r < 64*5 || runner == who || runner->faction == 0){
+			if(runner->me->r < 64*5 || runner == who || runner->faction == 0){
 				runner = runner->next;
 				continue;
 			}
@@ -206,8 +206,8 @@ static void aiDroneAct(entity* who){
 	double unx = who->cosTheta;
 	double uny = who->sinTheta;
 	double x = dy*unx - dx*uny;
-	double dvx = who->vx - data->target->vx;
-	double dvy = who->vy - data->target->vy;	
+	double dvx = who->me->vel[0] - data->target->me->vel[0];
+	double dvy = who->me->vel[1] - data->target->me->vel[1];
 	double unvx = unx*dvx;
 	double unvy = uny*dvy;
 	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) {
@@ -218,11 +218,11 @@ static void aiDroneAct(entity* who){
 	if(who->targetLock == NULL){
 		(who->modules[0]->actFunc)(who, 0, 0);
 		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.
-		circle(who, data->target, data->target->r+who->r+700, 30);
-		/*if(x+(data->target->r+who->r+500) > 0){
+		circle(who, data->target, data->target->me->r+who->me->r+700, 30);
+		/*if(x+(data->target->me->r+who->me->r+500) > 0){
 			turn(who, 1);
 		}
-		if(x+(data->target->r+who->r+500) < 0){
+		if(x+(data->target->me->r+who->me->r+500) < 0){
 			turn(who, -1);
 		}*/
 	}
@@ -254,41 +254,28 @@ static char crazyPursuit(entity *who, entity *target)
 	double y = dx*unx + dy*uny;
 	double x = dy*unx - dx*uny;
 
-	double dvx = who->vx - target->vx;
-	double dvy = who->vy - target->vy;
+	double dvx = who->me->vel[0] - target->me->vel[0];
+	double dvy = who->me->vel[1] - target->me->vel[1];
 
 	double vy = dvx*unx + dvy*uny;
 	double vx = dvy*unx - dvx*uny;
 
 	char spin = 1;
-	if(vx == 0){
-		if((x>0) ^ (vy>0)) spin = -1;
-	}else{
-		if(vx<0){
+	if (vx == 0) {
+		if ((x>0) ^ (vy>0)) spin = -1;
+	} else {
+		if (vx<0) {
 			vx *= -1;
 			spin = -1;
 			x *= -1;
 		}
 
-		if(x >= 0){
+		if (x >= 0) {
 			double t = x/vx;
-			if(vy*t-who->thrust/2*t*t < y) spin *= -1;
+			if (vy*t-who->thrust/2*t*t < y) spin *= -1;
 		}
 	}
 	turn(who, spin);
-	if(dvx == 0 && dvy == 0) return spin;
-	double dv = sqrt(dvx*dvx + dvy*dvy);
-	unx = dvx/dv;
-	uny = dvy/dv;
-	y = dx*unx + dy*uny;
-	x = dy*unx - dx*uny;
-	int64_t r = who->r + target->r;
-	if(r <= fabs(x)) return spin;
-	double var = sqrt(r*r - x*x);
-	y -= var;
-	if(y >= dv || y < 0) return spin;
-	who->x += dx+target->vx-who->vx - var/2*unx;
-	who->y += dy+target->vy-who->vy - var/2*uny;
 	return spin;
 }
 
@@ -305,7 +292,7 @@ static void aiMissileAct(entity* who){
 static void aiMissileCollision(entity* me, entity* him){
 	if(him != me->targetLock) return;
 	me->shield = 0;
-	him->shield-=MISSILE_DMG;
+	him->shield -= MISSILE_DMG;
 }
 
 static void aiAsteroidAct(entity* who){
@@ -324,13 +311,13 @@ static void aiAsteroidCollision(entity* me, entity* him){
 
 static void aiPacerAct(entity* who)
 {
-	if (who->vx < 500) thrust(who);
+	if (who->me->vel[0] < 500) thrust(who);
 }
 
 static void aiBulletAct(entity *who)
 {
 	if(++(*(uint16_t*)who->aiFuncData) == 40*6) who->shield = 0;
-	thrust(who);
+	//thrust(who);
 }
 
 static void aiBulletCollision(entity *me, entity *him)
@@ -381,7 +368,7 @@ static void aiDestroyerAct(entity *who)
 						runner = runner->next;
 						continue;
 					}
-					d = sqrt(dx*dx+dy*dy)-runner->r;
+					d = sqrt(dx*dx+dy*dy)-runner->me->r;
 					if(d < bestScore){
 						bestScore = d;
 						target = runner;
@@ -403,7 +390,7 @@ static void aiDestroyerAct(entity *who)
 				destroyerComputeShotsLeft();
 				return;
 			}
-			if (gotoPt(who, displacementX(who, target), displacementY(who, target), who->vx-target->vx, who->vy-target->vy)) {
+			if (gotoPt(who, displacementX(who, target), displacementY(who, target), who->me->vel[0]-target->me->vel[0], who->me->vel[1]-target->me->vel[1])) {
 				data->recheckTime = 1;
 			} else {
 				if (bestScore < 64*6400)
@@ -432,7 +419,7 @@ static void aiMinorMinerAct(entity *who)
 			if (data->phase == 1) {
 				int64_t dx = displacementX(who, who->targetLock);
 				int64_t dy = displacementY(who, who->targetLock);
-				if (sqrt(dx*dx + dy*dy) < miningRange/2*1.1 + who->r + who->targetLock->r)
+				if (sqrt(dx*dx + dy*dy) < miningRange/2*1.1 + who->me->r + who->targetLock->me->r)
 					data->phase = 2;
 			}
 			if (data->phase == 2) {
@@ -443,7 +430,7 @@ static void aiMinorMinerAct(entity *who)
 				thrust(who);
 			} else {
 				//Circle w/ a velocity of zero actually just pulls it alongside.
-				circle(who, who->targetLock, miningRange/2 + who->r + who->targetLock->r, 0);
+				circle(who, who->targetLock, miningRange/2 + who->me->r + who->targetLock->me->r, 0);
 			}
 			if (data->pleaseTurn)
 				data->pleaseTurn--;
@@ -464,9 +451,9 @@ static void aiMinorMinerCollision(entity *who, entity *him)
 	minorMinerAiData *data = (minorMinerAiData*)who->aiFuncData;
 	if (data->phase == 0 && data->home == him) {
 		who->shield = 0;
-		him->minerals += who->r*who->r + who->minerals;
+		him->minerals += who->me->r*who->me->r + who->minerals;
 		//So we don't knock our target about too much
-		who->r = 1;
+		who->me->r = 1;
 		//So my death doesn't cause an asteroid explosion
 		who->minerals = -1;
 	} else ((minorMinerAiData*)who->aiFuncData)->pleaseTurn = 16;
@@ -497,17 +484,17 @@ static void aiMajorMinerAct(entity *who){
 			double bestDist = 64*6400 * 20; // data->rechecks;
 			double r = 641;//must be bigger than a drone
 			while(runner){
-				if(runner->faction == who->faction && runner->r >= r && runner != who){
+				if(runner->faction == who->faction && runner->me->r >= r && runner != who){
 					int64_t dx = displacementX(who, runner);
 					int64_t dy = displacementY(who, runner);
-					if (runner->r == r && (abs(dx) >= bestDist || abs(dy) >= bestDist)) {
+					if (runner->me->r == r && (abs(dx) >= bestDist || abs(dy) >= bestDist)) {
 						runner = runner->next;
 						continue;
 					}
 					double dist = sqrt(dx*dx + dy*dy);
-					if (runner->r > r || dist < bestDist) {
+					if (runner->me->r > r || dist < bestDist) {
 						data->homestation = runner;
-						r = runner->r;
+						r = runner->me->r;
 						bestDist = dist;
 					}
 				}
@@ -536,7 +523,7 @@ static void aiMajorMinerAct(entity *who){
 				if(runner->faction == 0){
 					dx = displacementX(who, runner);
 					dy = displacementY(who, runner);
-					d = sqrt(dx*dx+dy*dy)-runner->r;
+					d = sqrt(dx*dx+dy*dy)-runner->me->r;
 					if(d < bestScore){
 						bestScore = d;
 						temptarget = runner;
@@ -563,11 +550,11 @@ static void aiMajorMinerAct(entity *who){
 	(who->modules[1]->actFunc)(who, 1, 1);
 	if(behavior == 1){
 		entity* homestation = data->homestation;
-		circle(who, homestation, 1000 + who->r + homestation->r, 0);
+		circle(who, homestation, 1000 + who->me->r + homestation->me->r, 0);
 		int64_t dx = displacementX(who, homestation);
 		int64_t dy = displacementY(who, homestation);
 		//The transfer now works in theoretically the opposite direction, if I'm low on minerals and he can give me enough for my 2 base miners.
-		if (sqrt(dx*dx + dy*dy) < 2000 + who->r + homestation->r
+		if (sqrt(dx*dx + dy*dy) < 2000 + who->me->r + homestation->me->r
 		    && who->minerals != 352*352*2
 		    && homestation->minerals + who->minerals >= 352*352*2){
 			homestation->minerals += who->minerals - 352*352*2;
@@ -576,7 +563,7 @@ static void aiMajorMinerAct(entity *who){
 		}
 	}
 	if(behavior == 2 && data->target != NULL){
-		circle(who, data->target, miningRange/2 + who->r + data->target->r, 30);
+		circle(who, data->target, miningRange/2 + who->me->r + data->target->me->r, 30);
 	}
 }
 
