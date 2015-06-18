@@ -11,14 +11,14 @@ echo end >> sectors/0_0
 }
 
 makeAsteroidField () {
-x=-8000
-while [ $x -le 8000 ];
-do y=-8000;
-while [ $y -le 8000 ];
+x=-128000
+while [ $x -le 128000 ];
+do y=-128000;
+while [ $y -le 128000 ];
 do makeAsteroid $(( $x + $1 )) $(( $y + $2 ));
-let y+=2000;
+let y+=32000;
 done;
-let x+=2000;
+let x+=32000;
 done;
 }
 
@@ -27,31 +27,31 @@ echo 'entity
 10
 10
 2
-8000
+128000
 0
 end
 entity
 10
 10
 1
-158000
+2528000
 0
 end
 entity
 9
 9
 2
-8000
--8000
+128000
+-128000
 end
 entity
 9
 9
 1
-158000
--8000
+2528000
+-128000
 end' > sectors/0_0
-makeAsteroidField 8000 -20000
-makeAsteroidField 158000 -20000
+makeAsteroidField 128000 -320000
+makeAsteroidField 2528000 -320000
 echo "Server launched. Let's have us a space station battle.";
 ./run

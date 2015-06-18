@@ -12,14 +12,14 @@ echo end >> sectors/0_0
 }
 
 makeAsteroidField () {
-x=-8000
-while [ $x -le 8000 ];
-do y=-8000;
-while [ $y -le 8000 ];
+x=-128000
+while [ $x -le 128000 ];
+do y=-128000;
+while [ $y -le 128000 ];
 do makeAsteroid $(( $x + $1 )) $(( $y + $2 ));
-let y+=2000;
+let y+=32000;
 done;
-let x+=2000;
+let x+=32000;
 done;
 }
 
@@ -36,20 +36,20 @@ entity
 9' >> sectors/0_0
 echo $1 >> sectors/0_0
 echo $2 >> sectors/0_0
-echo $(( $3 - 8000 )) >> sectors/0_0
+echo $(( $3 - 128000 )) >> sectors/0_0
 echo 'end
 entity
 9
 9' >> sectors/0_0
 echo $1 >> sectors/0_0
 echo $2 >> sectors/0_0
-echo $(( $3 + 8000 )) >> sectors/0_0
+echo $(( $3 + 128000 )) >> sectors/0_0
 echo end >> sectors/0_0
 }
 
 # * 128 would give the full range of a sector, but that's not dense enough
 pos () {
-	echo $(( ($RANDOM - 16384) * 70 ))
+	echo $(( ($RANDOM - 16384) * 70 * 16 ))
 }
 
 rm sectors/*_*

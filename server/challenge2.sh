@@ -4,29 +4,29 @@ echo 'entity
 7
 7
 1
-100000
-4000
+1600000
+64000
 end
 entity
 7
 7
 1
-100000
--4000
+1600000
+-64000
 end
 entity
 3
 2
 1
-100000
+1600000
 0
 end
 entity
 3
 2
 2
-10000
--1000
+160000
+-16000
 end' > sectors/0_0
 echo "Server launched. Carrier v. carrier, but they have something... new...";
 ./run

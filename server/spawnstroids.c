@@ -8,8 +8,8 @@ void spawnstroids(sector *target){
 	double theta;
 	for(; combien > 0; combien--){
 		int32_t randomnum = random();
-		int32_t vx = ((unsigned char*)&randomnum)[0];
-		int32_t vy = ((unsigned char*)&randomnum)[1];
+		int32_t vx = ((unsigned char*)&randomnum)[0]*16;
+		int32_t vy = ((unsigned char*)&randomnum)[1]*16;
 		theta = ((((unsigned char*)(&randomnum))[2]%32)/2 + 0.5);
 		if(theta > 8) vy *= -1;
 		if(theta > 4 && theta < 12.5) vx *= -1;

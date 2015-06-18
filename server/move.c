@@ -8,7 +8,7 @@ void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t yfinal){
 	disappear(xorigin, yorigin);
 }
 void appear(uint64_t x, uint64_t y){
-	printf("appear called. %"PRId64" %"PRId64"\n", x, y);
+	//printf("appear called. %"PRId64" %"PRId64"\n", x, y);
 	sector *target;
 	short counterone, countertwo;
 	for(counterone = -1; counterone <= 1; counterone++){
@@ -25,7 +25,7 @@ void appear(uint64_t x, uint64_t y){
 	searchforsector(x, y)->realnumber++;
 }
 void disappear(uint64_t x, uint64_t y){
-	printf("disappear called. %"PRId64" %"PRId64"\n", x, y);
+	//printf("disappear called. %"PRId64" %"PRId64"\n", x, y);
 	sector *target;
 	short counterone, countertwo;
 	for(counterone = -1; counterone <= 1; counterone++){

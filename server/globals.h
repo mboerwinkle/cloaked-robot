@@ -1,8 +1,14 @@
 #include <stdint.h>
 #define MAXNAMELEN 10
-#define POS_MAX 2097151
-#define POS_MIN (-2097152)
-#define LOCK_RANGE (64*1000)
+#define POS_MAX 33554431
+#define POS_MIN (-33554432)
+#define LOCK_RANGE (1024*1000)
+
+#define POS_RANGE (POS_MAX-POS_MIN+1)
+
+#define displacementX(a,b) (POS_RANGE*(int64_t)(b->mySector->x - a->mySector->x) + b->me->pos[0] - a->me->pos[0])
+#define displacementY(a,b) (POS_RANGE*(int64_t)(b->mySector->y - a->mySector->y) + b->me->pos[1] - a->me->pos[1])
+//macros are gay
 
 struct entity;
 struct module;
@@ -36,13 +42,12 @@ extern void initAis();
 
 struct entity;
 struct guarantee;
-struct sector; // Defined further down
 
 typedef struct contact{
 	int inertia;
 	struct entity *other;
 	double vec[2];
-	struct contact *twin; // So we can access the data for him contacting me
+	int twin; // So we can access the data for him contacting me
 } contact;
 
 typedef struct entity {
@@ -79,8 +84,8 @@ typedef struct entity {
 	int numModules;
 	uint64_t minerals;
 
-	struct entity** trailTargets;
-	int* trailTypes;
+	int *trailTypes;
+	int64_t *trailXs, *trailYs;
 	int numTrails, maxTrails;
 } entity;
 
@@ -95,6 +100,7 @@ typedef struct guarantee {
 	struct guarantee *parent;
 	int32_t r;
 	int32_t pos[2];
+	int64_t spos[2];
 	int32_t vel[2];
 	int32_t T;
 	int32_t pto; // Time from my parent's start to my start (Parent Time Offset)
@@ -131,10 +137,6 @@ typedef struct {
 	entity *target;
 	char phase;
 } majorMinerAiData;
-
-#define displacementX(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->x - a->mySector->x) + b->me->pos[0] - a->me->pos[0])
-#define displacementY(a,b) ((POS_MAX-POS_MIN+1)*(int64_t)(b->mySector->y - a->mySector->y) + b->me->pos[1] - a->me->pos[1])
-//macros are gay
 
 typedef struct sector {
 	short realnumber;// number of clients who are in the sector (0 is a border sector.
@@ -185,7 +187,7 @@ extern module stasisModule;
 extern module healRayModule;
 
 #define MISSILE_E_COST 60
-#define miningRange 2000
+#define miningRange 32000
 
 extern void initModules();
 

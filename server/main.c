@@ -5,6 +5,8 @@
 #include <pthread.h>
 #include <time.h>
 #include <math.h>
+#include <limits.h>
+
 #include "globals.h"
 
 int main(){
@@ -21,22 +23,36 @@ int main(){
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
 	pthread_detach(id);
-	newEntity(NULL, 2, 2, 1, searchforsector(0, 0), 5000, 5000, 0, 0);
+	//newEntity(NULL, 2, 2, 1, searchforsector(0, 0), 5000, 5000, 0, 0);// WTF???
 //	mkship("yo");
 //	loadship("yo");
 //	move(0, 0, 1, 0);
 	short adventuretime = 300;//nope, make that "char timetillpotentialtospawnastroidssothatwedontcheckeachtickandslowshitdown"
 	//nope, make that "char timeTillPotentialToSpawnAstroidsSoThatWeDontCheckEachTickAndSlowShitDown"
 	while(1){
-		conductor = listrootsector;
-		if(adventuretime-- == 0) adventuretime = 300;
-		while(conductor != NULL){
-			if(adventuretime == 300 && conductor->realnumber == 0){
-				//spawnstroids(conductor);
+		if(adventuretime-- == 0) {
+			adventuretime = 300;
+			int min = INT_MAX;
+			for (conductor = listrootsector; conductor; conductor = conductor->nextsector) {
+				if (conductor->topGuarantee == NULL) continue;
+				if (conductor->realnumber == 0) {
+					//spawnstroids(conductor);
+				}
+				if (conductor->topGuarantee->pto < min)
+					min = conductor->topGuarantee->pto;
 			}
+			if (min) {
+				for (conductor = listrootsector; conductor; conductor = conductor->nextsector) {
+					conductor->topGuarantee->pto -= min;
+				}
+			}
+		}
+		conductor = listrootsector;
+		while(conductor != NULL){
 			run(conductor);
 			conductor = conductor->nextsector;
 		}
+		doStep();
 		conductor = listrootsector;
 		while(conductor != NULL){
 			run2(conductor);

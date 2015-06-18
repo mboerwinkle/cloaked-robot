@@ -44,19 +44,20 @@ void loadsector(uint64_t x, uint64_t y){
 	char name[42];
 	sprintf(name, "sectors/%"PRIX64"_%"PRIX64, x, y);//makes hexadecimal file name
 
-	if((fp = fopen(name, "r")) == NULL){
-		//printf("sector %s does not exist, generating\n", name);
-		gensector(x, y);
-	}
-
 	new->nextsector = listrootsector;
 	listrootsector = new;
 
 	new->realnumber = 0;
 	new->number = 1;
 	new->firstentity = NULL;
+	new->topGuarantee = NULL;
 	new->x = x;
 	new->y = y;
+
+	if((fp = fopen(name, "r")) == NULL){
+		//printf("sector %s does not exist, generating\n", name);
+		gensector(x, y);
+	}
 
 	if(fp != NULL){
 		guarantee *prev = NULL;

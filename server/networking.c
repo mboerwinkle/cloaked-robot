@@ -43,13 +43,13 @@ static void sendRadar(client* cli){
 			runner = runner->next;
 			continue;
 		}
-		d = simonDivide(displacementX(who, runner)+3200, 6400);
+		d = simonDivide(displacementX(who, runner)+3200*16, 6400*16);
 		if(d > 63 || d < -63){
 			runner = runner->next;
 			continue;
 		}
 		data[dataLen+1] = d+63;
-		d = simonDivide(displacementY(who, runner)+3200, 6400);
+		d = simonDivide(displacementY(who, runner)+3200*16, 6400*16);
 		if(d > 63 || d < -63){
 			runner = runner->next;
 			continue;
@@ -65,13 +65,17 @@ static void sendRadar(client* cli){
 	}
 	if (who->destroyFlag == 0)
 		unlinkNear();
-	data[2] += 192;
-	if (dataLen < 3) dataLen = 3;
-	if(who->me->pos[0] < POS_MIN+6400*64) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64))/6400;
-	else if(who->me->pos[0] > POS_MAX-6400*64) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64))/6400;
+	if (dataLen < 3) {
+		dataLen = 3;
+		data[2] = 192;
+	} else {
+		data[2] += 192;
+	}
+	if(who->me->pos[0] < POS_MIN+6400*64*16) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64*16))/(6400*16);
+	else if(who->me->pos[0] > POS_MAX-6400*64*16) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64*16))/(6400*16);
 	else data[2] -= 128;
-	if(who->me->pos[1] < POS_MIN+6400*64) data[1] = (-who->me->pos[1]+POS_MIN+(6400*64))/6400;
-	else if(who->me->pos[1] > POS_MAX-6400*64) data[1] = (-who->me->pos[1]+POS_MAX+(6400*64))/6400;
+	if(who->me->pos[1] < POS_MIN+6400*64*16) data[1] = (-who->me->pos[1]+POS_MIN+(6400*64*16))/(6400*16);
+	else if(who->me->pos[1] > POS_MAX-6400*64*16) data[1] = (-who->me->pos[1]+POS_MAX+(6400*64*16))/(6400*16);
 	else data[2] -= 64;
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
@@ -96,7 +100,7 @@ void sendInfo(){
 				memcpy(&conductor->ghostShip, me, sizeof(entity)); // We don't care about all the modules, pointers, etc.
 				conductor->ghostShip.me = &conductor->ghostGuarantee;
 				conductor->ghostShip.destroyFlag = -1;
-				conductor->myShip = &conductor->ghostShip;
+				me = conductor->myShip = &conductor->ghostShip;
 			} else if (me->destroyFlag > CANSPAWN) {
 				me->destroyFlag--;
 				if (me->destroyFlag == CANSPAWN)
@@ -117,8 +121,8 @@ void sendInfo(){
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[dataLen] = me->faction;
-		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->me->pos[0], 64), 4096);
-		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->me->pos[1], 64), 4096);
+		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->me->pos[0], 64*16), 4096);
+		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->me->pos[1], 64*16), 4096);
 		data[dataLen+5] = me->shield*255/me->maxShield;
 		data[dataLen+6] = me->energy*255/me->maxEnergy;
 		dataLen += 7;
@@ -129,14 +133,14 @@ void sendInfo(){
 			}
 			data[dataLen+0] = 0x01*runner->theta+0x10*runner->thrustFlag+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
-			d = simonDivide(displacementX(conductor->myShip, runner)+32, 64);
-		#define NET_VIEW_RANGE ((LOCK_RANGE/64)+1)
+			d = simonDivide(displacementX(conductor->myShip, runner)+32*16, 64*16);
+		#define NET_VIEW_RANGE ((LOCK_RANGE/(64*16))+1)
 			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
 			}
 			*(int16_t*)(data+dataLen+2) = d;
-			d = simonDivide(displacementY(conductor->myShip, runner)+32, 64);
+			d = simonDivide(displacementY(conductor->myShip, runner)+32*16, 64*16);
 			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
@@ -154,20 +158,19 @@ void sendInfo(){
 			dataLen+=7;
 			int count = 0;
 			for (; count<runner->numTrails; count++){
-				if (runner->trailTargets[count]->destroyFlag) continue;
 				if (dataLen + 3 > NETLEN) {
 					puts("Just too long.");
 					break;
 				}
 				data[dataLen-1] |= 0x80;
 				data[dataLen+2] = runner->trailTypes[count];
-				d = simonDivide(displacementX(runner, runner->trailTargets[count])+32, 64);
+				d = simonDivide(runner->trailXs[count]+32*16, 64*16);
 				if(d<0){
 					d+=256;
 					data[dataLen+2] |= 0x40;
 				}
 				data[dataLen] = d;
-				d = simonDivide(displacementY(runner, runner->trailTargets[count])+32, 64);
+				d = simonDivide(runner->trailYs[count]+32*16, 64*16);
 				if(d<0){
 					d+=256;
 					data[dataLen+2] |= 0x20;

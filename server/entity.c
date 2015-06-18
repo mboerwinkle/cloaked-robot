@@ -30,7 +30,8 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	where->firstentity = ret;
 	ret->mySector = where;
 	ret->minerals = 0;
-	ret->trailTargets = malloc(sizeof(entity*)*2);
+	ret->trailXs = malloc(sizeof(int64_t)*2);
+	ret->trailYs = malloc(sizeof(int64_t)*2);
 	ret->trailTypes = malloc(sizeof(int)*2);
 	ret->numTrails = 0;
 	ret->maxTrails = 2;
@@ -45,9 +46,9 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		ret->me = createEntityGuarantee(creator, where, r, pos, vel, ret);\
 	}
 	if(type == 0){//human
-		r = 640;
+		r = 640*16;
 		hasModules(3);
-		ret->thrust = 3;
+		ret->thrust = 3*16;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 0.05;
@@ -57,17 +58,17 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*lazorModule.initFunc)(ret, 1, 1);
 		(*miningModule.initFunc)(ret, 2, 1);
 	}else if(type == 1){//missile
-		r = 64;
+		r = 64*16;
 		hasModules(0);
-		ret->thrust = 3.5;
+		ret->thrust = 3.5*16;
 		ret->maxTurn = 2;
 		ret->shield = ret->maxShield = 5;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 2){//drone	
-		r = 640;
+		r = 640*16;
 		hasModules(1);
-		ret->thrust = 2;
+		ret->thrust = 2*16;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 0.05;
@@ -75,9 +76,9 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		ret->energyRegen = 1;
 		(*gunModule.initFunc)(ret, 0, 1);
 	}else if(type == 3){//carrier	
-		r = 3480;
+		r = 3480*16;
 		hasModules(1);
-		ret->thrust = 1.515;
+		ret->thrust = 1.7*16;
 		ret->maxTurn = 12;
 		ret->shield = ret->maxShield = 300;
 		ret->shieldRegen = 0.05;
@@ -86,41 +87,41 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*bayModule.initFunc)(ret, 0, 2.02);
 		ret->minerals = 640*640*10;
 	}else if (type == 12) { // Huge asteroid
-		r = 1300; // By rights this ought to be 1280, but I like the asteroid distribution better this way
+		r = 1300*16; // By rights this ought to be 1280, but I like the asteroid distribution better this way
 		hasModules(0);
-		ret->thrust = 1.5;
+		ret->thrust = 1.5*16;
 		ret->maxTurn = 14;
 		ret->shield = ret->maxShield = 170;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 4){//large asteroid
-		r = 704;
+		r = 704*16;
 		hasModules(0);
-		ret->thrust = 1.5;
+		ret->thrust = 1.5*16;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	}else if(type == 5){//medium asteroid
-		r = 320;
+		r = 320*16;
 		hasModules(0);
-		ret->thrust = 1.5;
+		ret->thrust = 1.5*16;
 		ret->maxTurn = 5;
 		ret->shield = ret->maxShield = 60;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	} else if (type == 6) { // Bullet
-		r = 160;
+		r = 160*16;
 		hasModules(0);
-		ret->thrust = 1.5;
+		ret->thrust = 1.5*16;
 		ret->maxTurn = 1;
 		ret->shield = ret->maxShield = 7;
 		ret->shieldRegen = 0;
 		ret->energy = ret->maxEnergy = ret->energyRegen = 0;
 	} else if (type == 7) { // Destroyer
-		r = 64*24;
+		r = 64*24*16;
 		hasModules(3);
-		ret->thrust = 2;
+		ret->thrust = 2*16;
 		ret->maxTurn = 9;
 		ret->shield = ret->maxShield = 250;
 		ret->shieldRegen = .06;
@@ -130,9 +131,9 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*missileModule.initFunc)(ret, 1, 1);
 		(*lazorModule.initFunc)(ret, 2, 1);
 	} else if (type == 8) { //Minor Miner
-		r = 64*5+32; // 352
+		r = (64*5+32)*16; // 352*16
 		hasModules(1);
-		ret->thrust = 1.8;
+		ret->thrust = 1.8*16;
 		ret->maxTurn = 4;
 		ret->shield = ret->maxShield = 10;
 		ret->energy = ret->maxEnergy = 68;
@@ -140,10 +141,10 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*miningModule.initFunc)(ret, 0, 1);
 		ret->lockSettings = 1;
 	} else if (type == 9) { //Major Miner
-		r = 1280;
+		r = 1280*16;
 		hasModules(2);
 		ret->minerals = 352*352*2;
-		ret->thrust = 2.5;
+		ret->thrust = 2.5*16;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 250;
 		ret->energy = ret->maxEnergy = 80;
@@ -152,7 +153,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*miningModule.initFunc)(ret, 0, 1);
 		(*miningBayModule.initFunc)(ret, 1, 1);
 	} else if (type == 10) { //Planet / station
-		r = 4800;
+		r = 4800*16;
 		hasModules(4);
 		ret->thrust = 0;
 		ret->maxTurn = 20;
@@ -166,9 +167,9 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*bayModule.initFunc)(ret, 2, 7 + 7.0/128);
 		(*bayModule.initFunc)(ret, 3, 9 + 9.0/128);
 	} else if (type == 11) { // freeze tag player
-		r = 640;
+		r = 640*16;
 		hasModules(4);
-		ret->thrust = 3;
+		ret->thrust = 3*16;
 		ret->maxTurn = 6;
 		ret->shield = ret->maxShield = 100;
 		ret->shieldRegen = 2;
@@ -180,7 +181,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*stasisModule.initFunc)(ret, 3, 1);
 	} else {// type 12 is a bit up from here, because it's a huge asteroid
 		printf("Error: Unknown ship type when creating entity: %d\n", type);
-		r = 640;
+		r = 640*16;
 		hasModules(0);
 	}
 	if(aiType == 0){
@@ -240,11 +241,13 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 
 void addTrail(entity* from, entity* to, char type){
 	if(from->numTrails == from->maxTrails){
-		from->trailTargets = realloc(from->trailTargets, sizeof(entity*)*(from->maxTrails+=2));
+		from->trailXs = realloc(from->trailXs, sizeof(int64_t)*(from->maxTrails+=2));
+		from->trailYs = realloc(from->trailYs, sizeof(int64_t)*from->maxTrails);
 		from->trailTypes = realloc(from->trailTypes, sizeof(int)*from->maxTrails);
 	}
 	from->trailTypes[from->numTrails] = type;
-	from->trailTargets[from->numTrails++] = to;
+	from->trailXs[from->numTrails] = displacementX(from, to);
+	from->trailYs[from->numTrails++] = displacementY(from, to);
 }
 
 void tick(entity* who){
@@ -254,7 +257,6 @@ void tick(entity* who){
 	if(who->energy > who->maxEnergy) who->energy = who->maxEnergy;
 	who->shield += who->shieldRegen;
 	if(who->shield > who->maxShield) who->shield = who->maxShield;
-	(*who->myAi->act)(who);
 	if(who->targetLock){
 		if(who->targetLock->destroyFlag){
 			who->targetLock=NULL;
@@ -264,21 +266,22 @@ void tick(entity* who){
 			if(sqrt(x*x + y*y) > LOCK_RANGE) who->targetLock = NULL;
 		}
 	}
+	(*who->myAi->act)(who);
 	who->sinTheta = sin(who->theta * (2*M_PI/16));
 	who->cosTheta = cos(who->theta * (2*M_PI/16));
 	guarantee *g = who->me;
 	double vx = g->vel[0];
 	double vy = g->vel[1];
 	double v = sqrt(vx*vx + vy*vy);
-	if(v <= 1.5){
+	if(v <= 1.5*16){
 		if (v == 0) return;
 		g->vel[0] = 0;
 		g->vel[1] = 0;
 	}else{
 		vx /= v;
 		vy /= v;
-		g->vel[0] -= (int)(vx*1.5);
-		g->vel[1] -= (int)(vy*1.5);
+		g->vel[0] -= (int)(vx*1.5*16);
+		g->vel[1] -= (int)(vy*1.5*16);
 		//who->x += who->vx;
 		//who->y += who->vy;
 	}
@@ -286,56 +289,6 @@ void tick(entity* who){
 }
 
 char tick2(entity* who){
-	/*
-	who->actedFlag = globalActedFlag;
-	linkNear(who, 64*1000);
-	entity *otherGuy = who->mySector->firstentity;
-	double dx, dy, d, r;
-
-	while(otherGuy){
-		if(otherGuy->actedFlag != globalActedFlag || otherGuy == who){
-			otherGuy = otherGuy->next;
-			continue;
-		}
-		r = who->r + otherGuy->r;
-		dx = displacementX(who, otherGuy);
-		if (dx > r) {
-			otherGuy = otherGuy->next;
-			continue;
-		}
-		dy = displacementY(who, otherGuy);
-		if (dy > r) {
-			otherGuy = otherGuy->next;
-			continue;
-		}
-		if (dx == 0 && dy == 0) {
-			otherGuy = otherGuy->next;
-			continue;
-		}
-		d = sqrt(dx*dx+dy*dy);
-		if(d > r){
-			otherGuy = otherGuy->next;
-			continue;
-		}
-		dx/=d;
-		dy/=d;
-		double dvel = (who->vx-otherGuy->vx)*dx+(who->vy-otherGuy->vy)*dy;
-		if(dvel > 0){
-			(*who->myAi->handleCollision)(who, otherGuy);
-			(*otherGuy->myAi->handleCollision)(otherGuy, who);
-			double m1 = who->r;
-			double m2 = otherGuy->r;
-			dvel *= 2*m1/(m1+m2);
-			otherGuy->vx += dvel*dx;
-			otherGuy->vy += dvel*dy;
-			dvel *= -m2/m1;
-			who->vx += dvel*dx;
-			who->vy += dvel*dy;
-		}
-		otherGuy = otherGuy->next;
-	}
-	unlinkNear();
-	*/
 	if(who->shield <= 0) return 2;
 	uint64_t secx = who->mySector->x;
 	uint64_t secy = who->mySector->y;
@@ -355,13 +308,16 @@ char tick2(entity* who){
 		g->pos[1] += (POS_MAX-POS_MIN+1);
 	}
 	if(secx!=who->mySector->x || secy!=who->mySector->y){
-		puts("Someone's left the sector, and things are probably about to break :(");
+		//puts("Someone's left the sector, and things are probably about to break :(");
 		sector *new = searchforsector(secx, secy);
 		if(new == NULL){
 			addmetosector(who, secx, secy);
 			return 1;
 		}
+		guarantee *newG = createEntityGuarantee(getCloseEntGuarantee(new, g->pos[0], g->pos[1]), new, g->r, g->pos, g->vel, who);
 		fileMoveRequest(who, who->mySector, new);
+		destroyGuarantee(g);
+		who->me = newG;
 		who->mySector = new;
 	}
 	return 0;
@@ -402,7 +358,8 @@ void freeEntity(entity* who){
 		free(who->moduleDatas);
 	}
 	free(who->trailTypes);
-	free(who->trailTargets);
+	free(who->trailXs);
+	free(who->trailYs);
 	free(who->contacts);
 	free(who);
 }

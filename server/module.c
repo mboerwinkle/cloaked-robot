@@ -73,7 +73,7 @@ static void bayInit(entity* who, int ix, double value){
 	data->type = (int)value;
 	data->aiType = 128 * (value - data->type);
 	entity *killMe = newEntity(who->me, data->type, data->aiType, who->faction, who->mySector, 0, 0, 0, 0);
-	data->cost = killMe->me->r * killMe->me->r + killMe->minerals;
+	data->cost = killMe->me->r / 16 * killMe->me->r / 16 + killMe->minerals;
 	who->mySector->firstentity = killMe->next;
 	if (killMe->myAi->loadSector)
 		disappear(killMe->mySector->x, killMe->mySector->y);
@@ -119,8 +119,8 @@ static void missileAct(entity* who, int ix, char action){
 	if(!action || who->energy < MISSILE_E_COST) return;
 	*charge = 1;
 	who->energy -= MISSILE_E_COST;
-	int32_t vx = who->me->vel[0] + who->cosTheta*60 + -who->sinTheta*rand*.5;
-	int32_t vy = who->me->vel[1] + who->sinTheta*60 + who->cosTheta*rand*.5;
+	int32_t vx = who->me->vel[0] + who->cosTheta*60*16 + -who->sinTheta*rand*.5*16;
+	int32_t vy = who->me->vel[1] + who->sinTheta*60*16 + who->cosTheta*rand*.5*16;
 	entity* what = newEntity(who->me, 1, 1, who->faction, who->mySector, who->me->pos[0], who->me->pos[1], vx, vy);
 	what->theta = who->theta;
 	what->targetLock = who->targetLock;
@@ -133,10 +133,10 @@ static void lazorAct(entity* who, int ix, char action){
 		return;
 	}
 	if(!action || who->energy < 20) return;
-	linkNear(who, 6400);
+	linkNear(who, 6400*16);
 	entity* target = NULL;
 	entity* runner = who->mySector->firstentity;
-	int64_t bestDist = (int64_t)6400*6400;
+	int64_t bestDist = (int64_t)6400*16*6400*16;
 	while(runner){
 		if(runner == who || !(who->lockSettings & (1<<runner->faction))){
 			runner = runner->next;
@@ -180,7 +180,7 @@ static void gunAct(entity* who, int ix, char action){
 		double uny = dvy / vy;
 		double y = -unx*rx - uny*ry;
 		double x = uny*rx - unx*ry;
-#define bulletV 110
+#define bulletV (110*16)
 		/*
 		x / bulletV / cos = y / (vy - bulletV * sin)
 		x * (vy - bulletV * sin) = y * bulletV * cos
@@ -259,7 +259,7 @@ static void bayAct(entity *who, int ix, char action){
 	*charge = 1;
 	who->energy -= 100;
 	who->minerals -= data->cost;
-	entity* what = newEntity(who->me, data->type, data->aiType, who->faction, who->mySector, who->me->pos[0]+10*who->cosTheta, who->me->pos[1]+10*who->sinTheta, who->me->vel[0], who->me->vel[1]);
+	entity* what = newEntity(who->me, data->type, data->aiType, who->faction, who->mySector, who->me->pos[0]+10*16*who->cosTheta, who->me->pos[1]+10*16*who->sinTheta, who->me->vel[0], who->me->vel[1]);
 	what->theta = who->theta;
 }
 
@@ -269,7 +269,6 @@ static void miningAct(entity* who, int ix, char action){
 		data->target = NULL;
 		return;
 	}
-	//printGs(NULL, who->mySector->topGuarantee);
 	if(data->target){
 		if(data->target->destroyFlag || data->target->shield <= 0){
 			data->target = NULL;
@@ -283,9 +282,9 @@ static void miningAct(entity* who, int ix, char action){
 				who->energy -= 2;
 				if(data->counter >= data->target->maxShield){
 					data->target->shield = -1000; // Very dead
-					double minerals = data->target->me->r*data->target->me->r + data->target->minerals;
-					int size = (2.0/3)*minerals;
-					who->minerals += minerals - size + (size%(1280*1280)%(704*704)%(320*320));
+					uint64_t minerals = data->target->me->r/16*data->target->me->r/16 + data->target->minerals;
+					int size = 2*minerals/3; // size is how much they attempt to turn into asteroids.
+					who->minerals += minerals - size + (size%(1300*1300)%(704*704)%(320*320)); // This chain of modulos gives us how much was left over from asteroid creation
 					data->target = NULL;
 				}
 				return;
@@ -304,7 +303,7 @@ static void miningAct(entity* who, int ix, char action){
 			data->target = who->targetLock;
 		return;
 	}
-	linkNear(who, 1000*64+miningRange);
+	linkNear(who, 1000*64*16+miningRange);
 	entity* runner = who->mySector->firstentity;
 	int bestDist = miningRange + 1;
 	while(runner){
@@ -382,8 +381,7 @@ static void miningBayAct(entity *who, int ix, char action)
 	what->targetLock = winner;
 }
 
-static void stasisAct(entity *who, int ix, char action)
-{
+static void stasisAct(entity *who, int ix, char action) {
 	stasisModuleData *data = (stasisModuleData*)who->moduleDatas[ix];
 	if (data->active) {
 		who->me->pos[0] = data->x;
@@ -406,7 +404,7 @@ static void stasisAct(entity *who, int ix, char action)
 			if (data->recheck--)
 				return;
 			data->recheck = 120;
-			linkNear(who, 64*6400);
+			linkNear(who, 16*64*6400);
 			entity *runner = who->mySector->firstentity;
 			while (runner) {
 				if (runner->type == 11 && runner != who && runner->faction == 2 && runner->shield == runner->maxShield) {
@@ -451,7 +449,7 @@ static void stasisAct(entity *who, int ix, char action)
 		if (data->recheck--)
 			return;
 		data->recheck = 120;
-		linkNear(who, 64*6400);
+		linkNear(who, 64*6400*16);
 		int count = 0;
 		entity *runner = who->mySector->firstentity;
 		while (runner) {
@@ -488,10 +486,10 @@ static void healRayAct(entity* who, int ix, char action){
 		return;
 	}
 	if(!action || who->energy < 20) return;
-	linkNear(who, 6400);
+	linkNear(who, 6400*16);
 	entity* target = NULL;
 	entity* runner = who->mySector->firstentity;
-	int64_t bestDist = (int64_t)6400*6400;
+	int64_t bestDist = (int64_t)6400*6400*16*16;
 	while(runner){
 		if(runner == who){
 			runner = runner->next;

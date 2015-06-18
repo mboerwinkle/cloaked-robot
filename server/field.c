@@ -1,9 +1,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "globals.h"
+#include <inttypes.h>
 #include <math.h>
 #include <netinet/in.h>
+#include "globals.h"
 #include "networking.h"
 
 #define numDeathMessages 16
@@ -59,7 +60,6 @@ void run(sector *sec){
 		tick(current);
 		current = current->next;
 	}
-	doStep(sec->firstentity);
 }
 
 void run2(sector *sec){
@@ -76,10 +76,10 @@ void run2(sector *sec){
 			tmp->next = thoseCondemnedToDeath;
 			thoseCondemnedToDeath = tmp;
 			if(result == 2){
-				int size = (2.0/3)*(tmp->me->r*tmp->me->r + tmp->minerals);
+				int64_t size = 2*((int64_t)tmp->me->r/16*tmp->me->r/16 + tmp->minerals)/3;
 				if(size>=320*320){
-					while(size >= 1280*1280){
-						size -= 1280*1280;
+					while(size >= 1300*1300){
+						size -= 1300*1300;
 						addAsteroid(tmp, 12);
 					}
 					while(size >= 704*704){
@@ -105,8 +105,10 @@ void run2(sector *sec){
 					}
 					runner = runner->next;
 				}
-				if (runner == NULL)
+				if (runner == NULL) {
 					disappear(sec->x, sec->y);
+					printf("Looks like something important died in sector (%"PRIX64", %"PRIX64")\n", sec->x, sec->y);
+				}
 			}
 			destroyGuarantee(tmp->me);
 		} else {
