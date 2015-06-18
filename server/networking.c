@@ -96,7 +96,6 @@ void sendInfo(){
 		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
 		if(me->destroyFlag){
 			if (me->destroyFlag > 0) {
-				puts("Doing ghost-type things");
 				memcpy(&conductor->ghostShip, me, sizeof(entity)); // We don't care about all the modules, pointers, etc.
 				conductor->ghostShip.me = &conductor->ghostGuarantee;
 				conductor->ghostShip.destroyFlag = -1;

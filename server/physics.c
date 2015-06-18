@@ -582,7 +582,7 @@ guarantee* createEntityGuarantee(guarantee *creator, sector *sec, int32_t r, int
 	ret->sec = NULL;
 	int myRank = calcRank(r);
 	if (creator == NULL) {
-		puts("Starting a new world, it seems");
+		//puts("Starting a new world, it seems");
 		ret->parent = NULL;
 		ret->pto = 0;
 		creator = ret;

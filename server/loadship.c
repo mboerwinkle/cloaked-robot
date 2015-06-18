@@ -23,7 +23,7 @@ entity *loadship(char name[MAXNAMELEN]){
 		return NULL;
 	}
 	fclose(fp);
-	printf("%"PRId64" %" PRId64 "\n", secx, secy);
+	//printf("%"PRId64" %" PRId64 "\n", secx, secy);
 	appear(secx, secy);
 	conductor = searchforsector(secx, secy);
 	entity *ret = newEntity(getCloseEntGuarantee(conductor, posx, posy), shipType, aiType, faction, conductor, posx, posy, 0, 0);

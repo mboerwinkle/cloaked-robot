@@ -8,7 +8,7 @@
 
 //PRIX64 is a nifty macro from inttypes.h.
 static void gensector(uint64_t x, uint64_t y){//only called from loadsector
-	printf("gensector called (%"PRId64", %"PRId64")\n", x, y);
+	//printf("gensector called (%"PRId64", %"PRId64")\n", x, y);
 	char name[42];
 	sprintf(name, "sectors/%"PRIX64"_%"PRIX64, x, y);
 	FILE *fp;
