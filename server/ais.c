@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include "globals.h"
 
 ai aiMissile;
@@ -109,18 +110,44 @@ static char circle(entity *who, entity *target, double r, double v)
 
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
-	if(data->keys & 0x08){
+	char keys = data->keys;
+	if (data->replayMode) {
+		if (data->replayMode == 1) {
+			if (keys != data->prevKeys || data->dittoCounter == -1) {
+				write(data->replayFd, &data->dittoCounter, sizeof(int));
+				write(data->replayFd, &keys, 1);
+				data->dittoCounter = 0;
+				data->prevKeys = keys;
+			} else {
+				data->dittoCounter++;
+			}
+		} else {
+			if (data->dittoCounter--) {
+				keys = data->prevKeys;
+			} else {
+				keys = data->prevKeys = data->keys;
+				//Note that any file format changes here should be mirrored in entity.c
+				if (sizeof(int) != read(data->replayFd, &data->dittoCounter, sizeof(int))) {
+					data->replayMode = 0;
+					close(data->replayFd);
+				} else {
+					read(data->replayFd, &data->keys, 1);
+				}
+			}
+		}
+	}
+	if(keys & 0x08){
 		lock(who);
 	}
-	if(data->keys & 0x10){
+	if(keys & 0x10){
 		who->targetLock = NULL;
 	}
-	if(data->keys & 0x01) turn(who, -1);
-	if(data->keys & 0x02) turn(who, 1);
-	if(data->keys & 0x04) thrust(who);
+	if(keys & 0x01) turn(who, -1);
+	if(keys & 0x02) turn(who, 1);
+	if(keys & 0x04) thrust(who);
 	int i = 0;
 	for (; i < who->numModules; i++)
-		(who->modules[i]->actFunc)(who, i, i<3 && (data->keys&(0x20<<i)));
+		(who->modules[i]->actFunc)(who, i, i<3 && (keys&(0x20<<i)));
 }
 
 static void aiHumanCollision(entity *who, entity *him)

@@ -9,10 +9,10 @@ scaling - Accomplished?
 
 
 More current matters:
+Game currently freezes, likely due to an asteroid mosh pit melee thing going on (Also once on respawn, oddly)
 Does cross-sector mining work?
 Spawn at things w/ spawner bays w/ sufficient minerals close to where U died
 Update real velocities at most once per tick
-Game currently freezes, likely due to an asteroid mosh pit melee thing going on (Also once on respawn, oddly)
 script file with standard map generation routines
 Brake module that doesn't break
 Mineral counter

@@ -116,6 +116,10 @@ typedef struct droneAiData{
 
 typedef struct humanAiData{
 	char keys;
+	char prevKeys;
+	int dittoCounter;
+	int replayFd;
+	int replayMode;
 }humanAiData;
 
 typedef struct {

@@ -12,8 +12,6 @@
 
 client* clientList = NULL;
 
-static int replayFd;
-
 static int sockfd;
 
 static int32_t divide(int64_t a, int32_t b){

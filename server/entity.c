@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <math.h>
 #include <limits.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include "globals.h"
 
 //Note that creating an entity which does *not* load sectors, but spawns (using the bay module) entities that *do* load sectors, you might get a few spurious sector load / unload pairs when said entity is created.
@@ -184,10 +186,23 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		r = 640*16;
 		hasModules(0);
 	}
-	if(aiType == 0){
+	if((aiType&0x3F) == 0){
 		ret->myAi = &aiHuman;
-		ret->aiFuncData = malloc(sizeof(humanAiData));
-		((humanAiData*)ret->aiFuncData)->keys = 0;
+		humanAiData *data = malloc(sizeof(humanAiData));
+		ret->aiFuncData = data;
+		data->keys = 0;
+		data->replayMode = aiType>>6;
+		if (data->replayMode) {
+			data->prevKeys = 0;
+			if (1 == data->replayMode) {
+				data->replayFd = open("replay.rep", O_WRONLY|O_CREAT|O_TRUNC);
+				data->dittoCounter = 0;
+			} else {
+				data->replayFd = open("replay.rep", O_RDONLY);
+				read(data->replayFd, &data->dittoCounter, sizeof(int));
+				read(data->replayFd, &data->keys, 1);
+			}
+		}
 	}else if(aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(1, 2);
@@ -233,6 +248,10 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	} else if (aiType == 10) {
 		ret->myAi = &aiStation;
 		ret->aiFuncData = calloc(1, sizeof(int));
+	} else {
+		printf("Error in entity.c: Unknown aiType %d\n", aiType);
+		ret->myAi = &aiPacer;
+		ret->aiFuncData = NULL;
 	}
 	if (ret->myAi->loadSector)
 		appear(ret->mySector->x, ret->mySector->y);
