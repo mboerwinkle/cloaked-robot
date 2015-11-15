@@ -12,21 +12,23 @@
 
 client* clientList = NULL;
 
+static int replayFd;
+
 static int sockfd;
 
-static int32_t simonDivide(int64_t a, int32_t b){
+static int32_t divide(int64_t a, int32_t b){
 	if(a<0) a-=(b-1);
 	return a/b;
 }
 
-static int32_t simonMod(int64_t a, int32_t b){
+static int32_t mod(int64_t a, int32_t b){
 	int32_t result = a%b;
 	if(result<0) return result+b;
 	return result;
 }
 
 // -120 / 40 Hz = 3 seconds until respawn
-#define CANSPAWN -120
+#define CANSPAWN (-120)
 
 #define NETLEN 6000
 static int8_t data[NETLEN];
@@ -35,7 +37,7 @@ static void sendRadar(client* cli){
 	int dataLen = 2;
 	entity* who = cli->myShip;
 	if (who->destroyFlag == 0) // Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
-		linkNear(who, 64*6400);
+		linkNear(who, 64*6400 * 16);
 	entity* runner = who->mySector->firstentity;
 	int64_t d;
 	while(runner){
@@ -43,13 +45,13 @@ static void sendRadar(client* cli){
 			runner = runner->next;
 			continue;
 		}
-		d = simonDivide(displacementX(who, runner)+3200*16, 6400*16);
+		d = divide(displacementX(who, runner)+3200*16, 6400*16);
 		if(d > 63 || d < -63){
 			runner = runner->next;
 			continue;
 		}
 		data[dataLen+1] = d+63;
-		d = simonDivide(displacementY(who, runner)+3200*16, 6400*16);
+		d = divide(displacementY(who, runner)+3200*16, 6400*16);
 		if(d > 63 || d < -63){
 			runner = runner->next;
 			continue;
@@ -120,8 +122,8 @@ void sendInfo(){
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[dataLen] = me->faction;
-		*(int16_t*)(data+dataLen+1) = simonMod(simonDivide(me->me->pos[0], 64*16), 4096);
-		*(int16_t*)(data+dataLen+3) = simonMod(simonDivide(me->me->pos[1], 64*16), 4096);
+		*(int16_t*)(data+dataLen+1) = mod(divide(me->me->pos[0], 64*16), 4096);
+		*(int16_t*)(data+dataLen+3) = mod(divide(me->me->pos[1], 64*16), 4096);
 		data[dataLen+5] = me->shield*255/me->maxShield;
 		data[dataLen+6] = me->energy*255/me->maxEnergy;
 		dataLen += 7;
@@ -132,14 +134,14 @@ void sendInfo(){
 			}
 			data[dataLen+0] = 0x01*runner->theta+0x10*runner->thrustFlag+0x20*runner->faction;
 			data[dataLen+1] = runner->type;
-			d = simonDivide(displacementX(conductor->myShip, runner)+32*16, 64*16);
+			d = divide(displacementX(conductor->myShip, runner)+32*16, 64*16);
 		#define NET_VIEW_RANGE ((LOCK_RANGE/(64*16))+1)
 			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
 			}
 			*(int16_t*)(data+dataLen+2) = d;
-			d = simonDivide(displacementY(conductor->myShip, runner)+32*16, 64*16);
+			d = divide(displacementY(conductor->myShip, runner)+32*16, 64*16);
 			if(d < -NET_VIEW_RANGE || d > NET_VIEW_RANGE){
 				runner = runner->next;
 				continue;
@@ -163,13 +165,13 @@ void sendInfo(){
 				}
 				data[dataLen-1] |= 0x80;
 				data[dataLen+2] = runner->trailTypes[count];
-				d = simonDivide(runner->trailXs[count]+32*16, 64*16);
+				d = divide(runner->trailXs[count]+32*16, 64*16);
 				if(d<0){
 					d+=256;
 					data[dataLen+2] |= 0x40;
 				}
 				data[dataLen] = d;
-				d = simonDivide(runner->trailYs[count]+32*16, 64*16);
+				d = divide(runner->trailYs[count]+32*16, 64*16);
 				if(d<0){
 					d+=256;
 					data[dataLen+2] |= 0x20;
