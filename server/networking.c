@@ -5,12 +5,11 @@
 #include <string.h>
 #include "globals.h"
 
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include "networking.h"
 
 client* clientList = NULL;
+
+loadRequest *firstLoadRequest = NULL;
 
 static int sockfd;
 
@@ -188,6 +187,7 @@ void sendInfo(){
 	}
 }
 
+//It's relatively important that this thread doesn't actually modify clientList. That's the other thread's job.
 void* netListen(void* whoGivesADern){
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	if(sockfd < 0){
@@ -231,15 +231,12 @@ void* netListen(void* whoGivesADern){
 			client* new = malloc(sizeof(client));
 			strcpy(new->name, msg+1);
 			printf("He requested ship %s\n", msg+1);
-			new->next = clientList;
 			new->addr = bindAddr;
-			new->myShip = loadship(msg+1);
-			if (new->myShip == NULL) {
-				puts("...But that isn't actually a ship :(");
-				free(new);
-			} else {
-				clientList = new;
-			}
+			loadRequest *req = malloc(sizeof(loadRequest));
+			req->next = firstLoadRequest;
+			req->cli = new;
+			strcpy(req->name, msg+1);
+			firstLoadRequest = req;
 		}
 	}
 	return NULL;

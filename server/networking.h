@@ -1,3 +1,6 @@
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 typedef struct client {
 	struct client* next;
@@ -9,5 +12,12 @@ typedef struct client {
 	int32_t ghostPos[2];
 	entity *myShip;
 } client;
+
+typedef struct loadRequest{
+	struct loadRequest *next;
+	client *cli;
+	char name[MAXNAMELEN];
+} loadRequest;
+extern loadRequest *firstLoadRequest;
 
 extern client* clientList;

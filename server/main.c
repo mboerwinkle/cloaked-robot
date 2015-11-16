@@ -8,9 +8,12 @@
 #include <limits.h>
 
 #include "globals.h"
+#include "networking.h"
+
+loadRequest *lastLoadRequest = NULL;
 
 int main(){
-	srandom(time(NULL));
+	//srandom(time(NULL));
 	struct timespec t = {.tv_sec=0};
 	struct timespec lastTime = {.tv_sec = 0, .tv_nsec = 0};
 	struct timespec otherTime = {.tv_sec = 0, .tv_nsec = 0};
@@ -30,6 +33,25 @@ int main(){
 	short adventuretime = 300;//nope, make that "char timetillpotentialtospawnastroidssothatwedontcheckeachtickandslowshitdown"
 	//nope, make that "char timeTillPotentialToSpawnAstroidsSoThatWeDontCheckEachTickAndSlowShitDown"
 	while(1){
+		if (firstLoadRequest != lastLoadRequest) {
+			loadRequest *first = firstLoadRequest;
+			loadRequest *runner = first;
+			while (runner != lastLoadRequest) {
+				loadRequest *next = runner->next;
+				client *cli = runner->cli;
+				cli->myShip = loadship(runner->name);
+				if (cli->myShip == NULL) {
+					printf("Failed to load ship \"%s\"\n", runner->name);
+					free(cli);
+				} else {
+					cli->next = clientList;
+					clientList = cli;
+				}
+				free(runner);
+				runner = next;
+			}
+			lastLoadRequest = first;
+		}
 		if(adventuretime-- == 0) {
 			adventuretime = 300;
 			int min = INT_MAX;

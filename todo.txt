@@ -13,6 +13,7 @@ Game currently freezes, likely due to an asteroid mosh pit melee thing going on 
 Does cross-sector mining work?
 Spawn at things w/ spawner bays w/ sufficient minerals close to where U died
 Update real velocities at most once per tick
+Limit AIs to same perception range as us - slow radar updates - intelligent searching of collision architecture to find near neighbors - apply search algorithm to players as well
 script file with standard map generation routines
 Brake module that doesn't break
 Mineral counter
