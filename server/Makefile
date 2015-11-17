@@ -9,7 +9,7 @@ OBJECTS=$(SOURCES:.c=.o)
 run: $(OBJECTS)
 	$(CC) $(OBJECTS) $(DEBUG) -o run $(LFLAGS)
 
-main.o: main.c globals.h
+main.o: main.c globals.h networking.h
 	$(CC) $(CFLAGS) main.c
 
 mkship.o: mkship.c globals.h

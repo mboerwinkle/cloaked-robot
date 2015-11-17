@@ -9,8 +9,9 @@ typedef struct client {
 	struct sockaddr_in addr;
 	entity ghostShip; // For when we're dead
 	guarantee ghostGuarantee;
-	int32_t ghostPos[2];
 	entity *myShip;
+	entity *spawnBase;
+	char requestsSpawn;
 } client;
 
 typedef struct loadRequest{

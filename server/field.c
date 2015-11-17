@@ -45,6 +45,12 @@ void fileMoveRequest(entity *who, sector* from, sector* to){
 	firstRequest = new;
 }
 
+void destroyEntity(entity *who) {
+	who->destroyFlag = 3;
+	who->next = thoseCondemnedToDeath;
+	thoseCondemnedToDeath = who;
+}
+
 static void addAsteroid(entity* poorSoul, int type){
 	guarantee *g = poorSoul->me;
 	double theta = ((double)random()/RAND_MAX)*(2*M_PI);
@@ -72,9 +78,7 @@ void run2(sector *sec){
 			current = current->next;
 			if(prev) prev->next = current;
 			else sec->firstentity = current;
-			tmp->destroyFlag = 3;
-			tmp->next = thoseCondemnedToDeath;
-			thoseCondemnedToDeath = tmp;
+			destroyEntity(tmp);
 			if(result == 2){
 				int64_t size = 2*((int64_t)tmp->me->r/16*tmp->me->r/16 + tmp->minerals)/3;
 				if(size>=320*320){

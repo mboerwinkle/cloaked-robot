@@ -3,6 +3,7 @@
 #include <math.h>
 #include <unistd.h>
 #include "globals.h"
+#include "networking.h"
 
 ai aiMissile;
 ai aiHuman;
@@ -152,14 +153,27 @@ static void aiHumanAct(entity* who){
 
 static void aiHumanCollision(entity *who, entity *him)
 {
-	if (who->minerals == 0 || who->faction != him->faction || him->me->r < who->me->r)
+	if (who->minerals == 0 || who->faction != him->faction)
 		return;
-	int i = who->numModules - 1;
+	int i = him->numModules - 1;
+	for (; i >= 0; i--) {
+		if (him->modules[i] == &bayModule || him->modules[i] == &miningBayModule) break;
+	}
+	if (i < 0) return;
+	i = who->numModules - 1;
 	for (; i >= 0; i--) {
 		if (who->modules[i] == &miningModule && ((humanAiData*)who->aiFuncData)->keys & (0x20 << i)) {
 			him->minerals += who->minerals;
 			who->minerals = 0;
 			addTrail(who, him, 1);
+			client *runner = clientList;
+			while (runner) {
+				if (runner->myShip == who) {
+					runner->spawnBase = him;
+					return;
+				}
+				runner = runner->next;
+			}
 		}
 	}
 }

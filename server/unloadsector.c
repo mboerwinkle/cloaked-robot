@@ -52,7 +52,7 @@ int writesectortofile(sector *target){
 		writeentitytofile(conductor);
 		next = conductor->next;
 		destroyGuarantee(conductor->me);
-		freeEntity(conductor);
+		destroyEntity(conductor);
 		conductor = next;
 	}
 	fclose(fp);

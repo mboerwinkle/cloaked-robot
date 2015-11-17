@@ -91,6 +91,12 @@ void sendInfo(){
 	client* conductor = clientList;
 	while(conductor){
 		dataLen = 0;
+		if (conductor->spawnBase && conductor->spawnBase->destroyFlag) conductor->spawnBase = NULL;
+		if (conductor->requestsSpawn) {
+			if (conductor->spawnBase) conductor->myShip = loadshipSpawner(conductor->name, conductor->spawnBase);
+			else conductor->myShip = loadship(conductor->name);
+			conductor->requestsSpawn = 0;
+		}
 		entity* me = conductor->myShip;
 		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
 		if(me->destroyFlag){
@@ -210,8 +216,8 @@ void* netListen(void* whoGivesADern){
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
-				if (current->myShip->destroyFlag == CANSPAWN) {
-					current->myShip = loadship(current->name);
+				if (current->myShip->destroyFlag == CANSPAWN && !current->requestsSpawn) {
+					current->requestsSpawn = 1;
 					printf("Player %s has respawned!\n", current->name);
 				} else if (current->myShip->destroyFlag) {
 					break;
@@ -232,6 +238,8 @@ void* netListen(void* whoGivesADern){
 			strcpy(new->name, msg+1);
 			printf("He requested ship %s\n", msg+1);
 			new->addr = bindAddr;
+			new->spawnBase = NULL;
+			new->requestsSpawn = 0;
 			loadRequest *req = malloc(sizeof(loadRequest));
 			req->next = firstLoadRequest;
 			req->cli = new;

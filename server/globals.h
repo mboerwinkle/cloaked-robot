@@ -18,6 +18,7 @@ extern int main();
 extern void loadsector(uint64_t x, uint64_t y); 
 extern int mkship(char *name);
 extern struct entity* loadship(char *name);
+extern struct entity* loadshipSpawner(char *name, struct entity *spawner);
 extern void move(uint64_t xorigin, uint64_t yorigin, uint64_t xfinal, uint64_t yfinal);
 extern void appear(uint64_t x, uint64_t y);
 extern void disappear(uint64_t x,uint64_t y);
@@ -175,6 +176,7 @@ extern void turn(entity* who, char dir);
 extern void freeEntity(entity* who);
 
 extern void fileMoveRequest(entity* who, sector* from, sector* to);
+extern void destroyEntity(entity *who);
 extern void run(sector *sec);
 extern void run2(sector *sec);
 extern void cleanup();

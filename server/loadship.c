@@ -30,3 +30,25 @@ entity *loadship(char name[MAXNAMELEN]){
 	disappear(secx, secy); // Why would I do such a thing? Because newEntity has to do an appear itself, for paladin spawning & such. However, I can't get rid of this function's appear call either, because the sector needs to be loaded when we spawn the player.
 	return ret;
 }
+
+entity *loadshipSpawner(char name[MAXNAMELEN], entity *spawner){
+	printf("loadshipSpawner called (%s)\n", name);
+	char path[MAXNAMELEN + 6], faction, shipType, aiType;
+	FILE *fp;
+	sprintf(path, "ships/%s", name);
+	if((fp = fopen(path, "r")) == NULL){
+		return NULL;
+	}
+	if (0 > fscanf(fp, "%*d %*d\n%*d %*d\n")) {
+		puts("Looks like a corrupt file in loadship.c ");
+		return NULL;
+	}
+	if (3 > fscanf(fp, "%hhd %hhd %hhd", &shipType, &faction, &aiType)) {
+		puts("Looks like a corrupt file in loadship.c.");
+		return NULL;
+	}
+	fclose(fp);
+	guarantee *him = spawner->me;
+	entity *ret = newEntity(him, shipType, aiType, faction, spawner->mySector, him->pos[0], him->pos[1], him->vel[0], him->vel[1]);
+	return ret;
+}
