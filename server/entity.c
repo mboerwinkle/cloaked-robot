@@ -21,6 +21,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
+	ret->thrustFlag = 0;
 	ret->targetLock = NULL;
 	//ret->x = x;
 	//ret->y = y;
