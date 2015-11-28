@@ -34,6 +34,7 @@ int main(){
 	//nope, make that "char timeTillPotentialToSpawnAstroidsSoThatWeDontCheckEachTickAndSlowShitDown"
 	while(1){
 		if (firstLoadRequest != lastLoadRequest) {
+			puts("Request detected");
 			loadRequest *first = firstLoadRequest;
 			loadRequest *runner = first;
 			while (runner != lastLoadRequest) {
@@ -47,9 +48,10 @@ int main(){
 					cli->next = clientList;
 					clientList = cli;
 				}
-				free(runner);
+				if (runner != first) free(runner); // Leave the first one allocated, so the next value of first is something new.
 				runner = next;
 			}
+			if (runner) free(runner); // Clean up the still-allocated first one from last time.
 			lastLoadRequest = first;
 		}
 		if(adventuretime-- == 0) {
