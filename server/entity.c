@@ -49,6 +49,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	}
 	if(type == 0){//human
 		r = 640*16;
+		ret->minerals = 1;
 		hasModules(3);
 		ret->thrust = 3*16;
 		ret->maxTurn = 6;

@@ -30,11 +30,16 @@ static int32_t mod(int64_t a, int32_t b){
 #define NETLEN 6000
 static int8_t data[NETLEN];
 
+void initNetworking() {
+	memset(data, 0, NETLEN);
+}
+
 static void sendRadar(client* cli){
 	int dataLen = 2;
 	entity* who = cli->myShip;
-	if (who->destroyFlag == 0) // Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
+	if (who->destroyFlag == 0) {// Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
 		linkNear(who, 64*6400 * 16);
+	} else if (who->destroyFlag == CANSPAWN) return; // Kinda hackish, but should wokr???
 	entity* runner = who->mySector->firstentity;
 	int64_t d;
 	while(runner){
@@ -219,6 +224,7 @@ void* netListen(void* whoGivesADern){
 				if (current->myShip->destroyFlag == CANSPAWN && !current->requestsSpawn) {
 					current->requestsSpawn = 1;
 					printf("Player %s has respawned!\n", current->name);
+					break;
 				} else if (current->myShip->destroyFlag) {
 					break;
 				}

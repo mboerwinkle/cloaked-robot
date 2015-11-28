@@ -14,6 +14,7 @@ loadRequest *lastLoadRequest = NULL;
 
 int main(){
 	//srandom(time(NULL));
+	initNetworking();
 	struct timespec t = {.tv_sec=0};
 	struct timespec lastTime = {.tv_sec = 0, .tv_nsec = 0};
 	struct timespec otherTime = {.tv_sec = 0, .tv_nsec = 0};
