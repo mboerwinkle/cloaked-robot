@@ -195,12 +195,17 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		if (data->replayMode) {
 			data->prevKeys = 0;
 			if (1 == data->replayMode) {
-				data->replayFd = open("replay.rep", O_WRONLY|O_CREAT|O_TRUNC);
+				data->replayFd = open("replay.rep", O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU|S_IRWXG);
 				data->dittoCounter = 0;
 			} else {
 				data->replayFd = open("replay.rep", O_RDONLY);
-				read(data->replayFd, &data->dittoCounter, sizeof(int));
-				read(data->replayFd, &data->keys, 1);
+				if (sizeof(int) != read(data->replayFd, &data->dittoCounter, sizeof(int))) {
+					puts("Corrupt replay file.");
+					data->replayMode = 0;
+				} else if (1 != read(data->replayFd, &data->keys, 1)) {
+					puts("Corrupt replay file");
+					data->replayMode = 0;
+				}
 			}
 		}
 	}else if(aiType == 1){
