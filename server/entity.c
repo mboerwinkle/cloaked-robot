@@ -21,6 +21,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	ret->actedFlag = globalActedFlag;
 	ret->type = type;
 	ret->destroyFlag = 0;
+	ret->thrustFlag = 0;
 	ret->targetLock = NULL;
 	//ret->x = x;
 	//ret->y = y;
@@ -49,6 +50,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	}
 	if(type == 0){//human
 		r = 640*16;
+		ret->minerals = 1;
 		hasModules(3);
 		ret->thrust = 3*16;
 		ret->maxTurn = 6;
