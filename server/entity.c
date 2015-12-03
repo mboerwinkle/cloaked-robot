@@ -79,15 +79,16 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*gunModule.initFunc)(ret, 0, 1);
 	}else if(type == 3){//carrier	
 		r = 3480*16;
-		hasModules(1);
+		hasModules(2);
 		ret->thrust = 1.7*16;
 		ret->maxTurn = 12;
 		ret->shield = ret->maxShield = 300;
 		ret->shieldRegen = 0.05;
 		ret->energy = ret->maxEnergy = 100;
 		ret->energyRegen = 1;
-		(*bayModule.initFunc)(ret, 0, 2.02);
-		ret->minerals = 640*640*10;
+		(*bayModule.initFunc)(ret, 0, 2 + 2.0/128);
+		(*miningBayModule.initFunc)(ret, 1, 1);
+		ret->minerals = 640*640*10+2*MINOR_MINER_COST;
 	}else if (type == 12) { // Huge asteroid
 		r = 1300*16; // By rights this ought to be 1280, but I like the asteroid distribution better this way
 		hasModules(0);
@@ -133,7 +134,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*missileModule.initFunc)(ret, 1, 1);
 		(*lazorModule.initFunc)(ret, 2, 1);
 	} else if (type == 8) { //Minor Miner
-		r = (64*5+32)*16; // 352*16
+		r = MINOR_MINER_R*16; // 352*16
 		hasModules(1);
 		ret->thrust = 1.8*16;
 		ret->maxTurn = 4;
@@ -145,7 +146,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	} else if (type == 9) { //Major Miner
 		r = 1280*16;
 		hasModules(2);
-		ret->minerals = 352*352*2;
+		ret->minerals = MINOR_MINER_COST*2;
 		ret->thrust = 2.5*16;
 		ret->maxTurn = 7;
 		ret->shield = ret->maxShield = 250;
@@ -165,7 +166,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		ret->energyRegen = 2;
 		//We may have to change this whole "double argument to init functions" thing, but until that point we have (shipType) + (aiType / 128)
 		(*bayModule.initFunc)(ret, 0, 2 + 2.0/128);
-		(*bayModule.initFunc)(ret, 1, 3 + 2.0/128);
+		(*bayModule.initFunc)(ret, 1, 3 + 3.0/128);
 		(*bayModule.initFunc)(ret, 2, 7 + 7.0/128);
 		(*bayModule.initFunc)(ret, 3, 9 + 9.0/128);
 	} else if (type == 11) { // freeze tag player
@@ -208,21 +209,23 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 				}
 			}
 		}
-	}else if(aiType == 1){
+	} else if (aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(1, 2);
-	}else if(aiType == 2){
+	} else if (aiType == 2){
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
-		((droneAiData*)ret->aiFuncData)->repeats = 0;
 		((droneAiData*)ret->aiFuncData)->target = NULL;
-	}else if(aiType == 3){
+	} else if (aiType == 3) {
+		ret->myAi = &aiCarrier;
+		ret->aiFuncData = malloc(sizeof(carrierAiData));
+		((carrierAiData*)ret->aiFuncData)->timer = 100;
+		((carrierAiData*)ret->aiFuncData)->target = NULL;
+		((carrierAiData*)ret->aiFuncData)->mineSuccess = -1;
+	} else if (aiType == 4){
 		ret->myAi = &aiAsteroid;
 		ret->aiFuncData = calloc(1, 1);
-	} else if (aiType == 4) {
-		ret->myAi = &aiPacer;
-		ret->aiFuncData = NULL;
 	} else if (aiType == 5) {
 		puts("WTF OMG LOL BBQ");
 		ret->myAi = &aiPacer;
@@ -248,7 +251,6 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		((majorMinerAiData*)ret->aiFuncData)->homestation = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 100;
-		((majorMinerAiData*)ret->aiFuncData)->rechecks = 0;
 		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
 	} else if (aiType == 10) {
 		ret->myAi = &aiStation;

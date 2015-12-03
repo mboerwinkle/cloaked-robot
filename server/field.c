@@ -55,7 +55,7 @@ static void addAsteroid(entity* poorSoul, int type){
 	guarantee *g = poorSoul->me;
 	double theta = ((double)random()/RAND_MAX)*(2*M_PI);
 	int spd = random() % (int)(g->r / 6.4);
-	entity* assRoid = newEntity(g, type, 3, 0, poorSoul->mySector, g->pos[0], g->pos[1], g->vel[0] + cos(theta)*spd, g->vel[1] + sin(theta)*spd);
+	entity* assRoid = newEntity(g, type, 4, 0, poorSoul->mySector, g->pos[0], g->pos[1], g->vel[0] + cos(theta)*spd, g->vel[1] + sin(theta)*spd);
 	*(char*)assRoid->aiFuncData = 1-2*(random()%2); // It has been hit, tumble, plz.
 	assRoid->theta = random()%16;
 }

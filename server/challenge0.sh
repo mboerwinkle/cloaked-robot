@@ -2,14 +2,14 @@
 rm sectors/*_*
 echo 'entity
 3
-2
+3
 1
 4480000
 1024
 end
 entity
 3
-2
+3
 2
 160000
 1024

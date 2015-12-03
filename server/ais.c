@@ -8,6 +8,7 @@
 ai aiMissile;
 ai aiHuman;
 ai aiDrone;
+ai aiCarrier;
 ai aiAsteroid;
 ai aiPacer;
 ai aiBullet;
@@ -188,49 +189,30 @@ static void aiDroneAct(entity* who){
 	}
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
-		if (data->repeats < 20)
-			data->repeats++;
-		linkNear(who, 64*6400*16 * data->repeats);
-		double bestScore = 64*6400*4*16 * data->repeats;
+		linkNear(who, RADAR_RANGE);
+		double bestScore = 6*RADAR_RANGE;
 		data->target = NULL;
-		entity* runner = who->mySector->firstentity;
+		entity* runner;
 		int64_t d;
-		while(runner){
-			if(runner->me->r < 64*5*16 || runner == who || runner->faction == 0){
-				runner = runner->next;
-				continue;
-			}
+		for (runner = who->mySector->firstentity; runner; runner = runner->next) {
+			if(runner->me->r < 64*5*16 || runner == who || runner->faction == 0) continue;
 			dx = displacementX(who, runner);
-			if(abs(dx) > 64*6400*16 * data->repeats){
-				runner = runner->next;
-				continue;
-			}
+			if(abs(dx) >= RADAR_RANGE) continue;
 			dy = displacementY(who, runner);
-			if(abs(dy) > 64*6400*16 * data->repeats){
-				runner = runner->next;
-				continue;
-			}
+			if(abs(dy) >= RADAR_RANGE) continue;
 			d = sqrt(dx*dx+dy*dy);
-			if(d > 64*6400*16 * data->repeats){
-				runner = runner->next;
-				continue;
-			}
 			double angle = atan2(dy, dx);
 			if(angle < 0) angle += 2*M_PI;
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
 			if(angle>M_PI) angle = 2*M_PI - angle;
 			double score = d*(1+angle/M_PI);
-			if(!(who->lockSettings & (1<<runner->faction))) score += 64*6400*16 * data->repeats;
+			if(!(who->lockSettings & (1<<runner->faction))) score += 3*RADAR_RANGE;
 			if(score < bestScore){
 				bestScore = score;
 				data->target = runner;
 			}
-			runner = runner->next;
 		}
 		unlinkNear();
-		// If we have an enemy target, we don't need to look any farther next time.
-		if (data->target && (who->lockSettings & (1<<data->target->faction)))
-			data->repeats--;
 	}
 	if(data->target == NULL){	
 		if(vx*vx+vy*vy < 62500*16*16){
@@ -253,22 +235,137 @@ static void aiDroneAct(entity* who){
 	double unvy = uny*dvy;
 	if(sqrt(dx * dx + dy * dy) <= LOCK_RANGE && (who->lockSettings & (1<<data->target->faction))) {
 		who->targetLock = data->target;
-		//So we can drop back to regular scanning range
-		data->repeats = 0;
 	}
 	if(who->targetLock == NULL){
 		(who->modules[0]->actFunc)(who, 0, 0);
-		//Martin: This is the one place I've changed your drone source. Hopefully it will cut down on jitters.
 		circle(who, data->target, data->target->me->r+who->me->r+700*16, 30*16);
-		/*if(x+(data->target->me->r+who->me->r+500) > 0){
-			turn(who, 1);
-		}
-		if(x+(data->target->me->r+who->me->r+500) < 0){
-			turn(who, -1);
-		}*/
 	}
 	else{		
-		//Addendum: Since the 'circle' method handles thrusting, I also moved this if statement into here.
+		if(unvx + unvy < 0 || dvy * dvy + dvx * dvx < 62500*16*16){
+			thrust(who);
+		}
+		(who->modules[0]->actFunc)(who, 0, 1);
+		double y = dy*uny + dx*unx;
+		if((x!=0 && y/fabs(x)<5) || y<0){
+			turn(who, x>0?1:-1);
+		}
+	}
+}
+
+static void aiCarrierAct(entity* who){
+	double vx = who->me->vel[0];
+	double vy = who->me->vel[1];
+	double dx, dy;
+	carrierAiData *data = who->aiFuncData;
+	if(data->timer == 200){
+		data->timer = 0;
+	}
+	if (data->mineSuccess >= 0) data->mineSuccess--;
+	if (data->timer == 0 || data->mineSuccess == 0) {
+		uint64_t oldMinerals = who->minerals;
+		(who->modules[1]->actFunc)(who, 1, 1);
+		if (oldMinerals != who->minerals) data->mineSuccess = 8;
+		
+	} else {
+		(who->modules[1]->actFunc)(who, 1, 0);
+	}
+	data->timer++;
+	if(data->timer == 1 && who->targetLock == NULL){
+		linkNear(who, RADAR_RANGE);
+		double bestScore = 2*RADAR_RANGE;
+		data->target = NULL;
+		entity* runner;
+		int64_t d;
+		/*
+		No Minerals:
+			Asteroids
+			Friendlies
+		Full Minerals:
+			Enemies
+			Friendlies
+			Asteroids
+		Some Minerlas:
+			Enemies
+			Asteroids
+			Friendlies
+		*/
+		int bestClass = 0;
+		int classes[3];
+		if (who->minerals < 640*640+2*MINOR_MINER_COST) {
+			classes[0]=2;
+			classes[1]=-1;
+			classes[2]=1;
+		} else if (who->minerals >= 640*640*10+2*MINOR_MINER_COST) {
+			classes[0]=1;
+			classes[1]=3;
+			classes[2]=2;
+		} else {
+			classes[0]=2;
+			classes[1]=3;
+			classes[2]=1;
+		}
+		for (runner = who->mySector->firstentity; runner; runner = runner->next) {
+			if(runner->me->r < 64*5*16 || runner == who) continue;
+			int class;
+			if (runner->faction == 0) {
+				class = classes[0];
+			} else if (who->lockSettings & (1<<runner->faction)) {
+				class = classes[1];
+			} else {
+				class = classes[2];
+			}
+			if (class < bestClass) continue;
+			dx = displacementX(who, runner);
+			if(abs(dx) >= RADAR_RANGE) continue;
+			dy = displacementY(who, runner);
+			if(abs(dy) >= RADAR_RANGE) continue;
+			d = sqrt(dx*dx+dy*dy);
+			double angle = atan2(dy, dx);
+			if(angle < 0) angle += 2*M_PI;
+			angle = fabs(angle - (M_PI_4/2)*who->theta);
+			if(angle>M_PI) angle = 2*M_PI - angle;
+			double score = d*(1+angle/M_PI);
+			if(class > bestClass || score < bestScore){
+				bestScore = score;
+				bestClass = class;
+				data->target = runner;
+			}
+		}
+		unlinkNear();
+	}
+	if(data->target == NULL){	
+		if(vx*vx+vy*vy < 62500*16*16){
+			thrust(who);
+		}
+		return;
+	}
+	if(data->target->destroyFlag){
+		data->timer = 0;
+		data->target = NULL;
+		return;
+	}
+	dx = displacementX(who, data->target);
+	dy = displacementY(who, data->target);
+	double unx = who->cosTheta;
+	double uny = who->sinTheta;
+	double x = dy*unx - dx*uny;
+	double dvx = who->me->vel[0] - data->target->me->vel[0];
+	double dvy = who->me->vel[1] - data->target->me->vel[1];
+	double unvx = unx*dvx;
+	double unvy = uny*dvy;
+	if((who->lockSettings & (1<<data->target->faction)) && sqrt(dx * dx + dy * dy) <= LOCK_RANGE) {
+		who->targetLock = data->target;
+	}
+	if(who->targetLock == NULL){
+		(who->modules[0]->actFunc)(who, 0, 0);
+		circle(who, data->target, data->target->me->r+who->me->r+700*16, 30*16);
+	} else {		
+		if (who->minerals < 2*MINOR_MINER_COST+640*640) {
+			(who->modules[0]->actFunc)(who, 0, 0);
+			who->targetLock = NULL;
+			data->timer = 0;
+			return;
+		}
 		if(unvx + unvy < 0 || dvy * dvy + dvx * dvx < 62500*16*16){
 			thrust(who);
 		}
@@ -518,11 +615,9 @@ static void aiMajorMinerAct(entity *who){
 	if(behavior == 0){
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			/*if (data->rechecks < 20)
-				data->rechecks++;*/
-			linkNear(who, 64*6400 * 20 * 16); // data->rechecks);
+			linkNear(who, 64*6400 * 20 * 16);
 			entity* runner = who->mySector->firstentity;
-			double bestDist = 64*6400 * 20 * 16; // data->rechecks;
+			double bestDist = 64*6400 * 20 * 16;
 			double r = 640*16 + 1;//must be bigger than a drone
 			while(runner){
 				if(runner->faction == who->faction && runner->me->r >= r && runner != who){
@@ -544,7 +639,6 @@ static void aiMajorMinerAct(entity *who){
 			unlinkNear();
 			if (data->homestation) {
 				data->recheckTime = 1;
-				//data->rechecks = 0;
 			}
 		}
 		(who->modules[0]->actFunc)(who, 0, 0);
@@ -554,10 +648,8 @@ static void aiMajorMinerAct(entity *who){
 	if(behavior == -1) {
 		if (--(data->recheckTime) == 0) {
 			data->recheckTime = 300;
-			//if (data->rechecks < 20)
-				//data->rechecks++;
-			linkNear(who, 64*6400*16 * 20); // data->rechecks);
-			double bestScore = 64*6400*16 * 20; // data->rechecks;
+			linkNear(who, 64*6400*16 * 20);
+			double bestScore = 64*6400*16 * 20;
 			entity *temptarget = NULL;
 			entity* runner = who->mySector->firstentity;
 			double d;
@@ -577,11 +669,9 @@ static void aiMajorMinerAct(entity *who){
 			unlinkNear();
 			if ((data->target = temptarget) != NULL) {
 				data->recheckTime = 1;
-				//data->rechecks = 0;
 			} else if (who->minerals != 352*352*2) {
 				behavior = 1;
 				data->recheckTime = 1;
-				//data->rechecks = 0;
 			}
 		}
 	}
@@ -635,6 +725,9 @@ void initAis(){
 	aiDrone.loadSector = 0;
 	aiDrone.act = aiDroneAct;
 	aiDrone.handleCollision = noCareCollision;
+	aiCarrier.loadSector = 0;
+	aiCarrier.act = aiCarrierAct;
+	aiCarrier.handleCollision = noCareCollision;
 	aiAsteroid.loadSector = 0;
 	aiAsteroid.act = aiAsteroidAct;
 	aiAsteroid.handleCollision = aiAsteroidCollision;

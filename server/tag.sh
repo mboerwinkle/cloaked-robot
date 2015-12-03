@@ -4,7 +4,7 @@
 makeAsteroid () {
 echo 'entity
 4
-3
+4
 0' >> sectors/0_0
 echo $1 >> sectors/0_0
 echo $2 >> sectors/0_0

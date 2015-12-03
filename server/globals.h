@@ -3,12 +3,16 @@
 #define POS_MAX 33554431
 #define POS_MIN (-33554432)
 #define LOCK_RANGE (1024*1000)
+#define RADAR_RANGE (6400*16*64)
 
 #define POS_RANGE (POS_MAX-POS_MIN+1)
 
 #define displacementX(a,b) (POS_RANGE*(int64_t)(b->mySector->x - a->mySector->x) + b->me->pos[0] - a->me->pos[0])
 #define displacementY(a,b) (POS_RANGE*(int64_t)(b->mySector->y - a->mySector->y) + b->me->pos[1] - a->me->pos[1])
 //macros are gay
+
+#define MINOR_MINER_COST (MINOR_MINER_R*MINOR_MINER_R)
+#define MINOR_MINER_R 352
 
 struct entity;
 struct module;
@@ -32,6 +36,7 @@ typedef struct ai{
 extern ai aiHuman;
 extern ai aiMissile;
 extern ai aiDrone;
+extern ai aiCarrier;
 extern ai aiAsteroid;
 extern ai aiPacer;
 extern ai aiBullet;
@@ -110,10 +115,15 @@ typedef struct guarantee {
 } guarantee;
 
 typedef struct droneAiData{
-	char repeats;
 	short timer;
 	entity *target;
 }droneAiData;
+
+typedef struct carrierAiData{
+	short timer;
+	entity *target;
+	signed char mineSuccess;
+}carrierAiData;
 
 typedef struct humanAiData{
 	char keys;
@@ -137,7 +147,6 @@ typedef struct {
 
 typedef struct {
 	int recheckTime;
-	int rechecks;
 	entity *homestation;
 	entity *target;
 	char phase;
