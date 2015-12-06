@@ -22,5 +22,3 @@ typedef struct loadRequest{
 extern loadRequest *firstLoadRequest;
 
 extern client* clientList;
-
-extern void initNetworking();

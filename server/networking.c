@@ -30,10 +30,6 @@ static int32_t mod(int64_t a, int32_t b){
 #define NETLEN 6000
 static int8_t data[NETLEN];
 
-void initNetworking() {
-	memset(data, 0, NETLEN);
-}
-
 static void sendRadar(client* cli){
 	int dataLen = 2;
 	entity* who = cli->myShip;
@@ -103,7 +99,6 @@ void sendInfo(){
 			conductor->requestsSpawn = 0;
 		}
 		entity* me = conductor->myShip;
-		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
 		if(me->destroyFlag){
 			if (me->destroyFlag > 0) {
 				memcpy(&conductor->ghostShip, me, sizeof(entity)); // We don't care about all the modules, pointers, etc.
@@ -115,6 +110,9 @@ void sendInfo(){
 				if (me->destroyFlag == CANSPAWN)
 					disappear(me->mySector->x, me->mySector->y);
 			}
+		}
+		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
+		if (me->destroyFlag) {
 			*data = 0x41; // Lol, you died
 			if (me->destroyFlag == CANSPAWN) {
 				sendAddr.sin_addr.s_addr = conductor->addr.sin_addr.s_addr;
@@ -124,9 +122,9 @@ void sendInfo(){
 			} else {
 				dataLen = 1;
 			}
-		}
-		if (me->destroyFlag == 0)
+		} else {
 			linkNear(me, LOCK_RANGE);
+		}
 		sector *sec = me->mySector;
 		entity *runner = sec->firstentity;
 		data[dataLen] = me->faction;

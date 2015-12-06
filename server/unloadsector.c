@@ -30,8 +30,9 @@ void writeentitytofile(entity *who){
 		if(who->myAi == &aiHuman) wint(0);
 		else if(who->myAi == &aiMissile) wint(1);
 		else if(who->myAi == &aiDrone) wint(2);
-		else if(who->myAi == &aiAsteroid) wint(3);
-		else if(who->myAi == &aiPacer) wint(4);
+		else if(who->myAi == &aiCarrier) wint(3);
+		else if(who->myAi == &aiAsteroid) wint(4);
+		else if(who->myAi == &aiPacer) wint(5);
 		else if(who->myAi == &aiBullet) wint(6);
 		else if(who->myAi == &aiDestroyer) wint(7);
 		else if(who->myAi == &aiMinorMiner) wint(8);
