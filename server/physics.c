@@ -5,6 +5,23 @@
 
 #include "globals.h"
 
+/*static int debugCounter = 0;
+#define pred ((debugCounter == 444 || debugCounter == 457) && (int64_t)g == 0x713a00)
+
+static void debugMessage(guarantee *g, char *msg) {
+	if (g != 0x713a00) return;
+	debugCounter++;
+	if (debugCounter < 444) return;
+	puts(msg);
+	int i;
+	for (i = 0; i < g->numKids; i++) {
+		printf("\t%p (%d, %d) <%d, %d>, size %d\n", g->kids[i], g->kids[i]->pos[0], g->kids[i]->pos[1], g->kids[i]->vel[0], g->kids[i]->vel[1], g->kids[i]->r);
+	}
+	if (!strcmp("I fit", msg)) {
+		puts("We'll see about that!");
+	}
+}*/
+
 static void myExit(int code) {
 	puts("Shoulda stopped me!");
 	exit(code);
@@ -123,6 +140,13 @@ static char fitGuarantee(guarantee *g) {
 				leftBaseSlp = kids[k]->vel[dim];
 			}
 		}
+		/*if (pred) {
+			printf("On the way out, here's what we've got:\n"
+			"leftT: %d\tleftS: %d\n"
+			"rightS: %d\n"
+			"leftBaseS: %d\tleftBaseSlp: %d\n"
+			"rightBaseSlp: %d\n", leftT, leftS, rightS, leftBaseS, leftBaseSlp, rightBaseSlp);
+		}*/
 		int32_t lNextS, rNextS;
 		int32_t lNextT, rNextT;
 		int lSlope, rSlope;
@@ -130,22 +154,21 @@ static char fitGuarantee(guarantee *g) {
 		//if (deleteMe == 2) printf("T: %d, S: %d\n", leftT, leftS);
 		calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 		calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
-		if (rSlope <= rightBaseSlp && (rSlope < rightBaseSlp || rLoss > 0)) {
+		/*if (rSlope <= rightBaseSlp && (rSlope < rightBaseSlp || rLoss > 0)) {
 			rSlope = rightBaseSlp;
 			rLoss = 0;
 			rNextS = rightS;
 			rNextT = rightT;
-			rightS -= rSlope;
+			if (pred) puts("Did the thing");
 		} else {
-			rightS -= rSlope;
+			if (pred) puts("Didn't do the thing");
 		}
-		rightT -= 1;
-		/*if (deleteMe == 2) {
-			printf("lSlope: %d, rSlope: %d\n", lSlope, rSlope);
-		}*/
+		rightS -= rSlope;
+		rightT -= 1;*/
 		while (1) {
 			if (lSlope > rSlope) {
-				if (lNextT <= rightT) {
+				//if (lNextT <= rightT) {
+				if (lNextT < rightT) {
 					if (lLoss <= leftT - rightT) {
 						leftT = lNextT;
 						leftS = lNextS;
@@ -156,9 +179,11 @@ static char fitGuarantee(guarantee *g) {
 				}
 				leftT = lNextT;
 				leftS = lNextS;
+				//if (pred) printf("Left side stepped to\n  S: %d\tT: %d\n", leftS, leftT);
 				calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 			} else if (rSlope > lSlope) {
-				if (leftT <= rNextT) {
+				//if (leftT <= rNextT) {
+				if (leftT < rNextT) {
 					if (rLoss <= leftT - rightT) {
 						rightT = rNextT;
 						rightS = rNextS;
@@ -170,9 +195,11 @@ static char fitGuarantee(guarantee *g) {
 				}
 				rightT = rNextT;
 				rightS = rNextS;
+				//if (pred) printf("Right side stepped to\n  S: %d\tT: %d\n", rightS, rightT);
 				calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
 			} else { // Else, we're going to have both bottlenecks changing on us at once
-				if (lNextT <= rNextT) {
+				//if (lNextT <= rNextT) {
+				if (lNextT < rNextT) {
 					if (lLoss + rLoss <= leftT - rightT) {
 						rightT = rNextT;
 						rightS = rNextS;
@@ -187,15 +214,21 @@ static char fitGuarantee(guarantee *g) {
 				leftS = lNextS;
 				rightT = rNextT;
 				rightS = rNextS;
+				/*if (pred) {
+					printf("Left side stepped to\n  S: %d\tT: %d\n", leftS, leftT);
+					printf("AND Right side stepped to\n  S: %d\tT: %d\n", rightS, rightT);
+				}*/
 				calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 				calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
 			}
 		}
-		//g->vel[dim] = lSlope;
+		//if (pred) printf("End with:\n  Slope: %d\n  leftS: %d\tleftT: %d\n  rightS: %d\nrightT: %d\n", lSlope, leftS, leftT, rightS, rightT);
 		g->pos[dim] = (rightS - lSlope * rightT + leftS - lSlope * leftT) / 2;
 		if (g->pos[dim] + lSlope * leftT - leftS > g->r ||
-			rightS - g->pos[dim] - lSlope * rightT > g->r)
+			rightS - g->pos[dim] - lSlope * rightT > g->r) {
+			//debugMessage(g, "I don't fit");
 			return 1;
+		}
 		g->vel[dim] = lSlope;
 		char lt = 0, gt = 0;
 		for (k = g->numKids - 1; k >= 0; k--) {
@@ -214,70 +247,7 @@ static char fitGuarantee(guarantee *g) {
 		}
 		//if (abs(lSlope) >= 10000) printf("%d\n", lSlope);
 	}
-	/*
-	for (dim = 0; dim < 2; dim++) {
-		int lSlope = INT_MAX;
-		int rSlope = INT_MIN;
-		int minAcceptable = INT_MIN;
-		int maxAcceptable = INT_MAX;
-		int slope;
-		int32_t pos, T;
-		int k = g->numKids - 1;
-		for (; k >= 0; k--) {
-			T = kids[k]->T + kids[k]->pto;
-			if (T == 0) {
-				continue;
-			}
-			///////Now we're calculating what we'd like///////
-			//pos = kids[k]->pos[dim] - kids[k]->pto * kids[k]->vel[dim] + kids[k]->trend[dim] * T;
-			pos = kids[k]->pos[dim] + kids[k]->trend[dim] * kids[k]->T;
-
-			slope = pos + kids[k]->r - g->pos[dim] - g->r;
-			if (slope > 0 && slope%T) slope = slope/T + 1;
-			else slope /= T;
-
-			if (slope > rSlope) rSlope = slope;
-
-			slope = pos - kids[k]->r - g->pos[dim] + g->r;
-			if (slope < 0 && slope%T) slope = slope/T - 1;
-			else slope /= T;
-
-			if (slope < lSlope) lSlope = slope;
-
-			///////And now we're calculating what's acceptable///////
-			pos = kids[k]->pos[dim] + kids[k]->vel[dim] * kids[k]->T;
-			
-			slope = pos + kids[k]->r - g->pos[dim] - g->r;
-			if (slope > 0 && slope%T) slope = slope/T + 1;
-			else slope /= T;
-
-			if (slope > minAcceptable) minAcceptable = slope;
-
-			slope = pos - kids[k]->r - g->pos[dim] + g->r;
-			if (slope < 0 && slope%T) slope = slope/T - 1;
-			else slope /= T;
-
-			if (slope < maxAcceptable) maxAcceptable = slope;
-		}
-#define test() {\
-	if (abs(g->vel[dim]) >= 10000) {\
-		printf("%d (from %d and %d) stuck between %d and %d\n", slope, lSlope, rSlope, minAcceptable, maxAcceptable);\
-	}\
-}
-		slope = (lSlope + rSlope) / 2;
-		if (slope > maxAcceptable) {
-			g->vel[dim] = maxAcceptable;
-			test();
-			continue;
-		}
-		if (slope < minAcceptable) {
-			g->vel[dim] = minAcceptable;
-			test();
-			continue;
-		}
-		g->vel[dim] = slope;
-		test();
-	}*/
+	//debugMessage(g, "I fit");
 	return 0;
 }
 
@@ -316,6 +286,7 @@ static void addIntersect(guarantee *a, guarantee *b, int32_t ito) {
 
 //Hope you've done something with its kids!
 void destroyGuarantee(guarantee *g) {
+//	debugMessage(g, "Destroyed :(");
 	removeAllIntersects(g);
 	free(g->kids);
 	free(g->intersects);
@@ -343,6 +314,7 @@ void destroyGuarantee(guarantee *g) {
 }
 
 static void moreKids(guarantee *g, int max) {
+//	debugMessage(g, "gets more kids");
 	g->kids = realloc(g->kids, sizeof(guarantee*) * max);
 }
 
@@ -388,6 +360,8 @@ static char checkIntersect(guarantee *a, guarantee *b, int32_t ito) {
 				break;
 		}
 		if (i < 0) {
+		//	debugMessage(a, "Tries to get kids");
+		//	debugMessage(b, "Tries to lose kids");
 			int newNumKids = a->numKids + b->numKids;
 			if (newNumKids > a->maxKids) {
 				moreKids(a, newNumKids);
@@ -413,7 +387,10 @@ static char checkIntersect(guarantee *a, guarantee *b, int32_t ito) {
 				memcpy(a->pos, oldPos, sizeof(oldPos));
 				memcpy(a->vel, oldVel, sizeof(oldVel));
 				a->numKids = oldNumKids;
+			//	debugMessage(a, "Had to give them back");
+			//	debugMessage(b, "Had to take them back");
 			} else {
+			//	debugMessage(a, "Got 'em!");
 				destroyGuarantee(b);
 				guaranteeMoved(a, 0);
 				return 0;
@@ -487,6 +464,8 @@ static void genParent(guarantee *who) {
 		puts("!!!!!!!!!!!!!");
 	}
 	guarantee *parent = malloc(sizeof(guarantee));
+//	debugMessage(parent, "Created as a parent");
+//	debugMessage(who, "Has a parent generated for me");
 	parent->numIntersects = parent->maxIntersects = 1;
 	parent->intersects = malloc(sizeof(guarantee*));
 	parent->ito = malloc(sizeof(int32_t));
@@ -511,12 +490,15 @@ static void genParent(guarantee *who) {
 }
 
 static void addSibling(guarantee *brother, guarantee *newborn) {
+//	debugMessage(brother, "Got a sibling");
+//	debugMessage(newborn, "Given a sibling");
 	if (!brother->parent) {
 		puts("I feel like this is a problem.");
 		genParent(brother);
 		newborn->parent = brother->parent;
 	}
 	guarantee *parent = brother->parent;
+//	debugMessage(parent, "Got a kid");
 	if (parent->numKids == parent->maxKids) {
 		moreKids(parent, parent->maxKids += 2);
 	}
@@ -526,6 +508,7 @@ static void addSibling(guarantee *brother, guarantee *newborn) {
 }
 
 static char sortingHat(guarantee *who, guarantee *old, guarantee *new) {
+//	debugMessage(who, "Gets sorted");
 	int32_t deltaR = new->r - who->r;
 	int32_t T = who->T + who->pto;
 	int dim = 0;
@@ -564,6 +547,7 @@ static char sortingHat(guarantee *who, guarantee *old, guarantee *new) {
 
 guarantee* createEntityGuarantee(guarantee *creator, sector *sec, int32_t r, int32_t *pos, int32_t *vel, entity *ent) {
 	guarantee *ret = malloc(sizeof(guarantee));
+//	debugMessage(ret, "Created as a guarantee for an ent");
 	ret->maxIntersects = 1;
 	ret->numIntersects = 0;
 	ret->intersects = malloc(sizeof(guarantee*));
@@ -624,6 +608,7 @@ guarantee* createEntityGuarantee(guarantee *creator, sector *sec, int32_t r, int
 }
 
 void guaranteeMoved(guarantee *g, int32_t time) {
+//	debugMessage(g, "Moved");
 	g->pto += time;
 	/*if (time) {
 		if (updateTrend) {
@@ -636,8 +621,10 @@ void guaranteeMoved(guarantee *g, int32_t time) {
 	}*/
 	int ret;
 	if ( (ret = checkGuarantee(g)) ) {
+	//	debugMessage(g, "Broke parent bounds");
 		//Otherwise, we've broken the bounds, and it's time to craft a new parent guarantee
 		guarantee *p = g->parent;
+	//	debugMessage(p, "Kid broke my bounds");
 		guarantee **siblings = p->kids;
 		int i = p->numKids - 1;
 		/*for (; i >= 0; i--) {
@@ -700,6 +687,7 @@ void guaranteeMoved(guarantee *g, int32_t time) {
 		memcpy(oldPos, p->pos, sizeof(p->pos));
 		memcpy(oldVel, p->vel, sizeof(p->vel));
 		if (fitGuarantee(p)) {
+		//	debugMessage(p, "Gotta split");
 			if (p->numKids == 1) {
 				puts("wtf no");
 				myExit(102);

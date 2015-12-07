@@ -26,10 +26,6 @@ int main(){
 	pthread_t id;
 	pthread_create(&id, NULL, netListen, NULL);
 	pthread_detach(id);
-	//newEntity(NULL, 2, 2, 1, searchforsector(0, 0), 5000, 5000, 0, 0);// WTF???
-//	mkship("yo");
-//	loadship("yo");
-//	move(0, 0, 1, 0);
 	short adventuretime = 300;//nope, make that "char timetillpotentialtospawnastroidssothatwedontcheckeachtickandslowshitdown"
 	//nope, make that "char timeTillPotentialToSpawnAstroidsSoThatWeDontCheckEachTickAndSlowShitDown"
 	while(1){

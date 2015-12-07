@@ -336,7 +336,6 @@ char tick2(entity* who){
 		g->pos[1] += (POS_MAX-POS_MIN+1);
 	}
 	if(secx!=who->mySector->x || secy!=who->mySector->y){
-		//puts("Someone's left the sector, and things are probably about to break :(");
 		sector *new = searchforsector(secx, secy);
 		if(new == NULL){
 			addmetosector(who, secx, secy);

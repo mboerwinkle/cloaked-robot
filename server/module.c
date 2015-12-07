@@ -383,6 +383,7 @@ static void miningBayAct(entity *who, int ix, char action)
 
 static void stasisAct(entity *who, int ix, char action) {
 	stasisModuleData *data = (stasisModuleData*)who->moduleDatas[ix];
+	puts("Warning! This module is broken! Needs to update the guarantees!");
 	if (data->active) {
 		who->me->pos[0] = data->x;
 		who->me->pos[1] = data->y;
