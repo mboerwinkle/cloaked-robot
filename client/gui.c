@@ -42,11 +42,36 @@ static void paint(){
 	SDL_RenderPresent(render);
 }
 
-static void teamColor(char faction){
-	if(faction == 0) SDL_SetRenderDrawColor(render, 255, 255, 255, 255);//white, unaligned
-	if(faction == 1) SDL_SetRenderDrawColor(render, 255, 0, 0, 255);//red, pirates
-	if(faction == 2) SDL_SetRenderDrawColor(render, 0, 0, 255, 255);//blue, imperial
-	if(faction == 3) SDL_SetRenderDrawColor(render, 255, 255, 0, 255);//yellow, independent, traders
+static void teamColor(unsigned char faction){
+	unsigned char tm = faction & 0x70; // Transponder mode
+	faction = faction & 0x07;
+	unsigned char r, g, b;
+	if(faction == 0) {        //white, unaligned/inanimate
+		r = g = b = 0xFF;
+	} else if(faction == 1) { //red, pirates
+		r = 0xFF;
+		g = b = 0;
+	} else if(faction == 2) { //blue, imperial
+		r = g = 0;
+		b = 0xFF;
+	} else {                  //yellow, independent/traders
+		r = g = 0xFF;
+		b = 0;
+	}
+	if (tm == 0x30) { // TM_NONE is dimmed
+		r /= 2;
+		g /= 2;
+		b /= 2;
+	} else if (tm == 0x10) { // TM_MINE is faded close to asteroid color
+		r |= 0x80;
+		g |= 0x80;
+		b |= 0x80;
+	} else if (tm == 0x20) { // TM_FEED is as well, to a lower extent
+		r |= 0x40;
+		g |= 0x40;
+		b |= 0x40;
+	} // TM_DFND is default color
+	SDL_SetRenderDrawColor(render, r, g, b, 0xFF);
 }
 
 static void drawRadar(int8_t* data, int len){
@@ -63,7 +88,7 @@ static void drawRadar(int8_t* data, int len){
 	}
 	int i = 2;
 	while(i+2 < len){
-		teamColor(data[i]&0x3F);
+		teamColor(data[i]);
 		rect.x = data[i+1];
 		rect.y = data[i+2];
 		SDL_RenderFillRect(render, &rect);

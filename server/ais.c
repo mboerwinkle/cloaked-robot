@@ -331,6 +331,7 @@ static void aiCarrierAct(entity* who){
 				data->target = runner;
 			}
 		}
+		who->transponderMode = (data->target && data->target->faction == 0) ? TM_MINE : TM_DFND;
 		unlinkNear();
 	}
 	if(data->target == NULL){	

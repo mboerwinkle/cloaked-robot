@@ -80,6 +80,13 @@ typedef struct entity {
 	double thrust;
 	struct entity* targetLock;
 	char lockSettings;
+	char transponderMode;
+//It's kind of important that TM_DFND is zero, so enemies (whose TM is unknown) appear at full brightness
+#define TM_DFND 0
+#define TM_MINE 1
+#define TM_FEED 2
+#define TM_NONE 3
+//MINE and DFND are mining and defence nets, and FEED is people who want minerals.
 
 	char theta;
 	double sinTheta, cosTheta;

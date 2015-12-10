@@ -60,6 +60,7 @@ static void sendRadar(client* cli){
 		}
 		data[dataLen+2] = d+63;
 		data[dataLen] = runner->faction;
+		if (runner->faction == who->faction) data[dataLen] |= runner->transponderMode<<4;
 		dataLen+=3;
 		runner = runner->next;
 	}

@@ -211,42 +211,51 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 				}
 			}
 		}
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 1){
 		ret->myAi = &aiMissile;
 		ret->aiFuncData = calloc(1, 2);
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 2){
 		ret->myAi = &aiDrone;
 		ret->aiFuncData = malloc(sizeof(droneAiData));
 		((droneAiData*)ret->aiFuncData)->timer = 100;
 		((droneAiData*)ret->aiFuncData)->target = NULL;
+		ret->transponderMode = TM_DFND;
 	} else if (aiType == 3) {
 		ret->myAi = &aiCarrier;
 		ret->aiFuncData = malloc(sizeof(carrierAiData));
 		((carrierAiData*)ret->aiFuncData)->timer = 100;
 		((carrierAiData*)ret->aiFuncData)->target = NULL;
 		((carrierAiData*)ret->aiFuncData)->mineSuccess = -1;
+		ret->transponderMode = TM_DFND;
 	} else if (aiType == 4){
 		ret->myAi = &aiAsteroid;
 		ret->aiFuncData = calloc(1, 1);
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 5) {
 		puts("WTF OMG LOL BBQ");
 		ret->myAi = &aiPacer;
 		ret->aiFuncData = NULL;
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 6) {
 		ret->myAi = &aiBullet;
 		ret->aiFuncData = calloc(1, 2);
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 7) {
 		ret->myAi = &aiDestroyer;
 		ret->aiFuncData = malloc(sizeof(destroyerAiData));
 		((destroyerAiData*)ret->aiFuncData)->shotsLeft = 0;
 		((destroyerAiData*)ret->aiFuncData)->recheckTime = 1;
 		((destroyerAiData*)ret->aiFuncData)->rechecks = 7;
+		ret->transponderMode = TM_DFND;
 	} else if (aiType == 8) {
 		ret->myAi = &aiMinorMiner;
 		ret->aiFuncData = malloc(sizeof(minorMinerAiData));
 		((minorMinerAiData*)ret->aiFuncData)->phase = 1;
 		((minorMinerAiData*)ret->aiFuncData)->home = NULL;
 		((minorMinerAiData*)ret->aiFuncData)->pleaseTurn = 0;
+		ret->transponderMode = TM_NONE;
 	} else if (aiType == 9) {
 		ret->myAi = &aiMajorMiner;
 		ret->aiFuncData = malloc(sizeof(majorMinerAiData));
@@ -254,13 +263,16 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		((majorMinerAiData*)ret->aiFuncData)->target = NULL;
 		((majorMinerAiData*)ret->aiFuncData)->recheckTime = 100;
 		((majorMinerAiData*)ret->aiFuncData)->phase = 0;
+		ret->transponderMode = TM_MINE;
 	} else if (aiType == 10) {
 		ret->myAi = &aiStation;
 		ret->aiFuncData = calloc(1, sizeof(int));
+		ret->transponderMode = TM_FEED;
 	} else {
 		printf("Error in entity.c: Unknown aiType %d\n", aiType);
 		ret->myAi = &aiPacer;
 		ret->aiFuncData = NULL;
+		ret->transponderMode = TM_NONE;
 	}
 	if (ret->myAi->loadSector)
 		appear(ret->mySector->x, ret->mySector->y);

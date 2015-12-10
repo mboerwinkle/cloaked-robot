@@ -140,34 +140,14 @@ static char fitGuarantee(guarantee *g) {
 				leftBaseSlp = kids[k]->vel[dim];
 			}
 		}
-		/*if (pred) {
-			printf("On the way out, here's what we've got:\n"
-			"leftT: %d\tleftS: %d\n"
-			"rightS: %d\n"
-			"leftBaseS: %d\tleftBaseSlp: %d\n"
-			"rightBaseSlp: %d\n", leftT, leftS, rightS, leftBaseS, leftBaseSlp, rightBaseSlp);
-		}*/
 		int32_t lNextS, rNextS;
 		int32_t lNextT, rNextT;
 		int lSlope, rSlope;
 		int32_t lLoss, rLoss;
-		//if (deleteMe == 2) printf("T: %d, S: %d\n", leftT, leftS);
 		calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 		calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
-		/*if (rSlope <= rightBaseSlp && (rSlope < rightBaseSlp || rLoss > 0)) {
-			rSlope = rightBaseSlp;
-			rLoss = 0;
-			rNextS = rightS;
-			rNextT = rightT;
-			if (pred) puts("Did the thing");
-		} else {
-			if (pred) puts("Didn't do the thing");
-		}
-		rightS -= rSlope;
-		rightT -= 1;*/
 		while (1) {
 			if (lSlope > rSlope) {
-				//if (lNextT <= rightT) {
 				if (lNextT < rightT) {
 					if (lLoss <= leftT - rightT) {
 						leftT = lNextT;
@@ -179,10 +159,8 @@ static char fitGuarantee(guarantee *g) {
 				}
 				leftT = lNextT;
 				leftS = lNextS;
-				//if (pred) printf("Left side stepped to\n  S: %d\tT: %d\n", leftS, leftT);
 				calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 			} else if (rSlope > lSlope) {
-				//if (leftT <= rNextT) {
 				if (leftT < rNextT) {
 					if (rLoss <= leftT - rightT) {
 						rightT = rNextT;
@@ -195,10 +173,8 @@ static char fitGuarantee(guarantee *g) {
 				}
 				rightT = rNextT;
 				rightS = rNextS;
-				//if (pred) printf("Right side stepped to\n  S: %d\tT: %d\n", rightS, rightT);
 				calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
 			} else { // Else, we're going to have both bottlenecks changing on us at once
-				//if (lNextT <= rNextT) {
 				if (lNextT < rNextT) {
 					if (lLoss + rLoss <= leftT - rightT) {
 						rightT = rNextT;
@@ -214,19 +190,13 @@ static char fitGuarantee(guarantee *g) {
 				leftS = lNextS;
 				rightT = rNextT;
 				rightS = rNextS;
-				/*if (pred) {
-					printf("Left side stepped to\n  S: %d\tT: %d\n", leftS, leftT);
-					printf("AND Right side stepped to\n  S: %d\tT: %d\n", rightS, rightT);
-				}*/
 				calcSlope(dim, 1, g, leftT, leftS, leftBaseS, leftBaseSlp, &lNextT, &lNextS, &lSlope, &lLoss);
 				calcSlope(dim, 0, g, rightT, rightS, 0, 0, &rNextT, &rNextS, &rSlope, &rLoss);
 			}
 		}
-		//if (pred) printf("End with:\n  Slope: %d\n  leftS: %d\tleftT: %d\n  rightS: %d\nrightT: %d\n", lSlope, leftS, leftT, rightS, rightT);
 		g->pos[dim] = (rightS - lSlope * rightT + leftS - lSlope * leftT) / 2;
 		if (g->pos[dim] + lSlope * leftT - leftS > g->r ||
 			rightS - g->pos[dim] - lSlope * rightT > g->r) {
-			//debugMessage(g, "I don't fit");
 			return 1;
 		}
 		g->vel[dim] = lSlope;
@@ -245,9 +215,7 @@ static char fitGuarantee(guarantee *g) {
 			puts("Wicked, wicked");
 			myExit(0);
 		}
-		//if (abs(lSlope) >= 10000) printf("%d\n", lSlope);
 	}
-	//debugMessage(g, "I fit");
 	return 0;
 }
 
