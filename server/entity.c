@@ -374,16 +374,19 @@ void thrust(entity* who){
 	guaranteeMoved(g, 0);
 }
 
-void turn(entity* who, char dir){
+signed char turn(entity* who, char dir){
 	who->turn += dir;
 	if(who->turn >= who->maxTurn){
 		who->turn += 1 - 2*who->maxTurn;
 		if(++who->theta >= 16) who->theta-=16;
+		return 1;
 	}
 	else if(who->turn <= -who->maxTurn){
 		who->turn -= 1 - 2*who->maxTurn;
 		if(--who->theta < 0) who->theta+=16;
+		return -1;
 	}
+	return 0;
 }
 
 void freeEntity(entity* who){

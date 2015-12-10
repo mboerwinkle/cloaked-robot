@@ -188,7 +188,7 @@ extern entity* newEntity(struct guarantee *creator, int type, int aiType, char f
 extern void tick(entity* who);
 extern char tick2(entity* who);
 extern void thrust(entity* who);
-extern void turn(entity* who, char dir);
+extern signed char turn(entity* who, char dir);
 extern void freeEntity(entity* who);
 
 extern void fileMoveRequest(entity* who, sector* from, sector* to);

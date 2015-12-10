@@ -89,10 +89,10 @@ static char gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 	while (desiredDir > M_PI) desiredDir -= 2*M_PI;
 
 	if (fabs(desiredDir) > (2*M_PI/32)*1.2) {
-		turn(who, desiredDir > 0 ? 1 : -1);
-		if (fabs(desiredDir) <= M_PI/2)
-			thrust(who);
-		return desiredDir > 0 ? 1 : -1;
+		signed char turnDir = desiredDir > 0 ? 1 : -1;
+		desiredDir -= (2*M_PI/16)*turn(who, turnDir);
+		if (fabs(desiredDir) <= M_PI/2) thrust(who);
+		return turnDir;
 	}
 	thrust(who);
 	return 0;
