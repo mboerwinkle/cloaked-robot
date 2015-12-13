@@ -20,7 +20,7 @@
 
 #define width 500
 #define height 500
-#define SCREEN_MULTIPLE 1
+#define SCREEN_MULTIPLE 2
 
 static SDL_Window* window;
 SDL_Renderer* render;

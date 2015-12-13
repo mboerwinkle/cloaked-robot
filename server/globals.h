@@ -86,7 +86,7 @@ typedef struct entity {
 #define TM_MINE 1
 #define TM_FEED 2
 #define TM_NONE 3
-//MINE and DFND are mining and defence nets, and FEED is people who want minerals.
+//MINE and DFND are mining and defense nets, and FEED is people who want minerals.
 
 	char theta;
 	double sinTheta, cosTheta;

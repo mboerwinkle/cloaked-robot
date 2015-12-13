@@ -152,7 +152,7 @@ void doStep() {
 	double speed;
 	double dvel[2];
 	int iteration = 0;
-	while (numCol1) {
+	while (numCol1 && iteration < 10000) {
 		iteration++;
 		numCol2 = 0;
 		for (numCol1--; numCol1 >= 0; numCol1--) {
@@ -191,6 +191,7 @@ void doStep() {
 		collisions1 = colHolder;
 		numCol1 = numCol2;
 	}
+	if (numCol1) puts("Giving up after 10,000 collision iterations, really curious as to what's causing this...");
 
 	for (sec = listrootsector; sec; sec = sec->nextsector) {
 		for (reader = sec->firstentity; reader; reader = reader->next) {

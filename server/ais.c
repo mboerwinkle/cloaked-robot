@@ -63,10 +63,11 @@ static void lock(entity* who){
 //Returns whether or not it made a turn, which is good for long-term planning.
 static char gotoPt(entity *who, int64_t dx, int64_t dy, double vx, double vy) {
 	double desiredDir;
-	if (vx == 0 && vy == 0) {
+	double vel = sqrt(vx*vx + vy*vy);
+	if (vel <= 16) {
+		if (dx*dx + dy*dy <= 64*64*16*16) return 0;
 		desiredDir = atan2(dy, dx);
 	} else {
-		double vel = sqrt(vx*vx + vy*vy);
 		double unx = vx / vel;
 		double uny = vy / vel;
 		double dist = unx * dx + uny * dy;
@@ -179,9 +180,55 @@ static void aiHumanCollision(entity *who, entity *him)
 	}
 }
 
+//TODO: integrate this with the AIs so we don't have to check everything twice
+static void defenseNet(entity *who) {
+	linkNear(who, RADAR_RANGE);
+	int count = 0;
+	int32_t dx = 0, dy = 0;
+	int32_t vx = 0, vy = 0;
+	int32_t x, y;
+	entity *runner;
+	for (runner = who->mySector->firstentity; runner; runner = runner->next) {
+		if (who->faction != runner->faction || runner->transponderMode != TM_DFND || who == runner) continue;
+		x = displacementX(who, runner);
+		if (abs(x) >= RADAR_RANGE) continue;
+		y = displacementY(who, runner);
+		if (abs(y) >= RADAR_RANGE) continue;
+		count++;
+		double dist = abs(x)>abs(y)?abs(x):abs(y);
+		double unx, uny;
+		if (dist) {
+			unx = x/dist;
+			uny = y/dist;
+		} else {
+			unx = 1;
+			uny = 0;
+		}
+		x -= unx*(RADAR_RANGE*0.8);
+		y -= uny*(RADAR_RANGE*0.8);
+		/*if (x > 0 && y >= 0) {
+			x -= RADAR_RANGE/4*3;
+			y -= RADAR_RANGE/4*3;
+		} else if (y > 0 && x <= 0) {
+			x += RADAR_RANGE/4*3;
+			y -= RADAR_RANGE/4*3;
+		} else if (x < 0 && y <= 0) {
+			x += RADAR_RANGE/4*3;
+			y += RADAR_RANGE/4*3;
+		} else {
+			x -= RADAR_RANGE/4*3;
+			y += RADAR_RANGE/4*3;
+		}*/
+		dx += x + 0.1*y;
+		dy += y - 0.1*x;
+		vx += who->me->vel[0] - runner->me->vel[0];
+		vy += who->me->vel[1] - runner->me->vel[1];
+	}
+	unlinkNear(who);
+	if (count) gotoPt(who, dx/count, dy/count, vx/count, vy/count);
+}
+
 static void aiDroneAct(entity* who){
-	double vx = who->me->vel[0];
-	double vy = who->me->vel[1];
 	double dx, dy;
 	droneAiData *data = who->aiFuncData;
 	if(data->timer == 200){
@@ -190,12 +237,12 @@ static void aiDroneAct(entity* who){
 	data->timer++;
 	if(data->timer == 1 && who->targetLock == NULL){
 		linkNear(who, RADAR_RANGE);
-		double bestScore = 6*RADAR_RANGE;
+		double bestScore = 3*RADAR_RANGE;
 		data->target = NULL;
 		entity* runner;
 		int64_t d;
 		for (runner = who->mySector->firstentity; runner; runner = runner->next) {
-			if(runner->me->r < 64*5*16 || runner == who || runner->faction == 0) continue;
+			if(!(who->lockSettings & (1<<runner->faction)) || runner->me->r < 64*5*16 || runner == who) continue;
 			dx = displacementX(who, runner);
 			if(abs(dx) >= RADAR_RANGE) continue;
 			dy = displacementY(who, runner);
@@ -206,7 +253,6 @@ static void aiDroneAct(entity* who){
 			angle = fabs(angle - (M_PI_4/2)*who->theta);
 			if(angle>M_PI) angle = 2*M_PI - angle;
 			double score = d*(1+angle/M_PI);
-			if(!(who->lockSettings & (1<<runner->faction))) score += 3*RADAR_RANGE;
 			if(score < bestScore){
 				bestScore = score;
 				data->target = runner;
@@ -214,14 +260,9 @@ static void aiDroneAct(entity* who){
 		}
 		unlinkNear();
 	}
-	if(data->target == NULL){	
-		if(vx*vx+vy*vy < 62500*16*16){
-			thrust(who);
-		}
-		return;
-	}
-	if(data->target->destroyFlag){
-		data->target = NULL;
+	if(data->target && data->target->destroyFlag) data->target = NULL;
+	if(data->target == NULL){
+		defenseNet(who);
 		return;
 	}
 	dx = displacementX(who, data->target);
@@ -253,8 +294,6 @@ static void aiDroneAct(entity* who){
 }
 
 static void aiCarrierAct(entity* who){
-	double vx = who->me->vel[0];
-	double vy = who->me->vel[1];
 	double dx, dy;
 	carrierAiData *data = who->aiFuncData;
 	if(data->timer == 200){
@@ -311,9 +350,13 @@ static void aiCarrierAct(entity* who){
 				class = classes[0];
 			} else if (who->lockSettings & (1<<runner->faction)) {
 				class = classes[1];
-			} else {
-				class = classes[2];
-			}
+			} else if (runner->faction == who->faction && runner->transponderMode == TM_DFND){
+				if (bestClass < classes[2]) {
+					bestClass = classes[2];
+					data->target = NULL;
+				}
+				continue;
+			} else continue;
 			if (class < bestClass) continue;
 			dx = displacementX(who, runner);
 			if(abs(dx) >= RADAR_RANGE) continue;
@@ -334,10 +377,8 @@ static void aiCarrierAct(entity* who){
 		who->transponderMode = (data->target && data->target->faction == 0) ? TM_MINE : TM_DFND;
 		unlinkNear();
 	}
-	if(data->target == NULL){	
-		if(vx*vx+vy*vy < 62500*16*16){
-			thrust(who);
-		}
+	if(data->target == NULL){
+		defenseNet(who);
 		return;
 	}
 	if(data->target->destroyFlag){
@@ -427,6 +468,7 @@ static void aiMissileAct(entity* who){
 }
 
 #define MISSILE_DMG 40
+#define BULLET_DMG 20
 
 static void aiMissileCollision(entity* me, entity* him){
 	if(him != me->targetLock) return;
@@ -463,12 +505,12 @@ static void aiBulletCollision(entity *me, entity *him)
 {
 	me->shield = 0;
 	if (me->lockSettings & 1 << him->faction)
-		him->shield -= 20;
+		him->shield -= BULLET_DMG;
 }
 
 static void aiDestroyerAct(entity *who)
 {
-#define destroyerComputeShotsLeft() data->shotsLeft = who->targetLock->shield / MISSILE_DMG + 1;
+#define destroyerComputeShotsLeft() data->shotsLeft = 1.2 * who->targetLock->shield / MISSILE_DMG + 1
 	destroyerAiData *data = (destroyerAiData *)who->aiFuncData;
 	if (who->targetLock) {
 		circle(who, who->targetLock, 6400*2*16 /*twice lazor distance*/, 60*16);
@@ -486,34 +528,24 @@ static void aiDestroyerAct(entity *who)
 		(who->modules[0]->actFunc)(who, 0, 0);
 		(who->modules[1]->actFunc)(who, 1, 0);
 		(who->modules[2]->actFunc)(who, 2, 0);
-		if (--(data->recheckTime) == 0) {
-			if (data->rechecks < 20)
-				data->rechecks++;
-			linkNear(who, 64*6400*16 * data->rechecks);
-			double bestScore = 64*6400*16 * data->rechecks;
+		if (--data->recheckTime == 0) {
+			linkNear(who, RADAR_RANGE);
+			double bestScore = 2*RADAR_RANGE;
 			entity *target = NULL;
-			entity* runner = who->mySector->firstentity;
 			double d;
-			int64_t dx, dy;
-			while(runner){
-				if(1<<runner->faction & who->lockSettings){
-					dx = displacementX(who, runner);
-					if (abs(dx) >= bestScore) {
-						runner = runner->next;
-						continue;
-					}
-					dy = displacementY(who, runner);
-					if (abs(dy) >= bestScore) {
-						runner = runner->next;
-						continue;
-					}
-					d = sqrt(dx*dx+dy*dy)-runner->me->r;
-					if(d < bestScore){
-						bestScore = d;
-						target = runner;
-					}
+			int32_t dx, dy;
+			entity* runner;
+			for(runner = who->mySector->firstentity; runner; runner = runner->next) {
+				if(!(1<<runner->faction & who->lockSettings)) continue;
+				dx = displacementX(who, runner);
+				if (abs(dx) >= RADAR_RANGE) continue;
+				dy = displacementY(who, runner);
+				if (abs(dy) >= RADAR_RANGE) continue;
+				d = sqrt(dx*dx+dy*dy)-runner->me->r;
+				if(d < bestScore){
+					bestScore = d;
+					target = runner;
 				}
-				runner = runner->next;
 			}
 			unlinkNear();
 			if (target == NULL) {
@@ -521,25 +553,24 @@ static void aiDestroyerAct(entity *who)
 				data->shotsLeft = -100;
 				return;
 			}
-			data->rechecks = (bestScore + 6400*16) / (16*64*6400);
-			data->shotsLeft = -1;
 			if (bestScore < LOCK_RANGE) {
 				data->recheckTime = 1;
 				who->targetLock = target;
 				destroyerComputeShotsLeft();
 				return;
 			}
-			if (gotoPt(who, displacementX(who, target), displacementY(who, target), who->me->vel[0]-target->me->vel[0], who->me->vel[1]-target->me->vel[1])) {
-				data->recheckTime = 1;
+			data->shotsLeft = gotoPt(who, displacementX(who, target), displacementY(who, target), who->me->vel[0]-target->me->vel[0], who->me->vel[1]-target->me->vel[1]) - 2;
+			if (data->shotsLeft == -2) {
+				data->recheckTime = 200*bestScore/(16*64*6400);
 			} else {
-				if (bestScore < 64*6400*16)
-					data->recheckTime = 200*bestScore/(16*64*6400);
-				else
-					data->recheckTime = 200;
+				data->recheckTime = who->maxTurn;
 			}
 		} else {
-			if (data->shotsLeft != -100)
+			if (data->shotsLeft == -100) defenseNet(who);
+			else {
 				thrust(who);
+				turn(who, data->shotsLeft + 2);
+			}
 		}
 	}
 }
