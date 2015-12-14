@@ -155,29 +155,25 @@ static void aiHumanAct(entity* who){
 
 static void aiHumanCollision(entity *who, entity *him)
 {
-	if (who->minerals == 0 || who->faction != him->faction)
-		return;
+	char keys = ((humanAiData*)who->aiFuncData)->keys;
+	if ((keys&3) != 3 || who->faction != him->faction || who->minerals == 0) return;
 	int i = him->numModules - 1;
 	for (; i >= 0; i--) {
 		if (him->modules[i] == &bayModule || him->modules[i] == &miningBayModule) break;
 	}
 	if (i < 0) return;
-	i = who->numModules - 1;
-	for (; i >= 0; i--) {
-		if (who->modules[i] == &miningModule && ((humanAiData*)who->aiFuncData)->keys & (0x20 << i)) {
-			him->minerals += who->minerals;
-			who->minerals = 0;
-			addTrail(who, him, 1);
-			client *runner = clientList;
-			while (runner) {
-				if (runner->myShip == who) {
-					runner->spawnBase = him;
-					return;
-				}
-				runner = runner->next;
-			}
+	him->minerals += who->minerals;
+	who->minerals = 0;
+	addTrail(who, him, 1);
+	client *runner = clientList;
+	while (runner) {
+		if (runner->myShip == who) {
+			runner->spawnBase = him;
+			return;
 		}
+		runner = runner->next;
 	}
+	puts("aiHumanCollision with someone not in the client list!");
 }
 
 //TODO: integrate this with the AIs so we don't have to check everything twice
@@ -242,7 +238,7 @@ static void aiDroneAct(entity* who){
 		entity* runner;
 		int64_t d;
 		for (runner = who->mySector->firstentity; runner; runner = runner->next) {
-			if(!(who->lockSettings & (1<<runner->faction)) || runner->me->r < 64*5*16 || runner == who) continue;
+			if(!(who->lockSettings & (1<<runner->faction)) || runner->me->r < 64*5*16 || runner == who || runner->destroyFlag) continue;
 			dx = displacementX(who, runner);
 			if(abs(dx) >= RADAR_RANGE) continue;
 			dy = displacementY(who, runner);
@@ -260,7 +256,7 @@ static void aiDroneAct(entity* who){
 		}
 		unlinkNear();
 	}
-	if(data->target && data->target->destroyFlag) data->target = NULL;
+	if(data->target && (data->target->destroyFlag || abs(displacementX(who, data->target))>=RADAR_RANGE || abs(displacementY(who, data->target)>=RADAR_RANGE))) data->target = NULL;
 	if(data->target == NULL){
 		defenseNet(who);
 		return;
@@ -533,7 +529,7 @@ static void aiDestroyerAct(entity *who)
 			double bestScore = 2*RADAR_RANGE;
 			entity *target = NULL;
 			double d;
-			int32_t dx, dy;
+			double dx, dy;
 			entity* runner;
 			for(runner = who->mySector->firstentity; runner; runner = runner->next) {
 				if(!(1<<runner->faction & who->lockSettings)) continue;

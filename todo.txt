@@ -1,20 +1,16 @@
-scaling - Accomplished?
 (S) HUD
   -weapon charge status - Do we want this?
 (MS) Save files
   -Sector
   -Ship
 (M) tethers
-(M) ship spawning
-
 
 More current matters:
-Game currently freezes, likely due to an asteroid mosh pit melee thing going on (Also once on respawn, oddly)
-Does cross-sector mining work?
-Spawn at things w/ spawner bays w/ sufficient minerals close to where U died
+Send mineral count
+Set transponder mode
+Add more star layers
 Update real velocities at most once per tick
 Limit AIs to same perception range as us - slow radar updates - intelligent searching of collision architecture to find near neighbors - apply search algorithm to players as well
 script file with standard map generation routines
 Brake module that doesn't break
 Mineral counter
-Defense net
