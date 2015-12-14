@@ -176,8 +176,15 @@ static void gunAct(entity* who, int ix, char action){
 		double dvx = who->targetLock->me->vel[0] - who->me->vel[0];
 		double dvy = who->targetLock->me->vel[1] - who->me->vel[1];
 		double vy = sqrt(dvx*dvx + dvy*dvy);
-		double unx = dvx / vy;
-		double uny = dvy / vy;
+		double unx;
+		double uny;
+		if (vy) {
+			unx = dvx / vy;
+			uny = dvy / vy;
+		} else {
+			unx = 1;
+			uny = 0;
+		}
 		double y = -unx*rx - uny*ry;
 		double x = uny*rx - unx*ry;
 #define bulletV (110*16)

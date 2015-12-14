@@ -13,6 +13,7 @@
 #include "gui.h"
 #include "images.h"
 #include "trails.h"
+#include "font.h"
 
 #ifdef WINDOWS
 #include <windows.h>
@@ -28,9 +29,11 @@ static SDL_Texture* minimapTex;
 
 static int running = 1;
 static unsigned char keys = 0;
+static char freeze = 0;
 static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
 #define numKeys 8
 static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_z, SDLK_a, SDLK_s, SDLK_d};
+static int freezeKey = SDLK_p;
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -78,15 +81,22 @@ static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 0);
 	SDL_RenderClear(render);
-	SDL_Rect rect = {.w = 2, .h = 2};
+	SDL_Rect rect = {.x = 0, .y = 128, .w = 128, .h = 21};
+	SDL_SetRenderDrawColor(render, 50, 50, 50, 0xFF);
+	SDL_RenderFillRect(render, &rect);
+	SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
+	static char minerals[24];
+	sprintf(minerals, "MINERALS:\n%13"PRId64, *(int64_t*)(data+2));
+	drawText(render, 2, 130, 1, minerals);
+	rect.w = rect.h = 2;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
-	if(data[2]&128){
+	if(data[10]&128){
 		SDL_RenderDrawLine(render, data[0]&0x7F, 0, data[0]&0x7F, 128);
 	}
-	if(data[2]&64){
+	if(data[10]&64){
 		SDL_RenderDrawLine(render, 0, data[1], 128, data[1]);
 	}
-	int i = 2;
+	int i = 10;
 	while(i+2 < len){
 		teamColor(data[i]);
 		rect.x = data[i+1];
@@ -101,16 +111,16 @@ static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, NULL);
 }
 
-static int getStarN(int x){
+/*static int getStarN(int x){
 	int ret = 0;
 	int i = 0;
-	for(; i < 12; i++){
+	for(; i < 11; i++){
 		ret = ret << 1;
 		if(x&1) ret+=1;
 		x = x >> 1;
 	}
 	return ret;
-}
+}*/
 
 static double halton(int n, int p){
 	double ret = 0;
@@ -134,21 +144,17 @@ static SDL_Point starPoints[1000];
 static void drawStars(int X, int Y){ // The stars are generated using the Halton sequence, which is a low-discrepancy sequence. If the purpose of the below code is hard to understand, that's why. Wikipedia it if you really care.
 	int x, n, y;
 	double z;
-	int numPoints = 0;
-	for(x = X-500; x<X+500; x++){
-		if(x&0xFFF){
-			n = getStarN(x);
-			y = 4096*halton(n, 3);
-			z = 1+halton(n, 5);
-		}else{
-			y = 0;
-			z = 1;
-		}
-		starPoints[numPoints].x = 250*SCREEN_MULTIPLE+(x-X)*SCREEN_MULTIPLE/z;
-		y -= Y;
-		if(y >= 2048) y -= 4096;
-		else if( y < -2048) y+= 4096;
-		starPoints[numPoints++].y = 250*SCREEN_MULTIPLE+y*SCREEN_MULTIPLE/z;
+	for (n = 0; n < 1000; n++) {
+		x = 4096*halton(n, 2)-X;
+		y = 4096*halton(n, 3)-Y;
+		z = 1+1.82842*halton(n, 5);
+		z *= z;
+		if (x >= 2048) x -= 4096;
+		else if (x < -2048) x += 4096;
+		if (y >= 2048) y -= 4096;
+		else if (y < -2048) y += 4096;
+		starPoints[n].x = 250*SCREEN_MULTIPLE+x*SCREEN_MULTIPLE/z;
+		starPoints[n].y = 250*SCREEN_MULTIPLE+y*SCREEN_MULTIPLE/z;
 	}
 	SDL_SetRenderDrawColor(render, 255, 255, 255, 255);
 	SDL_RenderDrawPoints(render, starPoints, 1000);
@@ -201,7 +207,7 @@ static void handleNetwork(){
 			char faction = (0xE0 & data[i])/0x20;
 			int ship = (uint8_t)data[++i];
 			//if(faction == 1 && ship == 2) ship = 14;
-			if (ship == 11) ship = 0; // Freeze tag players look like regular human ships
+			if (ship == 11 || ship == 13) ship = 0; // Freeze tag and creature players look like regular human ships
 #ifdef PAUL
 			if (faction == 1 && ship == 7) ship = 11;
 			if (faction == 2 && ship == 2) ship = 13;
@@ -271,7 +277,7 @@ static void handleNetwork(){
 		rect.x = (width+1)*SCREEN_MULTIPLE;
 		rect.y = 1*SCREEN_MULTIPLE;
 		rect.w = 128*SCREEN_MULTIPLE;
-		rect.h = 128*SCREEN_MULTIPLE;
+		rect.h = (128+21)*SCREEN_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
@@ -279,6 +285,11 @@ static void handleNetwork(){
 }
 
 static void spKeyAction(int bit, char pressed){
+	if (bit == freezeKey) {
+		freeze = pressed;
+		return;
+	}
+	if (freeze) return;
 	int i = 0;
 	for(; i < numKeys && bit!=keyBindings[i]; i++);
 	if(i==numKeys) return;
@@ -304,7 +315,7 @@ int main(int argc, char** argv){
 	}
 	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
-	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128);
+	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128+21);
 
 	loadPics();
 

@@ -183,7 +183,20 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		(*healRayModule.initFunc)(ret, 1, 1);
 		(*miningModule.initFunc)(ret, 2, 1);
 		(*stasisModule.initFunc)(ret, 3, 1);
-	} else {// type 12 is a bit up from here, because it's a huge asteroid
+			// type 12 is a bit up from here, because it's a huge asteroid
+	} else if (type == 13) { // Creature of my own devising
+		r = 640*16;
+		hasModules(3);
+		ret->thrust = 3*16;
+		ret->maxTurn = 6;
+		ret->shield = ret->maxShield = 100;
+		ret->shieldRegen = 0.05;
+		ret->energy = ret->maxEnergy = 100;
+		ret->energyRegen = 4;
+		(*gunModule.initFunc)(ret, 0, 1);
+		(*gunModule.initFunc)(ret, 1, 1);
+		(*gunModule.initFunc)(ret, 2, 1);
+	} else {
 		printf("Error: Unknown ship type when creating entity: %d\n", type);
 		r = 640*16;
 		hasModules(0);

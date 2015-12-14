@@ -209,11 +209,11 @@ static char fitGuarantee(guarantee *g) {
 			printf("%d, dim: %d, slope: %d\n", g->r, dim, lSlope);
 			printf("lS: %d, lSlp: %d, rSlp: %d\n", leftBaseS, leftBaseSlp, rightBaseSlp);
 			for (k = g->numKids - 1; k >= 0; k--) {
-				printf("%d at %d by %d\n", g->kids[k]->r, g->kids[k]->pos[dim], g->kids[k]->vel[dim]);
-				printf("for %d starting at %d\n", g->kids[k]->T, g->kids[k]->pto);
+				printf("\t%d at %d by %d\n", g->kids[k]->r, g->kids[k]->pos[dim], g->kids[k]->vel[dim]);
+				printf("\t\tfor %d starting at %d\n", g->kids[k]->T, g->kids[k]->pto);
 			}
 			puts("Wicked, wicked");
-			myExit(0);
+			//myExit(0);
 		}
 	}
 	return 0;

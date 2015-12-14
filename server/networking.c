@@ -31,11 +31,11 @@ static int32_t mod(int64_t a, int32_t b){
 static int8_t data[NETLEN];
 
 static void sendRadar(client* cli){
-	int dataLen = 2;
+	int dataLen = 10;
 	entity* who = cli->myShip;
 	if (who->destroyFlag == 0) {// Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
 		linkNear(who, 64*6400 * 16);
-	} else if (who->destroyFlag == CANSPAWN) return; // Kinda hackish, but should wokr???
+	}
 	entity* runner = who->mySector->firstentity;
 	int64_t d;
 	while(runner){
@@ -66,18 +66,19 @@ static void sendRadar(client* cli){
 	}
 	if (who->destroyFlag == 0)
 		unlinkNear();
-	if (dataLen < 3) {
-		dataLen = 3;
-		data[2] = 192;
+	if (dataLen < 11) {
+		dataLen = 11;
+		data[10] = 192;
 	} else {
-		data[2] += 192;
+		data[10] += 192;
 	}
 	if(who->me->pos[0] < POS_MIN+6400*64*16) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64*16))/(6400*16);
 	else if(who->me->pos[0] > POS_MAX-6400*64*16) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64*16))/(6400*16);
-	else data[2] -= 128;
+	else data[10] -= 128;
 	if(who->me->pos[1] < POS_MIN+6400*64*16) data[1] = (-who->me->pos[1]+POS_MIN+(6400*64*16))/(6400*16);
 	else if(who->me->pos[1] > POS_MAX-6400*64*16) data[1] = (-who->me->pos[1]+POS_MAX+(6400*64*16))/(6400*16);
-	else data[2] -= 64;
+	else data[10] -= 64;
+	memcpy(data+2, &who->minerals, 8);
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
 	if(dataLen > NETLEN) puts("Radar packet too large, not sending!");
