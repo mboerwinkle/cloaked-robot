@@ -72,6 +72,7 @@ static void sendRadar(client* cli){
 	} else {
 		data[10] += 192;
 	}
+	data[10] += who->transponderMode<<2;
 	if(who->me->pos[0] < POS_MIN+6400*64*16) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64*16))/(6400*16);
 	else if(who->me->pos[0] > POS_MAX-6400*64*16) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64*16))/(6400*16);
 	else data[10] -= 128;
@@ -228,8 +229,17 @@ void* netListen(void* whoGivesADern){
 				} else if (current->myShip->destroyFlag) {
 					break;
 				}
-				if(msgSize == 1)
-					((humanAiData*)current->myShip->aiFuncData)->keys = *msg;
+				if (msgSize == 1) {
+					unsigned char m = *msg;
+					humanAiData *data = (humanAiData*)current->myShip->aiFuncData;
+					if (m & 0x80) {
+						if (m == 0x80) data->getLock = 1;
+						else if (m == 0x81) data->clearLock = 1;
+						else if (m <= 0x85) data->setTM = m - 0x82;
+					} else {
+						data->keys = m;
+					}
+				}
 				break;
 			}
 			current = current->next;

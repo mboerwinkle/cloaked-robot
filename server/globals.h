@@ -134,10 +134,7 @@ typedef struct carrierAiData{
 
 typedef struct humanAiData{
 	char keys;
-	char prevKeys;
-	int dittoCounter;
-	int replayFd;
-	int replayMode;
+	signed char clearLock, getLock, setTM;
 }humanAiData;
 
 typedef struct {

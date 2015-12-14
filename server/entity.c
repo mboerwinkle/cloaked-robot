@@ -201,29 +201,14 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		r = 640*16;
 		hasModules(0);
 	}
-	if((aiType&0x3F) == 0){
+	if(aiType == 0){
 		ret->myAi = &aiHuman;
 		humanAiData *data = malloc(sizeof(humanAiData));
 		ret->aiFuncData = data;
 		if (!ret->minerals) ret->minerals = 1;
 		data->keys = 0;
-		data->replayMode = aiType>>6;
-		if (data->replayMode) {
-			data->prevKeys = 0;
-			if (1 == data->replayMode) {
-				data->replayFd = open("replay.rep", O_WRONLY|O_CREAT|O_TRUNC, S_IRWXU|S_IRWXG);
-				data->dittoCounter = 0;
-			} else {
-				data->replayFd = open("replay.rep", O_RDONLY);
-				if (sizeof(int) != read(data->replayFd, &data->dittoCounter, sizeof(int))) {
-					puts("Corrupt replay file.");
-					data->replayMode = 0;
-				} else if (1 != read(data->replayFd, &data->keys, 1)) {
-					puts("Corrupt replay file");
-					data->replayMode = 0;
-				}
-			}
-		}
+		data->getLock = data->clearLock = 0;
+		data->setTM = -1;
 		ret->transponderMode = TM_NONE;
 	} else if (aiType == 1){
 		ret->myAi = &aiMissile;

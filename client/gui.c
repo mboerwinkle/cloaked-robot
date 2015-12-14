@@ -29,11 +29,12 @@ static SDL_Texture* minimapTex;
 
 static int running = 1;
 static unsigned char keys = 0;
-static char freeze = 0;
 static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80};
-#define numKeys 8
-static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_x, SDLK_z, SDLK_a, SDLK_s, SDLK_d};
-static int freezeKey = SDLK_p;
+#define numKeys 7
+static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_a, SDLK_s, SDLK_d, SDLK_f};
+static int thrustKey = SDLK_t;
+#define numCommands 6
+static int commandBindings[numCommands] = {SDLK_x, SDLK_z, SDLK_1, SDLK_2, SDLK_3, SDLK_4};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -46,8 +47,8 @@ static void paint(){
 }
 
 static void teamColor(unsigned char faction){
-	unsigned char tm = faction & 0x70; // Transponder mode
-	faction = faction & 0x07;
+	unsigned char tm = faction & 0x30; // Transponder mode
+	faction = faction & 0x03;
 	unsigned char r, g, b;
 	if(faction == 0) {        //white, unaligned/inanimate
 		r = g = b = 0xFF;
@@ -81,12 +82,13 @@ static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 0);
 	SDL_RenderClear(render);
-	SDL_Rect rect = {.x = 0, .y = 128, .w = 128, .h = 21};
+	SDL_Rect rect = {.x = 0, .y = 128, .w = 128, .h = 40};
 	SDL_SetRenderDrawColor(render, 50, 50, 50, 0xFF);
 	SDL_RenderFillRect(render, &rect);
 	SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
-	static char minerals[24];
-	sprintf(minerals, "MINERALS:\n%13"PRId64, *(int64_t*)(data+2));
+	static char *modeStrings[4] = {"DFND", "MINE", "FEED", "NONE"};
+	static char minerals[42];
+	sprintf(minerals, "MINERALS:\n%13"PRId64"\nTRANSPONDER:\n%s", *(int64_t*)(data+2), modeStrings[(data[10]&12)/4]);
 	drawText(render, 2, 130, 1, minerals);
 	rect.w = rect.h = 2;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
@@ -277,7 +279,7 @@ static void handleNetwork(){
 		rect.x = (width+1)*SCREEN_MULTIPLE;
 		rect.y = 1*SCREEN_MULTIPLE;
 		rect.w = 128*SCREEN_MULTIPLE;
-		rect.h = (128+21)*SCREEN_MULTIPLE;
+		rect.h = (128+40)*SCREEN_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
@@ -285,19 +287,25 @@ static void handleNetwork(){
 }
 
 static void spKeyAction(int bit, char pressed){
-	if (bit == freezeKey) {
-		freeze = pressed;
-		return;
+	int i;
+	unsigned char send;
+	for (i = 0; i < numCommands && bit!=commandBindings[i]; i++);
+	if (i < numCommands) {
+		send = 0x80 + i;
+	} else {
+		if (bit == thrustKey && pressed) {
+			bit = keyBindings[2];
+			pressed = !(keys & twoPow[2]);
+		}
+		for(i = 0; i < numKeys && bit!=keyBindings[i]; i++);
+		if(i==numKeys) return;
+		send = keys;
+		if(pressed) send |= twoPow[i];
+		else send &= 0xFF-twoPow[i];
+		if(send == keys) return;
+		keys = send;
 	}
-	if (freeze) return;
-	int i = 0;
-	for(; i < numKeys && bit!=keyBindings[i]; i++);
-	if(i==numKeys) return;
-	unsigned char old = keys;
-	if(pressed) keys |= twoPow[i];
-	else keys &= 0xFF-twoPow[i];
-	if(keys == old) return;
-	sendto(sockfd, &keys, 1, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+	sendto(sockfd, &send, 1, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 }
 
 int main(int argc, char** argv){
@@ -315,7 +323,7 @@ int main(int argc, char** argv){
 	}
 	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
-	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128+21);
+	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128+40);
 
 	loadPics();
 

@@ -114,43 +114,24 @@ static char circle(entity *who, entity *target, double r, double v)
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
 	char keys = data->keys;
-	if (data->replayMode) {
-		if (data->replayMode == 1) {
-			if (keys != data->prevKeys || data->dittoCounter == -1) {
-				write(data->replayFd, &data->dittoCounter, sizeof(int));
-				write(data->replayFd, &keys, 1);
-				data->dittoCounter = 0;
-				data->prevKeys = keys;
-			} else {
-				data->dittoCounter++;
-			}
-		} else {
-			if (data->dittoCounter--) {
-				keys = data->prevKeys;
-			} else {
-				keys = data->prevKeys = data->keys;
-				//Note that any file format changes here should be mirrored in entity.c
-				if (sizeof(int) != read(data->replayFd, &data->dittoCounter, sizeof(int))) {
-					data->replayMode = 0;
-					close(data->replayFd);
-				} else {
-					read(data->replayFd, &data->keys, 1);
-				}
-			}
-		}
-	}
-	if(keys & 0x08){
-		lock(who);
-	}
-	if(keys & 0x10){
+	if (data->clearLock) {
 		who->targetLock = NULL;
+		data->clearLock = 0;
+	}
+	if (data->getLock) {
+		lock(who);
+		data->getLock = 0;
+	}
+	if (data->setTM != -1) {
+		who->transponderMode = data->setTM;
+		data->setTM = -1;
 	}
 	if(keys & 0x01) turn(who, -1);
 	if(keys & 0x02) turn(who, 1);
 	if(keys & 0x04) thrust(who);
-	int i = 0;
-	for (; i < who->numModules; i++)
-		(who->modules[i]->actFunc)(who, i, i<3 && (keys&(0x20<<i)));
+	int i;
+	for (i = 0; i < who->numModules; i++)
+		(who->modules[i]->actFunc)(who, i, i<4 && (keys&(0x08<<i)));
 }
 
 static void aiHumanCollision(entity *who, entity *him)
