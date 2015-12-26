@@ -6,7 +6,7 @@
 (M) tethers
 
 More current matters:
-Set transponder mode
+Implement 3rd team - Ask Martin
 Update real velocities at most once per tick
 Limit AIs to same perception range as us - slow radar updates - intelligent searching of collision architecture to find near neighbors - apply search algorithm to players as well
 script file with standard map generation routines

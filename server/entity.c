@@ -13,9 +13,9 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 	entity* ret = malloc(sizeof(entity));
 	ret->faction = faction;
 	if(faction == 0) ret->lockSettings = 15;
-	if(faction == 1) ret->lockSettings = 12;
-	if(faction == 2) ret->lockSettings = 2;
-	if(faction == 3) ret->lockSettings = 3;
+	if(faction == 1) ret->lockSettings = 14;
+	if(faction == 2) ret->lockSettings = 14;
+	if(faction == 3) ret->lockSettings = 14;
 	ret->numContacts = ret->maxContacts = 0;
 	ret->contacts = NULL;
 	ret->actedFlag = globalActedFlag;

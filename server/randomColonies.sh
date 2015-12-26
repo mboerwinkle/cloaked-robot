@@ -49,19 +49,19 @@ echo end >> sectors/0_0
 
 # * 128 would give the full range of a sector, but that's not dense enough
 pos () {
-	echo $(( ($RANDOM - 16384) * 70 * 16 ))
+	echo $(( ($RANDOM - 16384) * 90 * 16 ))
 }
 
 rm sectors/*_*
 
-#This shuffle means that while there will be 7 of each team's colonies, there's no set order in which they will be generated.
-for i in `shuf -i 1-6`
+#This shuffle means that while there will be 5 of each team's colonies, there's no set order in which they will be generated.
+for i in `shuf -i 0-14`
 do
 #Even 'i's result in team 1; odd 'i's, team 2.
-	makeColony $(($i % 2 + 1)) `pos` `pos`
+	makeColony $(($i % 3 + 1)) `pos` `pos`
 done
 
-for (( i=0; i<12; i++ ))
+for (( i=0; i<25; i++ ))
 do
 	makeAsteroidField `pos` `pos`
 done
