@@ -6,8 +6,9 @@
 (M) tethers
 
 More current matters:
-Implement 3rd team - Ask Martin
+Long range radar
+Change radar format - pixels
+Sector lines on radar slightly oversized
 Update real velocities at most once per tick
 Limit AIs to same perception range as us - slow radar updates - intelligent searching of collision architecture to find near neighbors - apply search algorithm to players as well
 script file with standard map generation routines
-Brake module that doesn't break

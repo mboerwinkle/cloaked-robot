@@ -54,11 +54,12 @@ pos () {
 
 rm sectors/*_*
 
-#This shuffle means that while there will be 5 of each team's colonies, there's no set order in which they will be generated.
-for i in `shuf -i 0-14`
+makeColony 2 0 0
+
+for (( i=0; i<3; i++ ))
 do
-#Even 'i's result in team 1; odd 'i's, team 2.
-	makeColony $(($i % 3 + 1)) `pos` `pos`
+	makeColony 1 `pos` `pos`
+	makeColony 3 `pos` `pos`
 done
 
 for (( i=0; i<25; i++ ))
@@ -66,5 +67,5 @@ do
 	makeAsteroidField `pos` `pos`
 done
 
-echo "Server launched. 3 of each team's colonies, 12 random asteroid fields. Have at 'em."
+echo "Server launched."
 ./run yolo
