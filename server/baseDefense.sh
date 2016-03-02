@@ -68,4 +68,4 @@ do
 done
 
 echo "Server launched."
-./run yolo
+./run

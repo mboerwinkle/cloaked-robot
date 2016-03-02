@@ -46,67 +46,77 @@ static void paint(){
 	SDL_RenderPresent(render);
 }
 
+static unsigned char teamReds[4]   = {0xff, 0xff,    0, 0xff};
+static unsigned char teamGreens[4] = {0xff,    0,    0, 0xff};
+static unsigned char teamBlues[4]  = {0xff,    0, 0xff,    0};
+
 static void teamColor(unsigned char faction){
-	unsigned char tm = faction & 0x30; // Transponder mode
-	faction = faction & 0x03;
-	unsigned char r, g, b;
-	if(faction == 0) {        //white, unaligned/inanimate
-		r = g = b = 0xFF;
-	} else if(faction == 1) { //red, pirates
-		r = 0xFF;
-		g = b = 0;
-	} else if(faction == 2) { //blue, imperial
-		r = g = 0;
-		b = 0xFF;
-	} else {                  //yellow, independent/traders
-		r = g = 0xFF;
-		b = 0;
-	}
-	if (tm == 0x30) { // TM_NONE is dimmed
+	SDL_SetRenderDrawColor(render, teamReds[faction], teamGreens[faction], teamBlues[faction], 255);
+}
+
+static void drawRadarBlip(const SDL_Rect *rect, unsigned char data) {
+	unsigned char transponder = data & 0x30;
+	unsigned char faction = data & 0x03;
+	unsigned char r = teamReds[faction];
+	unsigned char g = teamGreens[faction];
+	unsigned char b = teamBlues[faction];
+	if (transponder == 0x30) { // TM_NONE is dimmed
 		r /= 2;
 		g /= 2;
 		b /= 2;
-	} else if (tm == 0x10) { // TM_MINE is faded close to asteroid color
+	} else if (transponder == 0x10) { // TM_MINE is faded close to asteroid color
 		r |= 0x80;
 		g |= 0x80;
 		b |= 0x80;
-	} else if (tm == 0x20) { // TM_FEED is as well, to a lower extent
-		r |= 0x40;
-		g |= 0x40;
-		b |= 0x40;
-	} // TM_DFND is default color
-	SDL_SetRenderDrawColor(render, r, g, b, 0xFF);
+	} else if (transponder == 0x20) { // TM_FEED is a checker of default and faded
+		SDL_SetRenderDrawColor(render, r, g, b, 255);
+		SDL_RenderDrawPoint(render, rect->x, rect->y);
+		SDL_RenderDrawPoint(render, rect->x+1, rect->y+1);
+		r |= 0x80;
+		g |= 0x80;
+		b |= 0x80;
+		SDL_SetRenderDrawColor(render, r, g, b, 255);
+		SDL_RenderDrawPoint(render, rect->x+1, rect->y);
+		SDL_RenderDrawPoint(render, rect->x, rect->y+1);
+		return;
+	} // TM_DFND is default color*/
+	SDL_SetRenderDrawColor(render, r, g, b, 255);
+	SDL_RenderFillRect(render, rect);
 }
 
 static void drawRadar(int8_t* data, int len){
 	SDL_SetRenderTarget(render, minimapTex);
 	SDL_SetRenderDrawColor(render, 0, 0, 0, 0);
 	SDL_RenderClear(render);
-	SDL_Rect rect = {.x = 0, .y = 128, .w = 128, .h = 40};
+	SDL_Rect rect = {.x = 0, .y = 126, .w = 126, .h = 40};
 	SDL_SetRenderDrawColor(render, 50, 50, 50, 0xFF);
 	SDL_RenderFillRect(render, &rect);
 	SDL_SetRenderDrawColor(render, 255, 255, 0, 255);
 	static char *modeStrings[4] = {"DFND", "MINE", "FEED", "NONE"};
-	static char minerals[42];
-	sprintf(minerals, "MINERALS:\n%13"PRId64"\nTRANSPONDER:\n%s", *(int64_t*)(data+2), modeStrings[(data[10]&12)/4]);
-	drawText(render, 2, 130, 1, minerals);
+	static char statusString[42];
+	sprintf(statusString, "MINERALS:\n%13"PRId64"\nTRANSPONDER:\n%s", *(int64_t*)(data+2), modeStrings[(data[10]&12)/4]);
+	drawText(render, 2, 126+2, 1, statusString);
 	rect.w = rect.h = 2;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
 	if(data[10]&128){
-		SDL_RenderDrawLine(render, data[0]&0x7F, 0, data[0]&0x7F, 128);
+		int x = (data[0]&127)*2;
+		SDL_RenderDrawLine(render, x, 0, x, 125);
+		x++;
+		SDL_RenderDrawLine(render, x, 0, x, 125);
 	}
 	if(data[10]&64){
-		SDL_RenderDrawLine(render, 0, data[1], 128, data[1]);
+		int y = data[1]*2;
+		SDL_RenderDrawLine(render, 0, y, 125, y);
+		y++;
+		SDL_RenderDrawLine(render, 0, y, 125, y);
 	}
-	int i = 10;
-	while(i+2 < len){
-		teamColor(data[i]);
-		rect.x = data[i+1];
-		rect.y = data[i+2];
-		SDL_RenderFillRect(render, &rect);
-		i+=3;
+	int i;
+	for(i = 10; i+2 < len; i += 3){
+		rect.x = data[i+1]*2;
+		rect.y = data[i+2]*2;
+		drawRadarBlip(&rect, data[i]);
 	}
-	rect.x = rect.y = 63;
+	rect.x = rect.y = 62;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
 	SDL_RenderFillRect(render, &rect);
 
@@ -278,8 +288,8 @@ static void handleNetwork(){
 
 		rect.x = (width+1)*SCREEN_MULTIPLE;
 		rect.y = 1*SCREEN_MULTIPLE;
-		rect.w = 128*SCREEN_MULTIPLE;
-		rect.h = (128+40)*SCREEN_MULTIPLE;
+		rect.w = 126*SCREEN_MULTIPLE;
+		rect.h = (126+40)*SCREEN_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
@@ -314,7 +324,7 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+130)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0/*SDL_WINDOW_FULLSCREEN*/);
+	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+126+2)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0/*SDL_WINDOW_FULLSCREEN*/);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
@@ -323,7 +333,7 @@ int main(int argc, char** argv){
 	}
 	render = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
-	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 128, 128+40);
+	minimapTex = SDL_CreateTexture(render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 126, 126+40);
 
 	loadPics();
 

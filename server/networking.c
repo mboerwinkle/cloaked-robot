@@ -30,27 +30,25 @@ static int32_t mod(int64_t a, int32_t b){
 #define NETLEN 6000
 static int8_t data[NETLEN];
 
+#define RADAR_GRID_SIZE (12800*16)
+#define RADAR_GRID_RADIUS 32
+
+static int transform(int32_t x) {
+	int32_t ret = divide(x+RADAR_GRID_SIZE/2, RADAR_GRID_SIZE);
+	if (ret >= RADAR_GRID_RADIUS || ret <= -RADAR_GRID_RADIUS) return -1;
+	return ret + RADAR_GRID_RADIUS - 1;
+}
+
 static void sendRadar(client* cli){
 	int dataLen = 10;
 	entity* who = cli->myShip;
 	if (who->destroyFlag == 0) {// Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
-		linkNear(who, 64*6400 * 16);
+		linkNear(who, 32*12800 * 16);
 	}
 	entity* runner = who->mySector->firstentity;
-	int64_t d;
+	int32_t d;
 	while(runner){
 		if (runner == who) {
-			runner = runner->next;
-			continue;
-		}
-		d = divide(displacementX(who, runner)+3200*16, 6400*16);
-		if(d > 63 || d < -63){
-			runner = runner->next;
-			continue;
-		}
-		data[dataLen+1] = d+63;
-		d = divide(displacementY(who, runner)+3200*16, 6400*16);
-		if(d > 63 || d < -63){
 			runner = runner->next;
 			continue;
 		}
@@ -58,7 +56,18 @@ static void sendRadar(client* cli){
 			puts("Dear Lord, even the radar packet is too big!");
 			break;
 		}
-		data[dataLen+2] = d+63;
+		d = transform(displacementX(who, runner));
+		if(d == -1) {
+			runner = runner->next;
+			continue;
+		}
+		data[dataLen+1] = d;
+		d = transform(displacementY(who, runner));
+		if(d == -1) {
+			runner = runner->next;
+			continue;
+		}
+		data[dataLen+2] = d;
 		data[dataLen] = runner->faction;
 		if (runner->faction == who->faction) data[dataLen] |= runner->transponderMode<<4;
 		dataLen+=3;
@@ -68,17 +77,27 @@ static void sendRadar(client* cli){
 		unlinkNear();
 	if (dataLen < 11) {
 		dataLen = 11;
-		data[10] = 192;
-	} else {
-		data[10] += 192;
+		data[10] = 0;
 	}
 	data[10] += who->transponderMode<<2;
-	if(who->me->pos[0] < POS_MIN+6400*64*16) data[0] = (-who->me->pos[0]+POS_MIN+(6400*64*16))/(6400*16);
-	else if(who->me->pos[0] > POS_MAX-6400*64*16) data[0] = (-who->me->pos[0]+POS_MAX+(6400*64*16))/(6400*16);
-	else data[10] -= 128;
-	if(who->me->pos[1] < POS_MIN+6400*64*16) data[1] = (-who->me->pos[1]+POS_MIN+(6400*64*16))/(6400*16);
-	else if(who->me->pos[1] > POS_MAX-6400*64*16) data[1] = (-who->me->pos[1]+POS_MAX+(6400*64*16))/(6400*16);
-	else data[10] -= 64;
+	if(who->me->pos[0] < 0) {
+		d = transform(-who->me->pos[0]+POS_MIN);
+	} else {
+		d = transform(-who->me->pos[0]+POS_MAX);
+	}
+	if (-1 != d) {
+		data[10] += 128;
+		data[0] = d;
+	}
+	if(who->me->pos[1] < 0) {
+		d = transform(-who->me->pos[1]+POS_MIN);
+	} else {
+		d = transform(-who->me->pos[1]+POS_MAX);
+	}
+	if (-1 != d) {
+		data[10] += 64;
+		data[1] = d;
+	}
 	memcpy(data+2, &who->minerals, 8);
 	data[0] |= 0x80; // It's a radar packet
 	struct sockaddr_in sendAddr = {.sin_family=AF_INET, .sin_port=htons(3334), .sin_addr={.s_addr=cli->addr.sin_addr.s_addr}};
