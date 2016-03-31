@@ -135,6 +135,7 @@ typedef struct carrierAiData{
 typedef struct humanAiData{
 	char keys;
 	signed char clearLock, getLock, setTM;
+	char largeRadar; // 0: Normal radar function. 1: Sector view requested. 2: confirmed. 3: being displayed, send no more radar.
 }humanAiData;
 
 typedef struct {

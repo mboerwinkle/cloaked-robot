@@ -209,6 +209,7 @@ entity* newEntity(guarantee *creator, int type, int aiType, char faction, sector
 		data->keys = 0;
 		data->getLock = data->clearLock = 0;
 		data->setTM = -1;
+		data->largeRadar = 0;
 		ret->transponderMode = TM_NONE;
 	} else if (aiType == 1){
 		ret->myAi = &aiMissile;

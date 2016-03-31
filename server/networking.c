@@ -30,73 +30,102 @@ static int32_t mod(int64_t a, int32_t b){
 #define NETLEN 6000
 static int8_t data[NETLEN];
 
-#define RADAR_GRID_SIZE (12800*16)
+#define LG_GRID_SIZE (-POS_MIN/RADAR_GRID_RADIUS)
+#define SM_GRID_SIZE (RADAR_RANGE/RADAR_GRID_RADIUS)
 #define RADAR_GRID_RADIUS 32
+#define RADAR_GRID_WIDTH (RADAR_GRID_RADIUS*2-1)
 
-static int transform(int32_t x) {
-	int32_t ret = divide(x+RADAR_GRID_SIZE/2, RADAR_GRID_SIZE);
+static int transform(int32_t x, int32_t gridSize) {
+	int32_t ret = divide(x+gridSize/2, gridSize);
 	if (ret >= RADAR_GRID_RADIUS || ret <= -RADAR_GRID_RADIUS) return -1;
 	return ret + RADAR_GRID_RADIUS - 1;
 }
 
-static void sendRadar(client* cli){
+static void sendRadar(client* cli, char large){
 	int dataLen = 10;
 	entity* who = cli->myShip;
-	if (who->destroyFlag == 0) {// Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
-		linkNear(who, 32*12800 * 16);
+	if (!large && who->destroyFlag == 0) {// Because ghost ships don't behave w/ linkNear. The problem is that linkNear assumes the given ship is actually in the sector. I recognize this means you can't see out-of-sector things when dead; fix it if'n you dare.
+		linkNear(who, RADAR_RANGE);
 	}
 	entity* runner = who->mySector->firstentity;
-	int32_t d;
+	int32_t x, y;
+	uint8_t *radar = calloc(RADAR_GRID_WIDTH, RADAR_GRID_WIDTH);
 	while(runner){
 		if (runner == who) {
 			runner = runner->next;
 			continue;
 		}
-		if (dataLen + 3 > NETLEN) {
-			puts("Dear Lord, even the radar packet is too big!");
-			break;
+		if (large) {
+			x = transform(runner->me->pos[0], LG_GRID_SIZE);
+		} else {
+			x = transform(displacementX(who, runner), SM_GRID_SIZE);
 		}
-		d = transform(displacementX(who, runner));
-		if(d == -1) {
+		if(x == -1) {
 			runner = runner->next;
 			continue;
 		}
-		data[dataLen+1] = d;
-		d = transform(displacementY(who, runner));
-		if(d == -1) {
+		if (large) {
+			y = transform(runner->me->pos[1], LG_GRID_SIZE);
+		} else {
+			y = transform(displacementY(who, runner), SM_GRID_SIZE);
+		}
+		if(y == -1) {
 			runner = runner->next;
 			continue;
 		}
-		data[dataLen+2] = d;
-		data[dataLen] = runner->faction;
-		if (runner->faction == who->faction) data[dataLen] |= runner->transponderMode<<4;
-		dataLen+=3;
+		x += y * RADAR_GRID_WIDTH;
+		radar[x] = 128+runner->faction;
+		if (runner->faction == who->faction) radar[x] |= runner->transponderMode<<4;
 		runner = runner->next;
 	}
+	uint8_t *r2 = radar;
+	for (y = 0; y < RADAR_GRID_WIDTH; y++) {
+		for (x = RADAR_GRID_WIDTH-1; x >= 0; x--) {
+			if (dataLen + 3 > NETLEN) {
+				puts("Dear Lord, even the radar packet is too big!");
+				break;
+			}
+			if (radar[x] == 0) continue;
+			data[dataLen] = radar[x] & 127;
+			data[dataLen+1] = x;
+			data[dataLen+2] = y;
+			dataLen += 3;
+		}
+		if (x >= 0) break;
+		radar += RADAR_GRID_WIDTH;
+	}
+	free(r2);
 	if (who->destroyFlag == 0)
 		unlinkNear();
-	if (dataLen < 11) {
-		dataLen = 11;
+	if (dataLen < 12) { //This will only happen if the radar is empty, but we've got to be sure.
+		dataLen = 12;
 		data[10] = 0;
+		data[11] = 0;
 	}
 	data[10] += who->transponderMode<<2;
-	if(who->me->pos[0] < 0) {
-		d = transform(-who->me->pos[0]+POS_MIN);
+	if (large) {
+		x = transform(who->me->pos[0], LG_GRID_SIZE);
+		y = transform(who->me->pos[1], LG_GRID_SIZE);
 	} else {
-		d = transform(-who->me->pos[0]+POS_MAX);
+		data[11] += 128; // From Hell's heart I stab at thee
+		if(who->me->pos[0] < 0) {
+			x = transform(-who->me->pos[0]+POS_MIN, SM_GRID_SIZE);
+		} else {
+			x = transform(-who->me->pos[0]+POS_MAX, SM_GRID_SIZE);
+		}
+		if(who->me->pos[1] < 0) {
+			y = transform(-who->me->pos[1]+POS_MIN, SM_GRID_SIZE);
+		} else {
+			y = transform(-who->me->pos[1]+POS_MAX, SM_GRID_SIZE);
+		}
 	}
-	if (-1 != d) {
+	if (-1 != x) {
 		data[10] += 128;
-		data[0] = d;
+		data[0] = x;
 	}
-	if(who->me->pos[1] < 0) {
-		d = transform(-who->me->pos[1]+POS_MIN);
-	} else {
-		d = transform(-who->me->pos[1]+POS_MAX);
-	}
-	if (-1 != d) {
+	if (-1 != y) {
 		data[10] += 64;
-		data[1] = d;
+		data[1] = y;
 	}
 	memcpy(data+2, &who->minerals, 8);
 	data[0] |= 0x80; // It's a radar packet
@@ -133,7 +162,15 @@ void sendInfo(){
 					disappear(me->mySector->x, me->mySector->y);
 			}
 		}
-		if(counter == 0 && me->destroyFlag != CANSPAWN) sendRadar(conductor);
+		if(counter == 0 && me->destroyFlag != CANSPAWN) {
+			humanAiData *data = (humanAiData*)me->aiFuncData;
+			if (data->largeRadar == 2) {
+				sendRadar(conductor, 1);
+				data->largeRadar = 3;
+			} else if (data->largeRadar != 3) {
+				sendRadar(conductor, 0);
+			}
+		}
 		if (me->destroyFlag) {
 			*data = 0x41; // Lol, you died
 			if (me->destroyFlag == CANSPAWN) {
@@ -255,6 +292,13 @@ void* netListen(void* whoGivesADern){
 						if (m == 0x80) data->getLock = 1;
 						else if (m == 0x81) data->clearLock = 1;
 						else if (m <= 0x85) data->setTM = m - 0x82;
+						else if (m == 0x86) {
+							if (data->largeRadar == 3) {
+								data->largeRadar = 0;
+							} else if (data->largeRadar == 0) {
+								data->largeRadar = 1;
+							}
+						}
 					} else {
 						data->keys = m;
 					}

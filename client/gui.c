@@ -33,8 +33,8 @@ static unsigned char twoPow[8] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80
 #define numKeys 7
 static int keyBindings[numKeys] = {SDLK_LEFT, SDLK_RIGHT, SDLK_UP, SDLK_a, SDLK_s, SDLK_d, SDLK_f};
 static int thrustKey = SDLK_t;
-#define numCommands 6
-static int commandBindings[numCommands] = {SDLK_x, SDLK_z, SDLK_1, SDLK_2, SDLK_3, SDLK_4};
+#define numCommands 7
+static int commandBindings[numCommands] = {SDLK_x, SDLK_z, SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_r};
 
 static int sockfd;
 static struct sockaddr_in serverAddr;
@@ -116,9 +116,11 @@ static void drawRadar(int8_t* data, int len){
 		rect.y = data[i+2]*2;
 		drawRadarBlip(&rect, data[i]);
 	}
-	rect.x = rect.y = 62;
-	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
-	SDL_RenderFillRect(render, &rect);
+	if (data[11] & 128) { // This means it's a regular-sized radar scan, so we're definitely in the middle.
+		rect.x = rect.y = 62;
+		SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
+		SDL_RenderFillRect(render, &rect);
+	}
 
 	SDL_SetRenderTarget(render, NULL);
 }
@@ -301,6 +303,7 @@ static void spKeyAction(int bit, char pressed){
 	unsigned char send;
 	for (i = 0; i < numCommands && bit!=commandBindings[i]; i++);
 	if (i < numCommands) {
+		if (!pressed) return;
 		send = 0x80 + i;
 	} else {
 		if (bit == thrustKey && pressed) {

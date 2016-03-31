@@ -114,6 +114,15 @@ static char circle(entity *who, entity *target, double r, double v)
 static void aiHumanAct(entity* who){
 	humanAiData *data = who->aiFuncData;
 	char keys = data->keys;
+	if (data->largeRadar == 1) {
+		if (who->shield == who->maxShield && who->energy == who->maxEnergy) {
+			data->largeRadar = 2;
+			who->shield = 1;
+			who->energy = 0;
+		} else {
+			data->largeRadar = 0;
+		}
+	}
 	if (data->clearLock) {
 		who->targetLock = NULL;
 		data->clearLock = 0;
