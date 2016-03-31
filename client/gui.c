@@ -98,6 +98,11 @@ static void drawRadar(int8_t* data, int len){
 	drawText(render, 2, 126+2, 1, statusString);
 	rect.w = rect.h = 2;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
+	char regularSize = 0;
+	if (data[11] & 128) {
+		regularSize = 1;
+		data[11] &= 127;
+	}
 	if(data[10]&128){
 		int x = (data[0]&127)*2;
 		SDL_RenderDrawLine(render, x, 0, x, 125);
@@ -116,7 +121,7 @@ static void drawRadar(int8_t* data, int len){
 		rect.y = data[i+2]*2;
 		drawRadarBlip(&rect, data[i]);
 	}
-	if (data[11] & 128) { // This means it's a regular-sized radar scan, so we're definitely in the middle.
+	if (regularSize) { // This means it's a regular-sized radar scan, so we're definitely in the middle.
 		rect.x = rect.y = 62;
 		SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
 		SDL_RenderFillRect(render, &rect);
