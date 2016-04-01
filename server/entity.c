@@ -308,23 +308,7 @@ void tick(entity* who){
 	(*who->myAi->act)(who);
 	who->sinTheta = sin(who->theta * (2*M_PI/16));
 	who->cosTheta = cos(who->theta * (2*M_PI/16));
-	guarantee *g = who->me;
-	double vx = g->vel[0];
-	double vy = g->vel[1];
-	double v = sqrt(vx*vx + vy*vy);
-	if(v <= 1.5*16){
-		if (v == 0) return;
-		g->vel[0] = 0;
-		g->vel[1] = 0;
-	}else{
-		vx /= v;
-		vy /= v;
-		g->vel[0] -= (int)(vx*1.5*16);
-		g->vel[1] -= (int)(vy*1.5*16);
-		//who->x += who->vx;
-		//who->y += who->vy;
-	}
-	guaranteeMoved(g, 0);
+	//Friction has been moved to the end of collisions.c
 }
 
 char tick2(entity* who){

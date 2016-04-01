@@ -196,8 +196,22 @@ void doStep() {
 	for (sec = listrootsector; sec; sec = sec->nextsector) {
 		for (reader = sec->firstentity; reader; reader = reader->next) {
 			g = reader->me;
-			g->pos[0] += g->vel[0];
-			g->pos[1] += g->vel[1];
+			double vx = g->vel[0];
+			double vy = g->vel[1];
+			g->pos[0] += vx;
+			g->pos[1] += vy;
+			double v = sqrt(vx*vx + vy*vy);
+			if(v <= 1.5*16){
+				g->vel[0] = 0;
+				g->vel[1] = 0;
+			}else{
+				vx /= v;
+				vy /= v;
+				g->vel[0] -= (int)(vx*1.5*16);
+				g->vel[1] -= (int)(vy*1.5*16);
+				//who->x += who->vx;
+				//who->y += who->vy;
+			}
 			guaranteeMoved(g, 1);
 		}
 	}
