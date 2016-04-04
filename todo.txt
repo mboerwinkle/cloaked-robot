@@ -7,10 +7,6 @@
 
 More current matters:
 Coordinate readout
-Sector lines on radar slightly oversized
-Change radar format - pixels
- Long range radar
 Kill counter
 script file with standard map generation routines
-Update real velocities at most once per tick
 Limit AIs to same perception range as us - slow radar updates - intelligent searching of collision architecture to find near neighbors - apply search algorithm to players as well
