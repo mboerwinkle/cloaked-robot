@@ -50,7 +50,7 @@ static void loadPic(char *addr){
 	pictures[numPics].size = mySize;
 	pictures[numPics].data = malloc(sizeof(SDL_Surface*)*2*16);
 	uint32_t *data = calloc(2*16*mySize*mySize, sizeof(uint32_t));
-	uint32_t *myData = imlib_image_get_data();
+	uint32_t *myData = imlib_image_get_data_for_reading_only();
 	int o = 0; // "o" is for offset
 	for (; o <= 16*mySize*mySize; o += 16*mySize*mySize) {
 		//The "*2" in the following line is because we actually want the first and _third_ sprites.
@@ -60,6 +60,7 @@ static void loadPic(char *addr){
 		rotationarray(data+o, data+o+3*mySize*mySize, -3*M_PI/8, mySize);
 		rotate(data+o, mySize);
 	}
+	free(myData);
 	imlib_free_image();
 	int i = 0;
 	for(; i<2*16; i++){
@@ -76,7 +77,9 @@ static void loadPic(char *addr){
 static SDL_Texture* loadImage(char* str){
 	Imlib_Image img = imlib_load_image(str);
 	imlib_context_set_image(img);
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data(), imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
+	uint32_t *data = imlib_image_get_data_for_reading_only();
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
+	free(data);
 	SDL_Texture* ret = SDL_CreateTextureFromSurface(render, surface);
 	SDL_FreeSurface(surface);
 	imlib_free_image();
