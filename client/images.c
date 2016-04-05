@@ -60,7 +60,6 @@ static void loadPic(char *addr){
 		rotationarray(data+o, data+o+3*mySize*mySize, -3*M_PI/8, mySize);
 		rotate(data+o, mySize);
 	}
-	free(myData);
 	imlib_free_image();
 	int i = 0;
 	for(; i<2*16; i++){
@@ -77,9 +76,7 @@ static void loadPic(char *addr){
 static SDL_Texture* loadImage(char* str){
 	Imlib_Image img = imlib_load_image(str);
 	imlib_context_set_image(img);
-	uint32_t *data = imlib_image_get_data_for_reading_only();
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(data, imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
-	free(data);
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(imlib_image_get_data_for_reading_only(), imlib_image_get_width(), imlib_image_get_height(), 32, imlib_image_get_width()*4, 0xFF0000, 0x00FF00, 0x0000FF, 0xFF000000);
 	SDL_Texture* ret = SDL_CreateTextureFromSurface(render, surface);
 	SDL_FreeSurface(surface);
 	imlib_free_image();
