@@ -145,8 +145,15 @@ void sendInfo(){
 		dataLen = 0;
 		if (conductor->spawnBase && conductor->spawnBase->destroyFlag) conductor->spawnBase = NULL;
 		if (conductor->requestsSpawn) {
-			if (conductor->spawnBase) conductor->myShip = loadshipSpawner(conductor->name, conductor->spawnBase);
-			else conductor->myShip = loadship(conductor->name);
+			entity *newShip;
+
+			if (conductor->spawnBase) newShip = loadshipSpawner(conductor->name, conductor->spawnBase);
+			else newShip = loadship(conductor->name);
+
+			// Handle failures gracefully
+			if (newShip != NULL) {
+				conductor->myShip = newShip;
+			}
 			conductor->requestsSpawn = 0;
 		}
 		entity* me = conductor->myShip;
@@ -278,14 +285,14 @@ void* netListen(void* whoGivesADern){
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
-				if (current->myShip->destroyFlag == CANSPAWN && !current->requestsSpawn) {
-					current->requestsSpawn = 1;
-					printf("Player %s has respawned!\n", current->name);
-					break;
-				} else if (current->myShip->destroyFlag) {
-					break;
-				}
 				if (msgSize == 1) {
+					if (current->myShip->destroyFlag == CANSPAWN && !current->requestsSpawn) {
+						current->requestsSpawn = 1;
+						printf("Player %s has respawned!\n", current->name);
+						break;
+					} else if (current->myShip->destroyFlag) {
+						break;
+					}
 					unsigned char m = *msg;
 					humanAiData *data = (humanAiData*)current->myShip->aiFuncData;
 					if (m & 0x80) {
@@ -301,6 +308,21 @@ void* netListen(void* whoGivesADern){
 						}
 					} else {
 						data->keys = m;
+					}
+				} else if (msgSize == 0) {
+					puts("Not expecting msg of 0 size... what's up? How did this happen?");
+				} else if (*msg == ']') {
+					int nameLen = strnlen(msg, MAXNAMELEN + 1);
+					if (nameLen > MAXNAMELEN) {
+						printf("Updated player name '%s' exceeds MAXNAMELEN of %d.\n", msg+1, MAXNAMELEN);
+					} else {
+						// I'm being comically careful here, because this thread doesn't own this data.
+						// Thus, if the overwrite proceeds character-by-character, we could get a bad string here.
+						// So we write the final byte first!
+						// Worst case it's an invalid name, but not a really long one.
+						current->name[nameLen] = '\0';
+						strcpy(current->name, msg+1);
+						printf("Player updated to ship %s\n", msg+1);
 					}
 				}
 				break;
