@@ -21,7 +21,16 @@
 
 #define width 500
 #define height 500
-#define SCREEN_MULTIPLE 2
+
+#ifndef SCREEN_MULTIPLE
+#warning Defaulting SCREEN_MULTIPLE to 1
+#define SCREEN_MULTIPLE 1
+#endif
+
+#ifndef SIDEBAR_MULTIPLE
+#warning Defaulting SIDEBAR_MULTIPLE to 2
+#define SIDEBAR_MULTIPLE 2
+#endif
 
 static SDL_Window* window;
 SDL_Renderer* render;
@@ -206,10 +215,10 @@ static void handleNetwork(){
 			rect.h = 100*SCREEN_MULTIPLE;
 			SDL_RenderCopy(render, lolyoudied, NULL, &rect);
 			if (len == 1) { // Then clear the minimap too and paint
-				rect.x = (width+1)*SCREEN_MULTIPLE;
-				rect.y = 1*SCREEN_MULTIPLE;
-				rect.w = 128*SCREEN_MULTIPLE;
-				rect.h = 128*SCREEN_MULTIPLE;
+				rect.x = width*SCREEN_MULTIPLE + 1*SIDEBAR_MULTIPLE;
+				rect.y = 1*SIDEBAR_MULTIPLE;
+				rect.w = 128*SIDEBAR_MULTIPLE;
+				rect.h = 128*SIDEBAR_MULTIPLE;
 				SDL_RenderCopy(render, plzcomeback, NULL, &rect);
 				paint();
 				continue;
@@ -289,14 +298,14 @@ static void handleNetwork(){
 		SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
 		rect.x = width*SCREEN_MULTIPLE;
 		rect.y = 0;
-		rect.w = 130*SCREEN_MULTIPLE;
+		rect.w = (126+2)*SIDEBAR_MULTIPLE;
 		rect.h = (height+20)*SCREEN_MULTIPLE;
 		SDL_RenderFillRect(render, &rect);
 
-		rect.x = (width+1)*SCREEN_MULTIPLE;
-		rect.y = 1*SCREEN_MULTIPLE;
-		rect.w = 126*SCREEN_MULTIPLE;
-		rect.h = (126+40)*SCREEN_MULTIPLE;
+		rect.x = (width)*SCREEN_MULTIPLE + 1*SIDEBAR_MULTIPLE;
+		rect.y = 1*SIDEBAR_MULTIPLE;
+		rect.w = 126*SIDEBAR_MULTIPLE;
+		rect.h = (126+40)*SIDEBAR_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
 
 		paint();
@@ -332,7 +341,14 @@ int main(int argc, char** argv){
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
-	window = SDL_CreateWindow("Ship Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, (width+126+2)*SCREEN_MULTIPLE, (height+20)*SCREEN_MULTIPLE, 0/*SDL_WINDOW_FULLSCREEN*/);
+	window = SDL_CreateWindow(
+		"Ship Game",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		width*SCREEN_MULTIPLE + (126+2)*SIDEBAR_MULTIPLE,
+		(height+20)*SCREEN_MULTIPLE,
+		0/*SDL_WINDOW_FULLSCREEN*/
+	);
 	if(window == NULL){
 		fputs("No SDL2 window.\n", stderr);
 		fputs(SDL_GetError(), stderr);
