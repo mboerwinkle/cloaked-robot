@@ -13,6 +13,7 @@
 
 //#define SPEEDRUN
 loadRequest *lastLoadRequest = NULL;
+sector *listrootsector = NULL;
 
 static void teamColor(SDL_Renderer *render, unsigned char faction, unsigned char tm){
 	unsigned char r, g, b;

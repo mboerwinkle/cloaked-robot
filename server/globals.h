@@ -1,5 +1,5 @@
 #include <stdint.h>
-#define MAXNAMELEN 10
+#define MAXNAMELEN 10//This is ship type
 #define POS_MAX 33554431
 #define POS_MIN (-33554432)
 #define LOCK_RANGE (1024*1000)
@@ -173,7 +173,7 @@ extern int writesectortofile(sector *target);
 extern void addmetosector(entity* who, uint64_t x, uint64_t y);
 extern void spawnstroids(sector *target);
 
-sector *listrootsector;
+extern sector *listrootsector;
 
 typedef struct module{
 	void (*initFunc)(entity* who, int ix, double value);

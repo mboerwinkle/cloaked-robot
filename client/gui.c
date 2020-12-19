@@ -336,8 +336,8 @@ static void spKeyAction(int bit, char pressed){
 }
 
 int main(int argc, char** argv){
-	if(argc < 2){
-		puts("Please specify an ip.");
+	if(argc != 4){
+		puts("USAGE: ./run <ip> <3-character tag> <shiptype>");
 		return 5;
 	}
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS);
@@ -377,11 +377,12 @@ int main(int argc, char** argv){
 	serverAddr.sin_port=htons(3333);
 	inet_aton(argv[1], &serverAddr.sin_addr);
 
-	char tmp[20];
-	strcpy(tmp, "]yo");
-	if (argc >= 3)
-		strcpy(tmp+1, argv[2]);
-	sendto(sockfd, tmp, 4, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
+	char tmp[20] = {']', '~', '~', '~', '\0'};
+	for(int tagidx = strnlen(argv[2], 3)-1; tagidx >= 0; tagidx--){//copy the tag characters into the buffer
+		tmp[1+tagidx] = argv[2][tagidx];
+	}
+	strncpy(&(tmp[4]), argv[3], 10);//kind of arbitrary length limiting
+	sendto(sockfd, tmp, 20, 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 	struct timespec t = {.tv_sec = 0, .tv_nsec = 10000000};
 	while(running){
 		SDL_Event evnt;

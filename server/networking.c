@@ -147,8 +147,8 @@ void sendInfo(){
 		if (conductor->requestsSpawn) {
 			entity *newShip;
 
-			if (conductor->spawnBase) newShip = loadshipSpawner(conductor->name, conductor->spawnBase);
-			else newShip = loadship(conductor->name);
+			if (conductor->spawnBase) newShip = loadshipSpawner(conductor->shiptype, conductor->spawnBase);
+			else newShip = loadship(conductor->shiptype);
 
 			// Handle failures gracefully
 			if (newShip != NULL) {
@@ -276,19 +276,18 @@ void* netListen(void* whoGivesADern){
 	}
 	//Judging from loadship.c, MAXNAMELEN includes the null byte in the count.
 	//The +1 here is for the ']' character
-	char msg[MAXNAMELEN+1];
+	char msg[20];
 	socklen_t len;
-	int msgSize;
 	while(1){
 		len = sizeof(bindAddr);
-		msgSize = recvfrom(sockfd, msg, MAXNAMELEN+1, 0, (struct sockaddr*)&bindAddr, &len);
+		int msgSize = recvfrom(sockfd, msg, 20, 0, (struct sockaddr*)&bindAddr, &len);
 		client* current = clientList;
 		while(current != NULL){
 			if(current->addr.sin_addr.s_addr == bindAddr.sin_addr.s_addr){
 				if (msgSize == 1) {
 					if (current->myShip->destroyFlag == CANSPAWN && !current->requestsSpawn) {
 						current->requestsSpawn = 1;
-						printf("Player %s has respawned!\n", current->name);
+						printf("Player %s,%s has respawned!\n", current->tag,current->shiptype);
 						break;
 					} else if (current->myShip->destroyFlag) {
 						break;
@@ -309,43 +308,35 @@ void* netListen(void* whoGivesADern){
 					} else {
 						data->keys = m;
 					}
-				} else if (msgSize == 0) {
-					puts("Not expecting msg of 0 size... what's up? How did this happen?");
-				} else if (*msg == ']') {
-					int nameLen = strnlen(msg, MAXNAMELEN + 1);
-					if (nameLen > MAXNAMELEN) {
-						printf("Updated player name '%s' exceeds MAXNAMELEN of %d.\n", msg+1, MAXNAMELEN);
-					} else {
-						// I'm being comically careful here, because this thread doesn't own this data.
-						// Thus, if the overwrite proceeds character-by-character, we could get a bad string here.
-						// So we write the final byte first!
-						// Worst case it's an invalid name, but not a really long one.
-						current->name[nameLen] = '\0';
-						strcpy(current->name, msg+1);
-						printf("Player updated to ship %s\n", msg+1);
-					}
+				} else if (msgSize == 20 && *msg == ']') {
+					current->tag[3] = 0;
+					current->shiptype[MAXNAMELEN] = 0;
+					memcpy(current->tag, msg+1, 3);
+					memcpy(current->shiptype, msg+4, MAXNAMELEN);
+					printf("Player updated %s, %s\n", current->tag, current->shiptype);
+				} else {
+					printf("Got malformed data.\n");
 				}
 				break;
 			}
 			current = current->next;
 		}
 		if(current == NULL){//That is, he isn't joined yet
-			if(msgSize <= 1 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
-			if (strnlen(msg, MAXNAMELEN + 1) > MAXNAMELEN) {
-				printf("player name '%s' exceeds MAXNAMELEN of %d.\n", msg+1, MAXNAMELEN);
-				continue;
-			}
+			if(msgSize != 20 || *msg != ']') continue;//Our super-secret, "I'm a legitimate client" character
 			client* new = malloc(sizeof(client));
-			strcpy(new->name, msg+1);
-			printf("He requested ship %s\n", msg+1);
+			new->tag[3] = 0;
+			new->shiptype[MAXNAMELEN] = 0;
+			memcpy(new->tag, msg+1, 3);
+			memcpy(new->shiptype, msg+4, MAXNAMELEN);
 			new->addr = bindAddr;
 			new->spawnBase = NULL;
 			new->requestsSpawn = 0;
 			loadRequest *req = malloc(sizeof(loadRequest));
 			req->next = firstLoadRequest;
 			req->cli = new;
-			strcpy(req->name, msg+1);
+			strcpy(req->name, new->shiptype);
 			firstLoadRequest = req;
+			printf("Player joined %s, %s\n", new->tag, new->shiptype);
 		}
 	}
 	return NULL;

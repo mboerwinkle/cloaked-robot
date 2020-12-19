@@ -103,7 +103,7 @@ void run2(sector *sec){
 				client *runner = clientList;
 				while (runner) {
 					if (runner->myShip == tmp) {
-						printf("Oh No!!! Player %s %s\n", runner->name, deathMessages[random()%numDeathMessages]);
+						printf("Oh No!!! Player %s %s\n", runner->tag, deathMessages[random()%numDeathMessages]);
 						memcpy(&runner->ghostGuarantee, tmp->me, sizeof(guarantee));
 						break; // If it's a client, the disappear will be handled separately, 3 seconds later.
 					}

@@ -3,14 +3,14 @@
 #include <stdio.h>
 #include <inttypes.h>
 
-entity *loadship(char name[MAXNAMELEN]){
-	printf("loadship called (%s)\n", name);
-	char path[MAXNAMELEN + 6], faction, shipType, aiType;
+entity *loadship(char* type){
+	printf("loadship called (%s)\n", type);
+	char path[MAXNAMELEN + 7], faction, shipType, aiType;
 	FILE *fp;
 	uint64_t secx, secy;
 	int32_t posx, posy;
 	sector *conductor;
-	sprintf(path, "ships/%s", name);
+	sprintf(path, "ships/%s", type);
 	if((fp = fopen(path, "r")) == NULL){
 		return NULL;
 	}

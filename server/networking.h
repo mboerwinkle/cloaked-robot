@@ -5,7 +5,8 @@
 typedef struct client {
 	struct client* next;
 	char keys[6];
-	char name[20]; // For reloading after death
+	char shiptype[MAXNAMELEN+1]; // For reloading after death
+	char tag[4];
 	struct sockaddr_in addr;
 	entity ghostShip; // For when we're dead
 	guarantee ghostGuarantee;
