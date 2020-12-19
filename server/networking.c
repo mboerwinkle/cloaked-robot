@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <string.h>
+#include <math.h>
 #include "globals.h"
 
 #include "networking.h"
@@ -49,6 +50,8 @@ static void sendRadar(client* cli, char large){
 	}
 	entity* runner = who->mySector->firstentity;
 	int32_t x, y;
+	char tagcount = 0;
+	char tags[80];//20 sets of 4 bytes. First three bytes are the tag characters, last byte is angle/255
 	uint8_t *radar = calloc(RADAR_GRID_WIDTH, RADAR_GRID_WIDTH);
 	while(runner){
 		if (runner == who) {
@@ -73,11 +76,26 @@ static void sendRadar(client* cli, char large){
 			runner = runner->next;
 			continue;
 		}
+		if(runner->myAi == &aiHuman){
+			memcpy(&(tags[4*tagcount]), ((humanAiData*)(runner->aiFuncData))->owner->tag, 3);
+			tags[4*tagcount+3] = (char)(127.0*atan2f(displacementY(who, runner), displacementX(who, runner))/M_PI);
+			tagcount++;
+		}
 		x += y * RADAR_GRID_WIDTH;
 		radar[x] = 128+runner->faction;
 		if (runner->faction == who->faction) radar[x] |= runner->transponderMode<<4;
 		runner = runner->next;
 	}
+	if(dataLen+1+tagcount*4 > NETLEN){
+		printf("Too many tags. Excluding\n");
+		tagcount = 0;
+	}
+	data[dataLen] = tagcount;
+	dataLen++;
+	memcpy(&(data[dataLen]), tags, 4*tagcount);
+	dataLen+=4*tagcount;
+
+	int radarstart = dataLen;
 	uint8_t *r2 = radar;
 	for (y = 0; y < RADAR_GRID_WIDTH; y++) {
 		for (x = RADAR_GRID_WIDTH-1; x >= 0; x--) {
@@ -97,17 +115,17 @@ static void sendRadar(client* cli, char large){
 	free(r2);
 	if (who->destroyFlag == 0)
 		unlinkNear();
-	if (dataLen < 12) { //This will only happen if the radar is empty, but we've got to be sure.
-		dataLen = 12;
-		data[10] = 0;
-		data[11] = 0;
+	if (dataLen-radarstart < 2) { //This will only happen if the radar is empty, but we've got to be sure.
+		dataLen = radarstart+2;
+		data[radarstart] = 0;
+		data[radarstart+1] = 0;
 	}
-	data[10] += who->transponderMode<<2;
+	data[radarstart] += who->transponderMode<<2;
 	if (large) {
 		x = transform(who->me->pos[0], LG_GRID_SIZE);
 		y = transform(who->me->pos[1], LG_GRID_SIZE);
 	} else {
-		data[11] += 128; // From Hell's heart I stab at thee
+		data[radarstart+1] += 128; // From Hell's heart I stab at thee
 		if(who->me->pos[0] < 0) {
 			x = transform(-who->me->pos[0]+POS_MIN, SM_GRID_SIZE);
 		} else {
@@ -120,11 +138,11 @@ static void sendRadar(client* cli, char large){
 		}
 	}
 	if (-1 != x) {
-		data[10] += 128;
+		data[radarstart] += 128;
 		data[0] = x;
 	}
 	if (-1 != y) {
-		data[10] += 64;
+		data[radarstart] += 64;
 		data[1] = y;
 	}
 	memcpy(data+2, &who->minerals, 8);
@@ -149,10 +167,11 @@ void sendInfo(){
 
 			if (conductor->spawnBase) newShip = loadshipSpawner(conductor->shiptype, conductor->spawnBase);
 			else newShip = loadship(conductor->shiptype);
-
 			// Handle failures gracefully
 			if (newShip != NULL) {
 				conductor->myShip = newShip;
+				puts("setting owner");
+				((humanAiData*)newShip->aiFuncData)->owner = conductor;
 			}
 			conductor->requestsSpawn = 0;
 		}
@@ -229,8 +248,7 @@ void sendInfo(){
 				 data[dataLen+6] |= 0x20;
 			}
 			dataLen+=7;
-			int count = 0;
-			for (; count<runner->numTrails; count++){
+			for (int count = 0; count<runner->numTrails; count++){
 				if (dataLen + 3 > NETLEN) {
 					puts("Just too long.");
 					break;

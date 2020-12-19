@@ -17,6 +17,7 @@
 struct entity;
 struct module;
 struct sector;
+struct client;
 
 extern int main();
 extern void loadsector(uint64_t x, uint64_t y); 
@@ -136,6 +137,7 @@ typedef struct humanAiData{
 	char keys;
 	signed char clearLock, getLock, setTM;
 	char largeRadar; // 0: Normal radar function. 1: Sector view requested. 2: confirmed. 3: being displayed, send no more radar.
+	struct client* owner;
 }humanAiData;
 
 typedef struct {

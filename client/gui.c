@@ -51,6 +51,9 @@ static struct sockaddr_in serverAddr;
 spriteSheet* pictures = NULL;
 SDL_Texture *lolyoudied, *plzcomeback;
 
+int tagcount = 0;
+char* tags = NULL;
+
 static void paint(){
 	SDL_RenderPresent(render);
 }
@@ -107,25 +110,31 @@ static void drawRadar(int8_t* data, int len){
 	drawText(render, 2, 126+2, 1, statusString);
 	rect.w = rect.h = 2;
 	SDL_SetRenderDrawColor(render, 0, 255, 0, 255);
+	
+	tagcount = data[10];
+	tags = realloc(tags, 4*tagcount);
+	memcpy(tags, &(data[11]), 4*tagcount);
+	int radarstart = 10+1+tagcount*4;
+
 	char regularSize = 0;
-	if (data[11] & 128) {
+	if (data[radarstart+1] & 128) {
 		regularSize = 1;
-		data[11] &= 127;
+		data[radarstart+1] &= 127;
 	}
-	if(data[10]&128){
+	if(data[radarstart]&128){
 		int x = (data[0]&127)*2;
 		SDL_RenderDrawLine(render, x, 0, x, 125);
 		x++;
 		SDL_RenderDrawLine(render, x, 0, x, 125);
 	}
-	if(data[10]&64){
+	if(data[radarstart]&64){
 		int y = data[1]*2;
 		SDL_RenderDrawLine(render, 0, y, 125, y);
 		y++;
 		SDL_RenderDrawLine(render, 0, y, 125, y);
 	}
 	int i;
-	for(i = 10; i+2 < len; i += 3){
+	for(i = radarstart; i+2 < len; i += 3){
 		rect.x = data[i+1]*2;
 		rect.y = data[i+2]*2;
 		drawRadarBlip(&rect, data[i]);
@@ -278,12 +287,25 @@ static void handleNetwork(){
 			i++;
 		}
 		drawTrails(render);
+		//Draw tags
+		char t[4] = {0};
+		SDL_SetRenderDrawColor(render, 255,255,255, 255);
+		for(int tagidx = 0; tagidx < tagcount; tagidx++){
+			memcpy(t, &(tags[tagidx*4]), 3);
+			float angle = M_PI/127.0*(float)(tags[tagidx*4+3]);
+			int x = width/2+width/4*cos(angle);
+			int y = height/2+height/4*sin(angle);
+			drawText(render, x, y, 1, t);
+			//printf("%s\n", t);
+		}
+
 		SDL_SetRenderDrawColor(render, 0, 0, 0, 255);
 		rect.y = height*SCREEN_MULTIPLE;
 		rect.h = 20*SCREEN_MULTIPLE;
 		rect.x = 0;
 		rect.w = width*SCREEN_MULTIPLE;
-		SDL_RenderFillRect(render, &rect);	
+		SDL_RenderFillRect(render, &rect);
+		//Draw health and energy
 		teamColor(data[0]);
 		rect.x = width*SCREEN_MULTIPLE/2-width*SCREEN_MULTIPLE/2*(uint8_t)data[5]/255;
 		rect.w = width*SCREEN_MULTIPLE*(uint8_t)data[5]/255;
@@ -294,7 +316,7 @@ static void handleNetwork(){
 		rect.x = width*SCREEN_MULTIPLE/2-width*SCREEN_MULTIPLE/2*(uint8_t)data[6]/255;
 		rect.w = width*SCREEN_MULTIPLE*(uint8_t)data[6]/255;
 		SDL_RenderFillRect(render, &rect);
-
+		//Draw sidebar grey
 		SDL_SetRenderDrawColor(render, 50, 50, 50, 255);
 		rect.x = width*SCREEN_MULTIPLE;
 		rect.y = 0;
@@ -307,6 +329,8 @@ static void handleNetwork(){
 		rect.w = 126*SIDEBAR_MULTIPLE;
 		rect.h = (126+40)*SIDEBAR_MULTIPLE;
 		SDL_RenderCopy(render, minimapTex, NULL, &rect);
+
+
 
 		paint();
 	}

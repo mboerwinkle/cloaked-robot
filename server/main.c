@@ -94,6 +94,7 @@ int main(int argc, char **argv){
 					printf("Failed to load ship \"%s\"\n", runner->name);
 					free(cli);
 				} else {
+					((humanAiData*)cli->myShip->aiFuncData)->owner = cli;
 					cli->next = clientList;
 					clientList = cli;
 				}
